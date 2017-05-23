@@ -58,7 +58,9 @@ namespace idxAnalysis {
             
             start++;
             if (start > 100) {
+#ifdef IDX_DEBUG
                 errs() << "ERROR: Expression should not be that long\n";
+#endif
                 break;
             }
         }
@@ -66,8 +68,6 @@ namespace idxAnalysis {
     }
     
     std::string IndexAnalysis::computeExpression(Instruction *inst) {
-        
-        inst->dump();
         
         std::vector<Instruction*> instStack = instStackInit(inst);
         
@@ -88,7 +88,9 @@ namespace idxAnalysis {
                     if (pInst->getOperand(0)->hasName()) {
                         expr.push_back(pInst->getOperand(0)->getName());
                     } else {
+#ifdef IDX_DEBUG
                         errs() << "Warning: PHI node without a name";
+#endif
                     }
                 }
             } else if (pInst->isBinaryOp()) {
@@ -104,13 +106,17 @@ namespace idxAnalysis {
                             Constant* cons = dyn_cast<Constant>(pInst->getOperand(0));
                             expr.push_back(cons->getUniqueInteger().toString(10, true));
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: Other operands\n";
+#endif
                         }
                     } else if (isa<PHINode>(pInst->getOperand(0))) {
                         if (pInst->getOperand(0)->hasName()) {
                             expr.push_back(pInst->getOperand(0)->getName());
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: PHI node without a name";
+#endif
                         }
                     }
                     if (!isa<Instruction>(pInst->getOperand(1))) {
@@ -120,13 +126,17 @@ namespace idxAnalysis {
                             Constant* cons = dyn_cast<Constant>(pInst->getOperand(1));
                             expr.push_back(cons->getUniqueInteger().toString(10, true));
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: Other operands\n";
+#endif
                         }
                     } else if (isa<PHINode>(pInst->getOperand(1))) {
                         if (pInst->getOperand(1)->hasName()) {
                             expr.push_back(pInst->getOperand(1)->getName());
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: PHI node without a name";
+#endif
                         }
                     }
                     
@@ -140,23 +150,31 @@ namespace idxAnalysis {
                             Constant* cons = dyn_cast<Constant>(pInst->getOperand(0));
                             expr.push_back(cons->getUniqueInteger().toString(10, true));
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: Other operands\n";
+#endif
                         }
                     }   else if (isa<PHINode>(pInst->getOperand(0))) {
                         if (pInst->getOperand(0)->hasName()) {
                             expr.push_back(pInst->getOperand(0)->getName());
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "Warning: PHI node without a name";
+#endif
                         }
                     }
                 }
             } else if (pInst->isShift()) {
+#ifdef IDX_DEBUG
                 errs() << "Error: shift instruction\n";
+#endif
             } else if (isa<CallInst>(pInst)) {
                 CallInst* callInst = dyn_cast<CallInst>(pInst);
                 Value* valueCalled = callInst->getCalledValue();
                 if (valueCalled == NULL) {
+#ifdef IDX_DEBUG
                     errs() << "NULL value here\n";
+#endif
                 } else {
                     if (valueCalled->stripPointerCasts() != NULL) {
                         if (valueCalled->stripPointerCasts()->hasName()) {
@@ -190,12 +208,16 @@ namespace idxAnalysis {
             } else if (isa<AllocaInst>(pInst)) {
                 expr.push_back(pInst->getName());
             } else {
+#ifdef IDX_DEBUG
                 errs() << "Warning: Other instructions\n";
+#endif
             }
         }
         
         if (expr.size() == 0) {
+#ifdef IDX_DEBUG
             return "No expression";
+#endif
         }
         
         /* Prefix expression to infix expression */
@@ -258,7 +280,9 @@ namespace idxAnalysis {
                     int OperandToAnalysis = 1;
                     
                     if (gepTmp->getNumOperands() < 2) {
+#ifdef IDX_DEBUG
                         errs() << "ERROR: GEP does not have enough operands\n";
+#endif
                     } else {
                         Instruction* accessInst = dyn_cast<Instruction>(&(*it));
                         std::string nameTmp = getArrayName(gepTmp);
@@ -276,7 +300,9 @@ namespace idxAnalysis {
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = constTmp->getUniqueInteger().toString(10, true);
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "ERROR: other load address type\n";
+#endif
                         }
                     }
                 }
@@ -290,7 +316,9 @@ namespace idxAnalysis {
                     int OperandToAnalysis = 1;
                     
                     if (gepTmp->getNumOperands() < 2) {
+#ifdef IDX_DEBUG
                         errs() << "ERROR: GEP does not have enough operands\n";
+#endif
                     } else {
                         Instruction* accessInst = dyn_cast<Instruction>(&(*it));
                         std::string nameTmp = getArrayName(gepTmp);
@@ -308,7 +336,9 @@ namespace idxAnalysis {
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = constTmp->getUniqueInteger().toString(10, true);
                         } else {
+#ifdef IDX_DEBUG
                             errs() << "ERROR: other store address type\n";
+#endif
                         }
                     }
                 }
@@ -327,8 +357,6 @@ namespace idxAnalysis {
     
     bool IndexAnalysis::runOnFunction(Function &F) {
         errs() << "\nStart to analysis array index\n";
-        
-        F.dump();
         
         findAllArrayAccesses(F);
         
