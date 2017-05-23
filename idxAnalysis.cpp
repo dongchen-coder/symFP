@@ -67,6 +67,8 @@ namespace idxAnalysis {
     
     std::string IndexAnalysis::computeExpression(Instruction *inst) {
         
+        inst->dump();
+        
         std::vector<Instruction*> instStack = instStackInit(inst);
         
         if (instStack.size() == 0) {
@@ -227,12 +229,23 @@ namespace idxAnalysis {
                 len = len - 2;
             }
         }
-        //errs() << "\n";
         
         expr_infix = expr[0];
         
-        
         return expr_infix;
+    }
+    
+    std::string IndexAnalysis::getArrayName(GetElementPtrInst* inst) {
+        std::string nameTmp = "";
+        
+        if (isa<LoadInst>(inst->getPointerOperand())) {
+            LoadInst* ldTmp = dyn_cast<LoadInst>(inst->getPointerOperand());
+            nameTmp = ldTmp->getOperand(0)->getName();
+        } else {
+            nameTmp = inst->getPointerOperand()->getName();
+        }
+        
+        return nameTmp;
     }
     
     void IndexAnalysis::findAllArrayAccesses(Function &F) {
@@ -242,13 +255,13 @@ namespace idxAnalysis {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(0));
                     
                     /* Problem: how to figure out which operand is index for GEP? */
-                    int OperandToAnalysis = 2;
+                    int OperandToAnalysis = 1;
                     
                     if (gepTmp->getNumOperands() < 2) {
                         errs() << "ERROR: GEP does not have enough operands\n";
                     } else {
                         Instruction* accessInst = dyn_cast<Instruction>(&(*it));
-                        std::string nameTmp = gepTmp->getPointerOperand()->getName();
+                        std::string nameTmp = getArrayName(gepTmp);
                         
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
@@ -274,13 +287,13 @@ namespace idxAnalysis {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(1));
                     
                     /* Problem: how to figure out which operand is index for GEP? */
-                    int OperandToAnalysis = 2;
+                    int OperandToAnalysis = 1;
                     
                     if (gepTmp->getNumOperands() < 2) {
                         errs() << "ERROR: GEP does not have enough operands\n";
                     } else {
                         Instruction* accessInst = dyn_cast<Instruction>(&(*it));
-                        std::string nameTmp = gepTmp->getPointerOperand()->getName();
+                        std::string nameTmp = getArrayName(gepTmp);
                         
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
@@ -314,6 +327,8 @@ namespace idxAnalysis {
     
     bool IndexAnalysis::runOnFunction(Function &F) {
         errs() << "\nStart to analysis array index\n";
+        
+        F.dump();
         
         findAllArrayAccesses(F);
         

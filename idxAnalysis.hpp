@@ -32,6 +32,8 @@ namespace idxAnalysis {
         std::vector<Instruction*> instStackInit(Instruction* inst);
         std::string computeExpression(Instruction* inst);
         
+        std::string getArrayName(GetElementPtrInst* inst);
+        
         void findAllArrayAccesses(Function &F);
         
         void dumpAllInfo();
