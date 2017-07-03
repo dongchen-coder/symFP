@@ -28,6 +28,7 @@ namespace loopAnalysis {
         LoopIndvBoundAnalysis();
         
         void subLoop(Loop *L);
+        void findIDV(Loop *L);
         void inductionVariableAnalysis(Function &F);
         
         /* Analysis pass main function */
