@@ -15,12 +15,15 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Analysis/CFG.h"
+#include "llvm/IR/Constants.h"
+
 
 #include "idxAnalysis.hpp"
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 
 using namespace llvm;
+using namespace std;
 
 namespace loopAnalysis {
     struct LoopIndvBoundAnalysis : public FunctionPass {
@@ -28,8 +31,12 @@ namespace loopAnalysis {
         LoopIndvBoundAnalysis();
         
         void subLoop(Loop *L);
+        /* Find all Basic Induction Variable */
         void findIDV(Loop *L);
+        void findLoopBound(Loop *L);
         void inductionVariableAnalysis(Function &F);
+        vector<BasicBlock *> getSubLoopCondBlock(Loop *L);
+        void dumpLoopIDV();
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override;
