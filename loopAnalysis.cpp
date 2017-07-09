@@ -17,17 +17,21 @@ namespace loopAnalysis {
     char LoopIndvBoundAnalysis::ID = 0;
     static RegisterPass<LoopIndvBoundAnalysis> X("loopAnalysis", "loop induction variable/bound analysis Pass", false, false);
     
-    typedef pair<StringRef, vector<Value *>> LoopIDVInfo;
     
-    vector<LoopIDVInfo> LoopIDVInfoList;
+    struct LoopInfoStruct{
+        Loop *L;
+        Value * IDV;
+        LoopIndvBoundAnalysis::LoopBound LB;
+        vector<Loop *> SL;
+    };
+    
+    vector<LoopInfoStruct> LoopInfoVector;
     
     LoopIndvBoundAnalysis::LoopIndvBoundAnalysis() : FunctionPass(ID) {}
-    int loopcont = 0;
     void LoopIndvBoundAnalysis::subLoop(Loop *L) {
         for (Loop *SL : L->getSubLoops()) {
-            loopcont ++;
             errs() << "Sub Loop:\n";
-            findIDV(SL);
+//            findIDV(SL);
             subLoop(SL);
         }
         
@@ -36,54 +40,67 @@ namespace loopAnalysis {
     
     void LoopIndvBoundAnalysis::findIDV(Loop *L) {
         vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
-        errs() << "BasicBlocks in SubLoop is: ";
-        for (BasicBlock *BB : subLoopCondBlocks) {
-            errs() << BB->getName() + " ";
-        }
-        vector<Value *> temp;
+        
         // find all BasicBlocks in the loop L
         for (BasicBlock *b : L->getBlocks()) {
             if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
-                errs() << b->getName() + " \n";
-                
                 for (Instruction &II : *b) {
                     if (isa<LoadInst>(II)) {
-                        errs() << "IDV for Loop " + L->getName().str() + " is " + II.getOperand(0)->getName() + "\n";
-                        temp.push_back(II.getOperand(0));
+                        LoopInfoStruct temp = {
+                            L,
+                            II.getOperand(0),
+                            findLoopBound(L, II.getOperand(0)),
+                            L->getSubLoops()
+                        };
+                        
+                        LoopInfoVector.push_back(temp);
                     }
                 }
             }
         }
-        LoopIDVInfoList.push_back(make_pair(L->getName(), temp));
+        
         errs() << "\n";
     }
     
-    void LoopIndvBoundAnalysis::findLoopBound(Loop *L) {
+    LoopIndvBoundAnalysis::LoopBound LoopIndvBoundAnalysis::findLoopBound(Loop *L, Value *var) {
+        Value* ub;
+        Value* lb;
         for (BasicBlock *b : L->getBlocks()) {
             if (std::regex_match(b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
                 for(BasicBlock::iterator it = b->begin(), eit = b->end(); it != eit; ++it) {
                     if (isa<ICmpInst>(*it)) {
-                        errs() << "Upper Bound for Loop is: ";
+//                        errs() << "Upper Bound for Loop is: ";
                         Value *v = it->getOperand(1);
-                        if (isa<ConstantInt>(v))
-                        {
-                            Value *use = it->getOperand(0);
-                            errs() << *(dyn_cast<Instruction>(use)->getOperand(0));
-                            Instruction *def = dyn_cast<Instruction>(use);
-                            
-                            errs() << "def: " << *def << "\n";
-                            for(Value::use_iterator i = def->use_begin(), ie = def->use_end(); i!=ie; ++i) {
-                                Value *v = *i;
-                                Instruction *vi = dyn_cast<Instruction>(v);
-                                errs() << "\t\t" << *vi << "\n";
-                            }
-//                            errs() << *(dyn_cast<Instruction>(def)->getUse);
-//                            errs() << cast<ConstantInt>(v)->getValue();
+                        if (isa<ConstantInt>(v)) {
+//                            errs() << dyn_cast<ConstantInt>(v)->getValue();
+                            ub = v;
                         }
                     }
                 }
+                // iterate all its current predecessors
+                for(auto pit = pred_begin(b), pet = pred_end(b); pit != pet; ++pit) {
+                    BasicBlock *pred = *pit;
+                    if (!std::regex_match(pred->getName().str(), std::regex("^for.inc\\d*$|^for.inc$"))) {
+                        // iterate all store instructions, find the first operand when the second operand is a idv
+                        for (BasicBlock::iterator it = pred->begin(), eit = pred->end(); it != eit; ++it) {
+                            if (isa<StoreInst>(*it)) {
+                                Value *v = it->getOperand(0);
+                                if (isa<ConstantInt>(v) && it->getOperand(1)->getName().equals(var->getName())) {
+//                                    errs() << "Lower Bound for Loop is: " << dyn_cast<ConstantInt>(v)->getValue() <<"\n";
+                                    lb = v;
+                                }
+                                else {
+                                    // TO DO
+                                }
+                            }
+                        }
+
+                    }
+                }
             }
+            
         }
+        return make_pair(lb, ub);
     }
     
     void LoopIndvBoundAnalysis::inductionVariableAnalysis(Function &F) {
@@ -93,16 +110,11 @@ namespace loopAnalysis {
         if (!LI.empty()) {
             for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
                 errs() << "Loop:\n";
-                findIDV(*it);
-                findLoopBound(*it);
+//                findIDV(*it);
                 subLoop(*it);
-                loopcont ++;
             }
         }
-        dumpLoopIDV();
-        errs() << "There's ";
-        errs() << loopcont;
-        errs() << " Loops In total\n";
+        dumpLoopInfoStruct();
         return;
     }
     
@@ -132,22 +144,24 @@ namespace loopAnalysis {
         for (Loop *SL : L->getSubLoops()) {
             for (BasicBlock *BB: SL->getBlocks()) {
                 if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
-                    errs() << BB->getName() + " \n";
+//                    errs() << BB->getName() + " \n";
                     temp.push_back(BB);
                 }
-
             }
         }
         return temp;
     }
     
-    void LoopIndvBoundAnalysis::dumpLoopIDV() {
-        for (LoopIDVInfo info: LoopIDVInfoList) {
-            errs() << "For Loop " + info.first.str() + ": ";
-            for (Value *v : info.second) {
-                errs() << v->getName() + " ";
+    void LoopIndvBoundAnalysis::dumpLoopInfoStruct() {
+        for (LoopInfoStruct is: LoopInfoVector) {
+            errs() << "For Loop " << is.L->getName() << ": \n";
+            errs() << "Induction Variable: " << is.IDV->getName() << "\n";
+            errs() << "Loop Bound: (" << dyn_cast<ConstantInt>(is.LB.first)->getValue() << ", " << dyn_cast<ConstantInt>(is.LB.second)->getValue() << ")\n";
+            errs() << "Sub Loops: ";
+            for (Loop* sl: is.SL) {
+                errs() << sl->getName() << " ";
             }
-            errs() << "\n";
+            errs() << "\n\n";
         }
     }
 }

@@ -10,6 +10,7 @@
 #define loopAnalysis_hpp
 
 #include <stdio.h>
+#include <set>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
@@ -30,13 +31,22 @@ namespace loopAnalysis {
         static char ID;
         LoopIndvBoundAnalysis();
         
+        typedef pair<Value*, Value*> LoopBound;
+        
         void subLoop(Loop *L);
         /* Find all Basic Induction Variable */
         void findIDV(Loop *L);
-        void findLoopBound(Loop *L);
-        void inductionVariableAnalysis(Function &F);
+        
+        /* Find the Loop Bound */
+        LoopBound findLoopBound(Loop *L, Value *var);
+        
+        /* Find All the BasicBlocks within the SubLoops */
         vector<BasicBlock *> getSubLoopCondBlock(Loop *L);
-        void dumpLoopIDV();
+        
+        /* Print Func */
+        void dumpLoopInfoStruct();
+        
+        void inductionVariableAnalysis(Function &F);
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override;
