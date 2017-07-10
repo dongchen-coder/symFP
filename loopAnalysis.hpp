@@ -46,6 +46,9 @@ namespace loopAnalysis {
         /* Print Func */
         void dumpLoopInfoStruct();
         
+        /* Get the Loop Bound in a string format */
+        string getBound(Value *);
+        
         void inductionVariableAnalysis(Function &F);
         
         /* Analysis pass main function */

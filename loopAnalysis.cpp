@@ -31,7 +31,7 @@ namespace loopAnalysis {
     void LoopIndvBoundAnalysis::subLoop(Loop *L) {
         for (Loop *SL : L->getSubLoops()) {
             errs() << "Sub Loop:\n";
-//            findIDV(SL);
+            findIDV(SL);
             subLoop(SL);
         }
         
@@ -85,12 +85,9 @@ namespace loopAnalysis {
                         for (BasicBlock::iterator it = pred->begin(), eit = pred->end(); it != eit; ++it) {
                             if (isa<StoreInst>(*it)) {
                                 Value *v = it->getOperand(0);
-                                if (isa<ConstantInt>(v) && it->getOperand(1)->getName().equals(var->getName())) {
+                                if (it->getOperand(1)->getName().equals(var->getName())) {
 //                                    errs() << "Lower Bound for Loop is: " << dyn_cast<ConstantInt>(v)->getValue() <<"\n";
                                     lb = v;
-                                }
-                                else {
-                                    // TO DO
                                 }
                             }
                         }
@@ -110,7 +107,7 @@ namespace loopAnalysis {
         if (!LI.empty()) {
             for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
                 errs() << "Loop:\n";
-//                findIDV(*it);
+                findIDV(*it);
                 subLoop(*it);
             }
         }
@@ -156,12 +153,46 @@ namespace loopAnalysis {
         for (LoopInfoStruct is: LoopInfoVector) {
             errs() << "For Loop " << is.L->getName() << ": \n";
             errs() << "Induction Variable: " << is.IDV->getName() << "\n";
-            errs() << "Loop Bound: (" << dyn_cast<ConstantInt>(is.LB.first)->getValue() << ", " << dyn_cast<ConstantInt>(is.LB.second)->getValue() << ")\n";
+            errs() << "Loop Bound: (" << getBound(is.LB.first) << ", " << getBound(is.LB.second) << ")\n";
             errs() << "Sub Loops: ";
             for (Loop* sl: is.SL) {
                 errs() << sl->getName() << " ";
             }
             errs() << "\n\n";
         }
+    }
+    
+    string LoopIndvBoundAnalysis::getBound(Value *bound) {
+        
+        if (isa<Instruction>(bound)) {
+            
+            Instruction *inst = cast<Instruction>(bound);
+
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                    return "(" + getBound(inst->getOperand(0)) + " + " + getBound(inst->getOperand(1)) + ")";
+                    break;
+                case Instruction::Sub:
+                    return "(" + getBound(inst->getOperand(0)) + " - " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Mul:
+                    return "(" + getBound(inst->getOperand(0)) + " * " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    return "(" + getBound(inst->getOperand(0)) + " / " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Load:
+                    return inst->getOperand(0)->getName().str();
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(bound)) {
+            return to_string(dyn_cast<ConstantInt>(bound)->getValue().getSExtValue());
+        }
+        return "";
     }
 }
