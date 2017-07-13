@@ -16,6 +16,7 @@
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "brchAnalysis.hpp"
 
 using namespace llvm;
 
@@ -33,6 +34,7 @@ namespace symFP {
             getAnalysis<argAnalysis::ArgumentAnalysis>();
             getAnalysis<gVarAnalysis::GlobalVariableAnalysis>();
             getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>();
+            getAnalysis<brchAnalysis::BranchAnalysis>();
             return false;
         }
 
@@ -42,6 +44,7 @@ namespace symFP {
             AU.addRequired<argAnalysis::ArgumentAnalysis>();
             AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
             AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
+            AU.addRequired<brchAnalysis::BranchAnalysis>();
         }
     };
     
