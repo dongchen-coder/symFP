@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <set>
+#include <regex>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
@@ -32,6 +33,15 @@ namespace loopAnalysis {
         LoopIndvBoundAnalysis();
         
         typedef pair<Value*, Value*> LoopBound;
+        
+        struct LoopInfoStruct{
+            Loop *L;
+            Value * IDV;
+            LoopIndvBoundAnalysis::LoopBound LB;
+            vector<Loop *> SL;
+        };
+        
+        vector<LoopInfoStruct> LoopInfoVector;
         
         void subLoop(Loop *L);
         /* Find all Basic Induction Variable */

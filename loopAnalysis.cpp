@@ -6,7 +6,6 @@
 //
 //
 
-#include <regex>
 #include "loopAnalysis.hpp"
 
 using namespace llvm;
@@ -18,16 +17,8 @@ namespace loopAnalysis {
     static RegisterPass<LoopIndvBoundAnalysis> X("loopAnalysis", "loop induction variable/bound analysis Pass", false, false);
     
     
-    struct LoopInfoStruct{
-        Loop *L;
-        Value * IDV;
-        LoopIndvBoundAnalysis::LoopBound LB;
-        vector<Loop *> SL;
-    };
-    
-    vector<LoopInfoStruct> LoopInfoVector;
-    
     LoopIndvBoundAnalysis::LoopIndvBoundAnalysis() : FunctionPass(ID) {}
+    
     void LoopIndvBoundAnalysis::subLoop(Loop *L) {
         for (Loop *SL : L->getSubLoops()) {
             errs() << "Sub Loop:\n";
@@ -52,7 +43,6 @@ namespace loopAnalysis {
                             findLoopBound(L, II.getOperand(0)),
                             L->getSubLoops()
                         };
-                        
                         LoopInfoVector.push_back(temp);
                     }
                 }
@@ -91,7 +81,6 @@ namespace loopAnalysis {
                                 }
                             }
                         }
-
                     }
                 }
             }

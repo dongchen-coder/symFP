@@ -10,6 +10,7 @@
 #define brchAnalysis_hpp
 
 #include <stdio.h>
+#include <regex>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
@@ -34,8 +35,27 @@ namespace brchAnalysis {
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override;
         
-        /* Find Branch Conditions in SubLoop */
-        void SubLoopAnalysis(Loop *L);
+        /* Find the If Body in the Loop */
+        vector<BasicBlock *> FindIfBody(Loop *L);
+        
+        /* Find the Branch Conditions */
+        void FindBranch(Loop *L);
+        
+        /* Check whether the branch is valid */
+        bool CheckBranchValid(Loop *L, Value *v);
+
+        /* Check Whether the Condition Var belongs to the self/parent Loop Indv */
+        bool CheckIndvVar(Loop *L, string var);
+        
+        /* Print the Conditions */
+        void dumpBranchInfoStruct();
+        
+        /* Return the String Representation of a Value */
+        string dumpValue(Value *v);
+        
+        /* Return the String Representation of a Array */
+        string dumpArray(Value *arr);
+        
         
         void getAnalysisUsage(AnalysisUsage &AU) const override;
     };

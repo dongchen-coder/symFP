@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <regex>
 
 #include "idxAnalysis.hpp"
 #include "argAnalysis.hpp"
