@@ -1,6 +1,6 @@
 # Symbolic Footprint
 
-This is the underdevelopment symblic footprint repository. 
+This is the underdevelopment symblic footprint repository (based on LLVM-4.0.0). 
 
 symFP is the major analysis pass which is dependent on the other four analysis passes (index, argument, global variable and loop information analysis pass).
 
