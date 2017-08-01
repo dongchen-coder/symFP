@@ -8,63 +8,66 @@ LEVEL=..
 CLANG_BIN_DIR=/Users/dongchen/tools/llvm_xcode/Debug/bin
 LLVM_BIN_DIR=/Users/dongchen/tools/llvm_xcode/Debug/bin
 
+TEST_DIR=/Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/polyBench
+
+
 OPT= $(LLVM_BIN_DIR)/opt
 LLC= $(LLVM_BIN_DIR)/llc
 CC= $(CLANG_BIN_DIR)/clang
 
-all: check correlation convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax covariance
+polyBench: check correlation convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax covariance
 
-check: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc.opt
+check: $(TEST_DIR)/stencil.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/stencil.c -o $(TEST_DIR)/stencil.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/stencil.bc> $(TEST_DIR)/stencil.bc.opt
 
-correlation: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.bc.opt
+correlation: $(TEST_DIR)/correlation.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/correlation.c -o $(TEST_DIR)/correlation.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/correlation.bc> $(TEST_DIR)/correlation.bc.opt
 
-convolution_3d: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_3d.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_3d.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_3d.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_3d.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_3d.bc.opt
+convolution_3d: $(TEST_DIR)/convolution_3d.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/convolution_3d.c -o $(TEST_DIR)/convolution_3d.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/convolution_3d.bc> $(TEST_DIR)/convolution_3d.bc.opt
 
-convolution_2d: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_2d.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_2d.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_2d.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_2d.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/convolution_2d.bc.opt
+convolution_2d: $(TEST_DIR)/convolution_2d.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/convolution_2d.c -o $(TEST_DIR)/convolution_2d.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/convolution_2d.bc> $(TEST_DIR)/convolution_2d.bc.opt
 
-syrk: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/syrk.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/syrk.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/syrk.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/syrk.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/syrk.bc.opt
+syrk: $(TEST_DIR)/syrk.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/syrk.c -o $(TEST_DIR)/syrk.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/syrk.bc> $(TEST_DIR)/syrk.bc.opt
 
-mvt: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/mvt.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/mvt.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/mvt.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/mvt.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/mvt.bc.opt
+mvt: $(TEST_DIR)/mvt.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/mvt.c -o $(TEST_DIR)/mvt.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/mvt.bc> $(TEST_DIR)/mvt.bc.opt
 
-gesummv: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gesummv.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gesummv.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gesummv.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gesummv.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gesummv.bc.opt
+gesummv: $(TEST_DIR)/gesummv.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/gesummv.c -o $(TEST_DIR)/gesummv.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/gesummv.bc> $(TEST_DIR)/gesummv.bc.opt
 
-gemver: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemver.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemver.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemver.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemver.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemver.bc.opt
+gemver: $(TEST_DIR)/gemver.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/gemver.c -o $(TEST_DIR)/gemver.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/gemver.bc> $(TEST_DIR)/gemver.bc.opt
 
-gemm: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemm.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemm.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemm.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemm.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/gemm.bc.opt
+gemm: $(TEST_DIR)/gemm.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/gemm.c -o $(TEST_DIR)/gemm.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/gemm.bc> $(TEST_DIR)/gemm.bc.opt
 
-bicg: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/bicg.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/bicg.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/bicg.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/bicg.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/bicg.bc.opt
+bicg: $(TEST_DIR)/bicg.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/bicg.c -o $(TEST_DIR)/bicg.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/bicg.bc> $(TEST_DIR)/bicg.bc.opt
 
-atax: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/atax.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/atax.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/atax.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/atax.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/atax.bc.opt
+atax: $(TEST_DIR)/atax.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/atax.c -o $(TEST_DIR)/atax.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/atax.bc> $(TEST_DIR)/atax.bc.opt
 
-3mm: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/3mm.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/3mm.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/3mm.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/3mm.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/3mm.bc.opt
+3mm: $(TEST_DIR)/3mm.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/3mm.c -o $(TEST_DIR)/3mm.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/3mm.bc> $(TEST_DIR)/3mm.bc.opt
 
-covariance: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/covariance.c
-	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/covariance.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/covariance.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/covariance.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/covariance.bc.opt
+covariance: $(TEST_DIR)/covariance.c
+	$(CC) -O0 -c -emit-llvm $(TEST_DIR)/covariance.c -o $(TEST_DIR)/covariance.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(TEST_DIR)/covariance.bc> $(TEST_DIR)/covariance.bc.opt
 
 clean:
 	rm -f *.bc *.opt *.o test
