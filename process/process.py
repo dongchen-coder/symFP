@@ -1,6 +1,12 @@
 
 #Debug info
 
+iter_space = [[1, 1024], [1, 1024]]
+checking_space = [[1, 1024], [4,1021]]
+
+#iter_space = [[1, 10240], [1, 10240]]
+#checking_space = [[1, 10240], [4,10237]]
+
 DebugRT = []
 
 
@@ -80,7 +86,8 @@ def sortDistVecList(distVecList):
 def CalRT(distVec, source, sink, arrayIdx):
 
 	M = 6
-	rt = (distVec[0] * 1024 + distVec[1]) * M - arrayIdx.index(source) + arrayIdx.index(sink)
+	#rt = (distVec[0] * 1024 + distVec[1]) * M - arrayIdx.index(source) + arrayIdx.index(sink)
+	rt = (distVec[0] * (iter_space[1][1]) + distVec[1]) * M - arrayIdx.index(source) + arrayIdx.index(sink)
 
 	if (rt <= 0):
 		return rt + M
@@ -146,7 +153,8 @@ def CalShortestDistVec(sortedCandiateList, source, arrayIdx):
 	#print sortedCandiateList
 
 
-	SDVstack = [[float('inf'), [1, 1024], [1, 1024]]]
+	#SDVstack = [[float('inf'), [1, 1024], [1, 1024]]]
+	SDVstack = [[float('inf'), iter_space[0], iter_space[1]]]
 	SDVstackResult = []
 
 	for item in sortedCandiateList:
@@ -209,8 +217,12 @@ def DumpRTHistogram(rtHisto):
 	count = 0
 	for item in rtHisto:
 		# take B into account
+		rtHisto[item] = rtHisto[item] / 4	
+
 		if (item == 6):
-			rtHisto[item] += 1024*1024 * 3 / 4
+			#rtHisto[item] += 1024*1024 * 3 / 4
+			rtHisto[item] += iter_space[0][1] * iter_space[1][1] * 3 / 4;
+
 		count += rtHisto[item]
 
 	for item in rtHisto:
@@ -244,13 +256,17 @@ for source in arrayIdx:
 
 		distVec = CalDistanceVector(source, sink)
 		#validRange = ValidIterationRange(distVec, [[1, 1024], [1, 1024]])
-		validRange = ValidIterationRange(distVec, [[2, 1023], [4, 1021]])
+		#validRange = ValidIterationRange(distVec, [[2, 1023], [4, 1021]])
+		#validRange = ValidIterationRange(distVec, [[1, 1024], [4,1021]])
+		validRange = ValidIterationRange(distVec, checking_space)
 
 		for sourceAlignPos in [0, 1, 2, 3]:
 			for sinkAlignPos in [0, 1, 2, 3]:
 				distVecAlign = CalDistanceVectorAlign(source, sink, sourceAlignPos, sinkAlignPos)
 				#validRangeAlign = ValidIterationRange(distVecAlign, [[1, 1024], [1, 1024]])
-				validRangeAlign = ValidIterationRange(distVecAlign, [[2, 1023], [4, 1021]])
+				#validRangeAlign = ValidIterationRange(distVecAlign, [[2, 1023], [4, 1021]])
+				#validRangeAlign = ValidIterationRange(distVecAlign, [[1, 1024], [4, 1021]])
+				validRangeAlign = ValidIterationRange(distVecAlign, checking_space)
 
 				#if (sourceAlignPos == 0 and source == [0, 0]):
 				#	print 'Process array index: Source: '+ str(source) + ' Sink ' + str(sink)

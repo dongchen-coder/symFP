@@ -30,8 +30,8 @@ namespace brchAnalysis {
         vector<BasicBlock *> body;
         bool begin = false;
         for (BasicBlock *BB: L->getBlocks()) {
-            errs() << "BB: " << BB->getName() << "\n";
-            errs() << "BB: " << BB->getName() << "\n";
+            //errs() << "BB: " << BB->getName() << "\n";
+            //errs() << "BB: " << BB->getName() << "\n";
             if (std::regex_match (BB->getName().str(), std::regex("^if.then$|^if.then\\d*$)"))) {
                 begin = true;
             }
@@ -55,11 +55,13 @@ namespace brchAnalysis {
         LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
         if (!LI.empty()) {
             for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
-                errs() << "Loop:\n";
+                //errs() << "Loop:\n";
                 FindBranch(*it);
             }
         }
-        dumpBranchInfoStruct();
+        
+        /* Can not iterpret the info */
+        // dumpBranchInfoStruct();
         
         return false;
     }

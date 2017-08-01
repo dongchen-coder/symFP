@@ -16,12 +16,11 @@ namespace loopAnalysis {
     char LoopIndvBoundAnalysis::ID = 0;
     static RegisterPass<LoopIndvBoundAnalysis> X("loopAnalysis", "loop induction variable/bound analysis Pass", false, false);
     
-    
     LoopIndvBoundAnalysis::LoopIndvBoundAnalysis() : FunctionPass(ID) {}
     
     void LoopIndvBoundAnalysis::subLoop(Loop *L) {
         for (Loop *SL : L->getSubLoops()) {
-            errs() << "Sub Loop:\n";
+            //errs() << "Sub Loop:\n";
             findIDV(SL);
             subLoop(SL);
         }
@@ -95,12 +94,11 @@ namespace loopAnalysis {
         LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
         if (!LI.empty()) {
             for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
-                errs() << "Loop:\n";
+                //errs() << "Loop:\n";
                 findIDV(*it);
                 subLoop(*it);
             }
         }
-        dumpLoopInfoStruct();
         return;
     }
     
@@ -109,6 +107,7 @@ namespace loopAnalysis {
         errs() << "\nStart analysis loops\n";
         
         inductionVariableAnalysis(F);
+        dumpLoopInfoStruct();
         
         return false;
     }
@@ -125,6 +124,7 @@ namespace loopAnalysis {
     /*
      * 获得Loop L所有子Loop中的cond BasicBlock
      */
+    
     vector<BasicBlock *> LoopIndvBoundAnalysis::getSubLoopCondBlock(Loop *L) {
         vector<BasicBlock *> temp;
         for (Loop *SL : L->getSubLoops()) {

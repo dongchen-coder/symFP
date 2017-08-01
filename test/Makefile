@@ -12,9 +12,11 @@ OPT= $(LLVM_BIN_DIR)/opt
 LLC= $(LLVM_BIN_DIR)/llc
 CC= $(CLANG_BIN_DIR)/clang
 
-check: ./src/stencil.c
-	$(CC) -O0 -c -emit-llvm ./src/stencil.c -o ./src_bc/stencil.bc
-	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <./src_bc/stencil.bc> ./src_bc/stencil.bc.opt
+all: check correlation convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax covariance
+
+check: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.c
+	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc
+	$(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP </Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc> /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/stencil.bc.opt
 
 correlation: /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.c
 	$(CC) -O0 -c -emit-llvm /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.c -o /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test/correlation.bc
