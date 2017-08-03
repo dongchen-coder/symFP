@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <set>
 #include <regex>
+#include <map>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
@@ -35,17 +36,23 @@ namespace loopAnalysis {
         typedef pair<Value*, Value*> LoopBound;
         
         struct LoopInfoStruct{
-            Loop *L;
-            Value * IDV;
-            LoopIndvBoundAnalysis::LoopBound LB;
-            vector<Loop *> SL;
+            vector<Value *>* IDV;
+            vector<LoopIndvBoundAnalysis::LoopBound>* LB;
         };
         
-        vector<LoopInfoStruct> LoopInfoVector;
+        struct LoopTreeNodes {
+            int LoopLevel;
+            LoopInfoStruct* LIS;
+            vector<LoopTreeNodes *>* next;
+        };
         
-        void subLoop(Loop *L);
+        LoopTreeNodes* LoopInfoTree;
+        
+        //vector<LoopInfoStruct> LoopInfoVector;
+        
+        //void subLoop(Loop *L);
         /* Find all Basic Induction Variable */
-        void findIDV(Loop *L);
+        //void findIDV(Loop *L);
         
         /* Find the Loop Bound */
         LoopBound findLoopBound(Loop *L, Value *var);
@@ -54,12 +61,17 @@ namespace loopAnalysis {
         vector<BasicBlock *> getSubLoopCondBlock(Loop *L);
         
         /* Print Func */
-        void dumpLoopInfoStruct();
+        //void dumpLoopInfoStruct();
         
         /* Get the Loop Bound in a string format */
         string getBound(Value *);
         
-        void inductionVariableAnalysis(Function &F);
+        void DumpLoopTree(LoopTreeNodes* LTroot);
+        LoopInfoStruct* ExtractLoopInfo(Loop *L);
+        void LoopTreeConstruction(Loop* LI , LoopTreeNodes * root, int level);
+        LoopTreeNodes* LoopTreeConstructionTop(LoopTreeNodes * root, int level);
+        
+        //void inductionVariableAnalysis(Function &F);
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override;

@@ -18,38 +18,7 @@ namespace loopAnalysis {
     
     LoopIndvBoundAnalysis::LoopIndvBoundAnalysis() : FunctionPass(ID) {}
     
-    void LoopIndvBoundAnalysis::subLoop(Loop *L) {
-        for (Loop *SL : L->getSubLoops()) {
-            //errs() << "Sub Loop:\n";
-            findIDV(SL);
-            subLoop(SL);
-        }
-        
-        return;
-    }
     
-    void LoopIndvBoundAnalysis::findIDV(Loop *L) {
-        vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
-        
-        // find all BasicBlocks in the loop L
-        for (BasicBlock *b : L->getBlocks()) {
-            if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
-                for (Instruction &II : *b) {
-                    if (isa<LoadInst>(II)) {
-                        LoopInfoStruct temp = {
-                            L,
-                            II.getOperand(0),
-                            findLoopBound(L, II.getOperand(0)),
-                            L->getSubLoops()
-                        };
-                        LoopInfoVector.push_back(temp);
-                    }
-                }
-            }
-        }
-        
-        errs() << "\n";
-    }
     
     LoopIndvBoundAnalysis::LoopBound LoopIndvBoundAnalysis::findLoopBound(Loop *L, Value *var) {
         Value* ub;
@@ -87,70 +56,7 @@ namespace loopAnalysis {
         }
         return make_pair(lb, ub);
     }
-    
-    void LoopIndvBoundAnalysis::inductionVariableAnalysis(Function &F) {
-        errs() << "Induction variable analysis\n";
-        
-        LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-        if (!LI.empty()) {
-            for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
-                //errs() << "Loop:\n";
-                findIDV(*it);
-                subLoop(*it);
-            }
-        }
-        return;
-    }
-    
-    bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
-        
-        errs() << "\nStart analysis loops\n";
-        
-        inductionVariableAnalysis(F);
-        dumpLoopInfoStruct();
-        
-        return false;
-    }
-    
-    void LoopIndvBoundAnalysis::getAnalysisUsage(AnalysisUsage &AU) const {
-        AU.setPreservesAll();
-        AU.addRequired<LoopInfoWrapperPass>();
-        AU.addRequired<idxAnalysis::IndexAnalysis>();
-        AU.addRequired<argAnalysis::ArgumentAnalysis>();
-        AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
-        return;
-    }
-    
-    /*
-     * 获得Loop L所有子Loop中的cond BasicBlock
-     */
-    
-    vector<BasicBlock *> LoopIndvBoundAnalysis::getSubLoopCondBlock(Loop *L) {
-        vector<BasicBlock *> temp;
-        for (Loop *SL : L->getSubLoops()) {
-            for (BasicBlock *BB: SL->getBlocks()) {
-                if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
-//                    errs() << BB->getName() + " \n";
-                    temp.push_back(BB);
-                }
-            }
-        }
-        return temp;
-    }
-    
-    void LoopIndvBoundAnalysis::dumpLoopInfoStruct() {
-        for (LoopInfoStruct is: LoopInfoVector) {
-            errs() << "For Loop " << is.L->getName() << ": \n";
-            errs() << "Induction Variable: " << is.IDV->getName() << "\n";
-            errs() << "Loop Bound: (" << getBound(is.LB.first) << ", " << getBound(is.LB.second) << ")\n";
-            errs() << "Sub Loops: ";
-            for (Loop* sl: is.SL) {
-                errs() << sl->getName() << " ";
-            }
-            errs() << "\n\n";
-        }
-    }
-    
+
     string LoopIndvBoundAnalysis::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
@@ -184,4 +90,152 @@ namespace loopAnalysis {
         }
         return "";
     }
+
+    
+    
+    
+    /*
+     * 获得Loop L所有子Loop中的cond BasicBlock
+     */
+    
+    vector<BasicBlock *> LoopIndvBoundAnalysis::getSubLoopCondBlock(Loop *L) {
+        vector<BasicBlock *> temp;
+        for (Loop *SL : L->getSubLoops()) {
+            for (BasicBlock *BB: SL->getBlocks()) {
+                if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
+                    //                    errs() << BB->getName() + " \n";
+                    temp.push_back(BB);
+                }
+            }
+        }
+        return temp;
+    }
+    
+    
+    LoopIndvBoundAnalysis::LoopInfoStruct* LoopIndvBoundAnalysis::ExtractLoopInfo(Loop *L) {
+        
+        vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
+        
+        vector<Value *>* IDV = new vector<Value *>;
+        vector<LoopIndvBoundAnalysis::LoopBound>* LB = new vector<LoopIndvBoundAnalysis::LoopBound>;
+        
+        LoopIndvBoundAnalysis::LoopInfoStruct* LIS = new LoopIndvBoundAnalysis::LoopInfoStruct;
+        
+        // find all BasicBlocks in the loop L
+        for (BasicBlock *b : L->getBlocks()) {
+            if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
+                for (Instruction &II : *b) {
+                    if (isa<LoadInst>(II)) {
+                        IDV->push_back(II.getOperand(0));
+                        LB->push_back(findLoopBound(L, II.getOperand(0)));
+                    }
+                }
+            }
+        }
+        
+        LIS->IDV = IDV;
+        LIS->LB = LB;
+        
+        return LIS;
+    }
+    
+    void LoopIndvBoundAnalysis::LoopTreeConstruction(Loop* L, LoopTreeNodes * root, int level) {
+        
+        if (L != NULL) {
+            
+            //root = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
+            root->LoopLevel = level;
+            root->LIS = ExtractLoopInfo(L);
+            root->next = new vector<LoopTreeNodes *>;
+            
+            for (Loop *SL : L->getSubLoops()) {
+                LoopTreeNodes * subTmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
+                root->next->push_back(subTmp);
+                LoopTreeConstruction(SL, subTmp, level+1);
+            }
+        }
+        
+        return;
+    }
+    
+    
+    LoopIndvBoundAnalysis::LoopTreeNodes* LoopIndvBoundAnalysis::LoopTreeConstructionTop(LoopTreeNodes* root, int level) {
+        
+        LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
+        
+        if (!LI.empty()) {
+            root = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
+            root->LoopLevel = level;
+            root->LIS = NULL;
+            root->next = new vector<LoopTreeNodes *>;
+            
+            for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
+                
+                root->LIS = ExtractLoopInfo(*it);
+                
+                for (Loop *SL : (*it)->getSubLoops()) {
+                    LoopTreeNodes * subTmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
+                    subTmp->next = new vector<LoopTreeNodes *>;
+                    root->next->push_back(subTmp);
+                    LoopTreeConstruction(SL, subTmp, level+1);
+                }
+            }
+        }
+        
+        return root;
+    }
+    
+    void LoopIndvBoundAnalysis::DumpLoopTree(LoopTreeNodes* LTroot) {
+        
+        if (LTroot != NULL) {
+            
+            if (LTroot->LIS != NULL) {
+                for (vector<Value*>::iterator it = LTroot->LIS->IDV->begin(), eit = LTroot->LIS->IDV->end(); it != eit; ++it ) {
+                    if ((*it) != NULL) {
+                        errs() << (*it)->getName() << "\n";
+                    } else {
+                        errs() << "NULL idv\n";
+                    }
+                }
+                
+                for (vector<LoopBound>::iterator it = LTroot->LIS->LB->begin(), eit = LTroot->LIS->LB->end(); it != eit; ++it) {
+                    errs() << "Loop Bound: (" << getBound((*it).first) << ", " << getBound((*it).second) << ")\n";
+                }
+            }
+            
+            if (LTroot->next != NULL) {
+                for (vector<LoopTreeNodes*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
+                    DumpLoopTree(*it);
+                }
+            }
+        } else {
+            errs() << "LTroot == NULL\n";
+        }
+        
+        return;
+    }
+    
+    /* Main function for loop induction variable analysis and loop bound analysis */
+    bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
+        
+        errs() << "\nStart analysis loops\n";
+        
+        LoopTreeNodes* LTroot = NULL;
+        LTroot = LoopTreeConstructionTop(LTroot, 0);
+        
+        DumpLoopTree(LTroot);
+        
+        return false;
+    }
+    
+    /* Dependence relation of the analysis paths */
+    void LoopIndvBoundAnalysis::getAnalysisUsage(AnalysisUsage &AU) const {
+        AU.setPreservesAll();
+        AU.addRequired<LoopInfoWrapperPass>();
+        AU.addRequired<idxAnalysis::IndexAnalysis>();
+        AU.addRequired<argAnalysis::ArgumentAnalysis>();
+        AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
+        return;
+    }
+    
 }
