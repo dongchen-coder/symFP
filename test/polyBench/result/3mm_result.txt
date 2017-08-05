@@ -1,0 +1,57 @@
+
+Start to analysis array index
+Array index info
+E.addr ((1024 * j) + i)
+A.addr ((1024 * k) + i)
+B.addr ((1024 * j) + k)
+E.addr ((1024 * j) + i)
+E.addr ((1024 * j) + i)
+F.addr ((1024 * j) + i)
+C.addr ((1024 * k) + i)
+D.addr ((1024 * j) + k)
+F.addr ((1024 * j) + i)
+F.addr ((1024 * j) + i)
+G.addr ((1024 * j) + i)
+E.addr ((1024 * k) + i)
+F.addr ((1024 * j) + k)
+G.addr ((1024 * j) + i)
+G.addr ((1024 * j) + i)
+
+Start to analyze argument
+i32 %ni
+i32 %nj
+i32 %nk
+i32 %nl
+i32 %nm
+double* %E
+double* %A
+double* %B
+double* %F
+double* %C
+double* %D
+double* %G
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+------k
+------Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+------k
+------Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+------k
+------Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: mm3_cpu
