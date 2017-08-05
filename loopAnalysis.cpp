@@ -159,25 +159,29 @@ namespace loopAnalysis {
     }
     
     
-    LoopIndvBoundAnalysis::LoopTreeNodes* LoopIndvBoundAnalysis::LoopTreeConstructionTop(LoopTreeNodes* root, int level) {
+    LoopIndvBoundAnalysis::LoopTreeNodes* LoopIndvBoundAnalysis::LoopTreeConstructionTop(LoopTreeNodes* root) {
         
         LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
         
         if (!LI.empty()) {
             root = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
-            root->LoopLevel = level;
+            root->LoopLevel = 0;
             root->LIS = NULL;
             root->next = new vector<LoopTreeNodes *>;
             
             for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
                 
-                root->LIS = ExtractLoopInfo(*it);
+                LoopTreeNodes * Tmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
+                Tmp->LIS = ExtractLoopInfo(*it);
+                Tmp->LoopLevel = 1;
+                Tmp->next = new vector<LoopTreeNodes *>;
+                
+                root->next->push_back(Tmp);
                 
                 for (Loop *SL : (*it)->getSubLoops()) {
                     LoopTreeNodes * subTmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
-                    subTmp->next = new vector<LoopTreeNodes *>;
-                    root->next->push_back(subTmp);
-                    LoopTreeConstruction(SL, subTmp, level+1);
+                    Tmp->next->push_back(subTmp);
+                    LoopTreeConstruction(SL, subTmp, 2);
                 }
             }
         }
@@ -185,27 +189,27 @@ namespace loopAnalysis {
         return root;
     }
     
-    void LoopIndvBoundAnalysis::DumpLoopTree(LoopTreeNodes* LTroot) {
+    void LoopIndvBoundAnalysis::DumpLoopTree(LoopTreeNodes* LTroot, std::string prefix) {
         
         if (LTroot != NULL) {
             
             if (LTroot->LIS != NULL) {
                 for (vector<Value*>::iterator it = LTroot->LIS->IDV->begin(), eit = LTroot->LIS->IDV->end(); it != eit; ++it ) {
                     if ((*it) != NULL) {
-                        errs() << (*it)->getName() << "\n";
+                        errs() << prefix << (*it)->getName() << "\n";
                     } else {
-                        errs() << "NULL idv\n";
+                        errs() << prefix << "NULL idv\n";
                     }
                 }
                 
                 for (vector<LoopBound>::iterator it = LTroot->LIS->LB->begin(), eit = LTroot->LIS->LB->end(); it != eit; ++it) {
-                    errs() << "Loop Bound: (" << getBound((*it).first) << ", " << getBound((*it).second) << ")\n";
+                    errs() << prefix << "Loop Bound: (" << getBound((*it).first) << ", " << getBound((*it).second) << ")\n";
                 }
             }
             
             if (LTroot->next != NULL) {
                 for (vector<LoopTreeNodes*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
-                    DumpLoopTree(*it);
+                    DumpLoopTree(*it, prefix + "--");
                 }
             }
         } else {
@@ -221,9 +225,11 @@ namespace loopAnalysis {
         errs() << "\nStart analysis loops\n";
         
         LoopTreeNodes* LTroot = NULL;
-        LTroot = LoopTreeConstructionTop(LTroot, 0);
+        LTroot = LoopTreeConstructionTop(LTroot);
         
-        DumpLoopTree(LTroot);
+        DumpLoopTree(LTroot, "");
+        
+        errs() << "\nFinish analysis loops\n";
         
         return false;
     }

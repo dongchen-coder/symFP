@@ -1,0 +1,55 @@
+
+Start to analysis array index
+Array index info
+A.addr ((1024 * j) + i)
+u1.addr i
+v1.addr j
+u2.addr i
+v2.addr j
+A.addr ((1024 * j) + i)
+x.addr i
+A.addr ((1024 * i) + j)
+y.addr j
+x.addr i
+x.addr i
+z.addr i
+x.addr i
+w.addr i
+A.addr ((1024 * j) + i)
+x.addr j
+w.addr i
+
+Start to analyze argument
+i32 %n
+double %alpha
+double %beta
+double* %A
+double* %u1
+double* %v1
+double* %u2
+double* %v2
+double* %w
+double* %x
+double* %y
+double* %z
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: gemver

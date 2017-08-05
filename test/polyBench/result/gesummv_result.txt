@@ -1,0 +1,37 @@
+
+Start to analysis array index
+Array index info
+A.addr ((1024 * j) + i)
+x.addr j
+tmp.addr i
+tmp.addr i
+B.addr ((1024 * j) + i)
+x.addr j
+y.addr i
+y.addr i
+tmp.addr i
+y.addr i
+y.addr i
+y.addr i
+tmp.addr i
+
+Start to analyze argument
+i32 %n
+double %alpha
+double %beta
+double* %A
+double* %B
+double* %tmp
+double* %x
+double* %y
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: gesummv

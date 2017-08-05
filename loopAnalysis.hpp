@@ -66,10 +66,10 @@ namespace loopAnalysis {
         /* Get the Loop Bound in a string format */
         string getBound(Value *);
         
-        void DumpLoopTree(LoopTreeNodes* LTroot);
+        void DumpLoopTree(LoopTreeNodes* LTroot, std::string prefix);
         LoopInfoStruct* ExtractLoopInfo(Loop *L);
         void LoopTreeConstruction(Loop* LI , LoopTreeNodes * root, int level);
-        LoopTreeNodes* LoopTreeConstructionTop(LoopTreeNodes * root, int level);
+        LoopTreeNodes* LoopTreeConstructionTop(LoopTreeNodes * root);
         
         //void inductionVariableAnalysis(Function &F);
         

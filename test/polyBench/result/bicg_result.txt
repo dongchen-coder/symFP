@@ -1,0 +1,35 @@
+
+Start to analysis array index
+Array index info
+q.addr i
+s.addr i
+s.addr j
+r.addr i
+A.addr ((1024 * j) + i)
+s.addr j
+q.addr i
+A.addr ((1024 * j) + i)
+p.addr j
+q.addr i
+
+Start to analyze argument
+i32 %nx
+i32 %ny
+double* %A
+double* %r
+double* %s
+double* %p
+double* %q
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: bicg_cpu

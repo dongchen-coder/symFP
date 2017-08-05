@@ -1,0 +1,30 @@
+
+Start to analysis array index
+Array index info
+A.addr ((1024 * (1 - (1 - j))) + i)
+A.addr ((1024 * (1 - (0 + j))) + i)
+A.addr ((1024 * (1 - (1 + j))) + i)
+A.addr ((1024 * (0 + (1 - j))) + i)
+A.addr ((1024 * (0 + (0 + j))) + i)
+A.addr ((1024 * (0 + (1 + j))) + i)
+A.addr ((1024 * (1 + (1 - j))) + i)
+A.addr ((1024 * (1 + (0 + j))) + i)
+A.addr ((1024 * (1 + (1 + j))) + i)
+B.addr ((1024 * j) + i)
+
+Start to analyze argument
+i32 %ni
+i32 %nj
+double* %A
+double* %B
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (1, 1023)
+----j
+----Loop Bound: (1, 1023)
+
+Finish analysis loops
+Start to analyze function: conv2D

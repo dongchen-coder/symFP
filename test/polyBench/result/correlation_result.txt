@@ -1,0 +1,70 @@
+
+Start to analysis array index
+Array index info
+mean.addr j
+data.addr ((1024 * j) + i)
+mean.addr j
+mean.addr j
+mean.addr j
+mean.addr j
+stddev.addr j
+data.addr ((1024 * j) + i)
+mean.addr j
+data.addr ((1024 * j) + i)
+mean.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+mean.addr j
+data.addr ((1024 * j) + i)
+data.addr ((1024 * j) + i)
+stddev.addr j
+data.addr ((1024 * j) + i)
+data.addr ((1024 * j) + i)
+symmat.addr ((1024 * j1) + 1024)
+symmat.addr ((1024 * j2) + j1)
+data.addr ((1024 * j1) + i)
+data.addr ((1024 * j2) + i)
+symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j1) + j2)
+symmat.addr 1048575
+
+Start to analyze argument
+i32 %m
+i32 %n
+double* %data
+double* %mean
+double* %stddev
+double* %symmat
+
+Start to analysis global variable
+
+Start analysis loops
+--j1
+--Loop Bound: (0, 1024)
+----j2
+----Loop Bound: ((j1 + 1), 1024)
+------i
+------Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--j
+--Loop Bound: (0, 1024)
+----i
+----Loop Bound: (0, 1024)
+--j
+--Loop Bound: (0, 1024)
+----i
+----Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: correlation

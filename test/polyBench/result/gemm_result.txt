@@ -1,0 +1,32 @@
+
+Start to analysis array index
+Array index info
+C.addr ((1024 * j) + i)
+C.addr ((1024 * j) + i)
+A.addr ((1024 * k) + i)
+B.addr ((1024 * j) + k)
+C.addr ((1024 * j) + i)
+C.addr ((1024 * j) + i)
+
+Start to analyze argument
+i32 %ni
+i32 %nj
+i32 %nk
+double %alpha
+double %beta
+double* %A
+double* %B
+double* %C
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+------k
+------Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: gemm

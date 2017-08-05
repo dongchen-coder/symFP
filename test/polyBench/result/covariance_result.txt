@@ -1,0 +1,47 @@
+
+Start to analysis array index
+Array index info
+symmat.addr ((1024 * j1) + j2)
+data.addr ((1024 * j) + i)
+mean.addr j
+mean.addr j
+mean.addr j
+mean.addr j
+mean.addr j
+mean.addr j
+data.addr ((1024 * j) + i)
+data.addr ((1024 * j) + i)
+symmat.addr ((1024 * j2) + j1)
+data.addr ((1024 * j1) + i)
+data.addr ((1024 * j2) + i)
+symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j2) + j1)
+
+Start to analyze argument
+i32 %m
+i32 %n
+double* %data
+double* %symmat
+double* %mean
+
+Start to analysis global variable
+
+Start analysis loops
+--j1
+--Loop Bound: (0, 1024)
+----j2
+----Loop Bound: (j1, 1024)
+------i
+------Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--j
+--Loop Bound: (0, 1024)
+----i
+----Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: covariance

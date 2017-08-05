@@ -1,0 +1,36 @@
+
+Start to analysis array index
+Array index info
+tmp.addr i
+y.addr i
+tmp.addr i
+A.addr ((1024 * j) + i)
+x.addr j
+tmp.addr i
+y.addr j
+A.addr ((1024 * j) + i)
+tmp.addr i
+y.addr j
+
+Start to analyze argument
+i32 %nx
+i32 %ny
+double* %A
+double* %x
+double* %y
+double* %tmp
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: atax_cpu

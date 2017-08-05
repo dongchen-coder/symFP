@@ -1,0 +1,34 @@
+
+Start to analysis array index
+Array index info
+a.addr ((1024 * j) + i)
+x1.addr i
+y1.addr j
+x1.addr i
+x2.addr i
+a.addr ((1024 * i) + j)
+y2.addr j
+x2.addr i
+
+Start to analyze argument
+i32 %n
+double* %a
+double* %x1
+double* %x2
+double* %y1
+double* %y2
+
+Start to analysis global variable
+
+Start analysis loops
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+
+Finish analysis loops
+Start to analyze function: runMvt
