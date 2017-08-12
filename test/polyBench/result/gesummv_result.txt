@@ -28,6 +28,20 @@ double* %y
 Start to analysis global variable
 
 Start analysis loops
+
+Loop at depth 1 containing: %for.cond<header><exiting>,%for.body,%for.cond5,%for.end,%for.inc39<latch>,%for.body7,%for.inc
+    Loop at depth 2 containing: %for.cond5<header><exiting>,%for.body7,%for.inc<latch>
+
+--i
+--Loop Bound: (0, 1024)
+----j
+----Loop Bound: (0, 1024)
+start to analysis Ref
+not Last level loop
+start to analysis Ref
+not Last level loop
+start to analysis Ref
+Last level loop
 --i
 --Loop Bound: (0, 1024)
 ----array access   store double 0.000000e+00, double* %arrayidx, align 8
