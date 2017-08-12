@@ -34,24 +34,27 @@ double* %G
 Start to analysis global variable
 
 Start analysis loops
+--array access   store double 0.000000e+00, double* %arrayidx, align 8
+--array access   %9 = load double, double* %arrayidx10, align 8
+--array access   %13 = load double, double* %arrayidx14, align 8
+--array access   %17 = load double, double* %arrayidx19, align 8
+--array access   store double %add20, double* %arrayidx19, align 8
+--array access   store double 0.000000e+00, double* %arrayidx36, align 8
+--array access   %30 = load double, double* %arrayidx43, align 8
+--array access   %34 = load double, double* %arrayidx47, align 8
+--array access   %38 = load double, double* %arrayidx52, align 8
+--array access   store double %add53, double* %arrayidx52, align 8
 --i
 --Loop Bound: (0, 1024)
 ----j
 ----Loop Bound: (0, 1024)
+------array access   store double 0.000000e+00, double* %arrayidx72, align 8
 ------k
 ------Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
-------k
-------Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
-------k
-------Loop Bound: (0, 1024)
+--------array access   %51 = load double, double* %arrayidx79, align 8
+--------array access   %55 = load double, double* %arrayidx83, align 8
+--------array access   %59 = load double, double* %arrayidx88, align 8
+--------array access   store double %add89, double* %arrayidx88, align 8
 
 Finish analysis loops
 Start to analyze function: mm3_cpu

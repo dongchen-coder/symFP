@@ -47,24 +47,46 @@ double* %symmat
 Start to analysis global variable
 
 Start analysis loops
+--array access   store double 0.000000e+00, double* %arrayidx, align 8
+--array access   %7 = load double, double* %arrayidx5, align 8
+--array access   %10 = load double, double* %arrayidx7, align 8
+--array access   store double %add8, double* %arrayidx7, align 8
+--array access   %14 = load double, double* %arrayidx10, align 8
+--array access   store double %div, double* %arrayidx10, align 8
+--array access   store double 0.000000e+00, double* %arrayidx18, align 8
+--array access   %23 = load double, double* %arrayidx25, align 8
+--array access   %26 = load double, double* %arrayidx27, align 8
+--array access   %30 = load double, double* %arrayidx31, align 8
+--array access   %33 = load double, double* %arrayidx33, align 8
+--array access   %36 = load double, double* %arrayidx37, align 8
+--array access   store double %add38, double* %arrayidx37, align 8
+--array access   %40 = load double, double* %arrayidx43, align 8
+--array access   store double %div44, double* %arrayidx43, align 8
+--array access   store double %conv, double* %arrayidx46, align 8
+--array access   %47 = load double, double* %arrayidx48, align 8
+--array access   %50 = load double, double* %arrayidx52, align 8
+--array access   store double %cond, double* %arrayidx54, align 8
+--array access   %58 = load double, double* %arrayidx67, align 8
+--array access   %62 = load double, double* %arrayidx71, align 8
+--array access   store double %sub72, double* %arrayidx71, align 8
+--array access   %65 = load double, double* %arrayidx75, align 8
+--array access   %69 = load double, double* %arrayidx80, align 8
+--array access   store double %div81, double* %arrayidx80, align 8
 --j1
 --Loop Bound: (0, 1024)
+----array access   store double 1.000000e+00, double* %arrayidx95, align 8
 ----j2
 ----Loop Bound: ((j1 + 1), 1024)
+------array access   store double 0.000000e+00, double* %arrayidx104, align 8
+------array access   %98 = load double, double* %arrayidx129, align 8
+------array access   store double %98, double* %arrayidx133, align 8
 ------i
 ------Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
---j
---Loop Bound: (0, 1024)
-----i
-----Loop Bound: (0, 1024)
---j
---Loop Bound: (0, 1024)
-----i
-----Loop Bound: (0, 1024)
+--------array access   %85 = load double, double* %arrayidx112, align 8
+--------array access   %89 = load double, double* %arrayidx116, align 8
+--------array access   %93 = load double, double* %arrayidx121, align 8
+--------array access   store double %add122, double* %arrayidx121, align 8
+--array access   store double 1.000000e+00, double* %arrayidx140, align 8
 
 Finish analysis loops
 Start to analyze function: correlation

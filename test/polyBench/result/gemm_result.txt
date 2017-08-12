@@ -25,8 +25,14 @@ Start analysis loops
 --Loop Bound: (0, 1024)
 ----j
 ----Loop Bound: (0, 1024)
+------array access   %6 = load double, double* %arrayidx, align 8
+------array access   store double %mul4, double* %arrayidx, align 8
 ------k
 ------Loop Bound: (0, 1024)
+--------array access   %12 = load double, double* %arrayidx11, align 8
+--------array access   %16 = load double, double* %arrayidx16, align 8
+--------array access   %20 = load double, double* %arrayidx21, align 8
+--------array access   store double %add22, double* %arrayidx21, align 8
 
 Finish analysis loops
 Start to analyze function: gemm

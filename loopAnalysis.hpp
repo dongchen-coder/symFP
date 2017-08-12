@@ -40,9 +40,12 @@ namespace loopAnalysis {
             vector<LoopIndvBoundAnalysis::LoopBound>* LB;
         };
         
+        /* The nodes in Loop tree can either be a loop or an array access */
         struct LoopTreeNodes {
             int LoopLevel;
+            Loop* L;
             LoopInfoStruct* LIS;
+            Instruction* AA;
             vector<LoopTreeNodes *>* next;
         };
         
@@ -69,7 +72,9 @@ namespace loopAnalysis {
         void DumpLoopTree(LoopTreeNodes* LTroot, std::string prefix);
         LoopInfoStruct* ExtractLoopInfo(Loop *L);
         void LoopTreeConstruction(Loop* LI , LoopTreeNodes * root, int level);
-        LoopTreeNodes* LoopTreeConstructionTop(LoopTreeNodes * root);
+        LoopTreeNodes* LoopTreeConstructionLoop(LoopTreeNodes * root);
+        LoopTreeNodes* ExtractRefInfo(Instruction* Inst);
+        LoopTreeNodes* LoopTreeConstructionRef(LoopTreeNodes * root, vector<BasicBlock*> BBList);
         
         //void inductionVariableAnalysis(Function &F);
         

@@ -25,6 +25,16 @@ Start analysis loops
 --Loop Bound: (1, 1023)
 ----j
 ----Loop Bound: (1, 1023)
+------array access   %6 = load double, double* %arrayidx, align 8
+------array access   %11 = load double, double* %arrayidx11, align 8
+------array access   %16 = load double, double* %arrayidx19, align 8
+------array access   %21 = load double, double* %arrayidx27, align 8
+------array access   %26 = load double, double* %arrayidx35, align 8
+------array access   %31 = load double, double* %arrayidx43, align 8
+------array access   %36 = load double, double* %arrayidx51, align 8
+------array access   %41 = load double, double* %arrayidx59, align 8
+------array access   %46 = load double, double* %arrayidx67, align 8
+------array access   store double %add69, double* %arrayidx73, align 8
 
 Finish analysis loops
 Start to analyze function: conv2D

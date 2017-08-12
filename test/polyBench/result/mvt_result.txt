@@ -21,14 +21,18 @@ double* %y2
 Start to analysis global variable
 
 Start analysis loops
+--array access   %4 = load double, double* %arrayidx, align 8
+--array access   %8 = load double, double* %arrayidx5, align 8
+--array access   %11 = load double, double* %arrayidx7, align 8
+--array access   store double %add9, double* %arrayidx11, align 8
 --i
 --Loop Bound: (0, 1024)
 ----j
 ----Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
+------array access   %20 = load double, double* %arrayidx22, align 8
+------array access   %24 = load double, double* %arrayidx26, align 8
+------array access   %27 = load double, double* %arrayidx28, align 8
+------array access   store double %add30, double* %arrayidx32, align 8
 
 Finish analysis loops
 Start to analyze function: runMvt

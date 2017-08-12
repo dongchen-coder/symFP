@@ -1,7 +1,6 @@
 
 Start to analysis array index
 Array index info
-symmat.addr ((1024 * j1) + j2)
 data.addr ((1024 * j) + i)
 mean.addr j
 mean.addr j
@@ -17,6 +16,7 @@ data.addr ((1024 * j2) + i)
 symmat.addr ((1024 * j2) + j1)
 symmat.addr ((1024 * j2) + j1)
 symmat.addr ((1024 * j2) + j1)
+symmat.addr ((1024 * j1) + j2)
 
 Start to analyze argument
 i32 %m
@@ -28,20 +28,28 @@ double* %mean
 Start to analysis global variable
 
 Start analysis loops
+--array access   store double 0.000000e+00, double* %arrayidx, align 8
+--array access   %7 = load double, double* %arrayidx5, align 8
+--array access   %10 = load double, double* %arrayidx7, align 8
+--array access   store double %add8, double* %arrayidx7, align 8
+--array access   %15 = load double, double* %arrayidx10, align 8
+--array access   store double %div, double* %arrayidx10, align 8
+--array access   %21 = load double, double* %arrayidx21, align 8
+--array access   %25 = load double, double* %arrayidx25, align 8
+--array access   store double %sub, double* %arrayidx25, align 8
 --j1
 --Loop Bound: (0, 1024)
 ----j2
 ----Loop Bound: (j1, 1024)
+------array access   store double 0.000000e+00, double* %arrayidx41, align 8
+------array access   %51 = load double, double* %arrayidx65, align 8
+------array access   store double %51, double* %arrayidx69, align 8
 ------i
 ------Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
---j
---Loop Bound: (0, 1024)
-----i
-----Loop Bound: (0, 1024)
+--------array access   %38 = load double, double* %arrayidx48, align 8
+--------array access   %42 = load double, double* %arrayidx52, align 8
+--------array access   %46 = load double, double* %arrayidx57, align 8
+--------array access   store double %add58, double* %arrayidx57, align 8
 
 Finish analysis loops
 Start to analyze function: covariance

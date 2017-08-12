@@ -19,16 +19,18 @@ double* %C
 Start to analysis global variable
 
 Start analysis loops
+--array access   %6 = load double, double* %arrayidx, align 8
+--array access   store double %mul4, double* %arrayidx, align 8
 --i
 --Loop Bound: (0, 1024)
 ----j
 ----Loop Bound: (0, 1024)
 ------k
 ------Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
+--------array access   %16 = load double, double* %arrayidx20, align 8
+--------array access   %20 = load double, double* %arrayidx25, align 8
+--------array access   %24 = load double, double* %arrayidx30, align 8
+--------array access   store double %add31, double* %arrayidx30, align 8
 
 Finish analysis loops
 Start to analyze function: syrk
