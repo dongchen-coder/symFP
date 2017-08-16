@@ -400,12 +400,11 @@ namespace loopAnalysis {
         
         /* construct loop tree */
         LTroot = LoopTreeConstructionLoop(LTroot);
-
-        DumpLoopTree(LTroot, "");
         
         /* decroate the loop tree with references */
         LTroot = LoopTreeConstructionRef(LTroot, getBasicBlocks(F));
         
+        /* dump loopRef tree */
         DumpLoopTree(LTroot, "");
         
         errs() << "\nFinish analysis loops\n";

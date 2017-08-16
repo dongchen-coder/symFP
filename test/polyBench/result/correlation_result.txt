@@ -2,7 +2,6 @@
 Start to analysis array index
 Array index info
 stddev.addr j
-stddev.addr j
 mean.addr j
 data.addr ((1024 * j) + i)
 data.addr ((1024 * j) + i)
@@ -35,6 +34,7 @@ stddev.addr j
 stddev.addr j
 stddev.addr j
 stddev.addr j
+stddev.addr j
 
 Start to analyze argument
 i32 %m
@@ -47,24 +47,6 @@ double* %symmat
 Start to analysis global variable
 
 Start analysis loops
---j
---Loop Bound: (0, 1024)
-----i
-----Loop Bound: (0, 1024)
---j
---Loop Bound: (0, 1024)
-----i
-----Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
---j1
---Loop Bound: (0, 1024)
-----j2
-----Loop Bound: ((j1 + 1), 1024)
-------i
-------Loop Bound: (0, 1024)
 --j
 --Loop Bound: (0, 1024)
 ----array access   store double 0.000000e+00, double* %arrayidx, align 8

@@ -1,8 +1,8 @@
 
 Start to analysis array index
 Array index info
-s.addr i
 q.addr i
+s.addr i
 s.addr j
 r.addr i
 A.addr ((1024 * j) + i)
@@ -24,12 +24,6 @@ double* %q
 Start to analysis global variable
 
 Start analysis loops
---i
---Loop Bound: (0, 1024)
---i
---Loop Bound: (0, 1024)
-----j
-----Loop Bound: (0, 1024)
 --i
 --Loop Bound: (0, 1024)
 ----array access   store double 0.000000e+00, double* %arrayidx, align 8
