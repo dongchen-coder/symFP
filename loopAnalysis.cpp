@@ -305,9 +305,13 @@ namespace loopAnalysis {
                 
                 LoopTreeNodes * Tmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
                 Tmp->L = (*it);
+
+#ifdef LOOP_DEBUG
                 errs() << "\n";
                 Tmp->L->dump();
                 errs() << "\n";
+#endif
+                
                 Tmp->LIS = ExtractLoopInfo(*it);
                 Tmp->AA = NULL;
                 Tmp->LoopLevel = 1;

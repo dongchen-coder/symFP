@@ -1,8 +1,8 @@
 
 Start to analysis array index
 Array index info
-q.addr i
 s.addr i
+q.addr i
 s.addr j
 r.addr i
 A.addr ((1024 * j) + i)
@@ -24,88 +24,27 @@ double* %q
 Start to analysis global variable
 
 Start analysis loops
-
-Loop at depth 1 containing: %for.cond<header><exiting>,%for.body,%for.inc<latch>
-
-
-Loop at depth 1 containing: %for.cond1<header><exiting>,%for.body3,%for.cond6,%for.end33,%for.inc34<latch>,%for.body8,%for.inc31
-    Loop at depth 2 containing: %for.cond6<header><exiting>,%for.body8,%for.inc31<latch>
-
-Start to dump loop tree
-Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
-Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
-Start to dump loop tree
 ----j
 ----Loop Bound: (0, 1024)
-
- start to analysis Ref
-not Last level loop
---Loop at depth 1 containing: %for.cond<header><exiting>,%for.body,%for.inc<latch>
-entry
-for.cond
-for.body
-for.inc
-for.end
-for.cond1
-for.body3
-for.cond6
-for.body8
-for.inc31
-for.end33
-for.inc34
-for.end36
-
- start to analysis Ref
-Last level loop
-
- start to analysis Ref
-not Last level loop
-Loop at depth 1 containing: %for.cond1<header><exiting>,%for.body3,%for.cond6,%for.end33,%for.inc34<latch>,%for.body8,%for.inc31
-    Loop at depth 2 containing: %for.cond6<header><exiting>,%for.body8,%for.inc31<latch>
---Loop at depth 2 containing: %for.cond6<header><exiting>,%for.body8,%for.inc31<latch>
-for.cond1
-for.body3
-for.cond6
-for.body8
-for.inc31
-for.end33
-for.inc34
-
- start to analysis Ref
-Last level loop
-Start to dump loop tree
-Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
-Start to dump loop tree
 ----array access   store double 0.000000e+00, double* %arrayidx, align 8
-Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
-Start to dump loop tree
 ----array access   store double 0.000000e+00, double* %arrayidx5, align 8
-Start to dump loop tree
 ----j
 ----Loop Bound: (0, 1024)
-Start to dump loop tree
 ------array access   %10 = load double, double* %arrayidx10, align 8
-Start to dump loop tree
 ------array access   %13 = load double, double* %arrayidx12, align 8
-Start to dump loop tree
 ------array access   %17 = load double, double* %arrayidx14, align 8
-Start to dump loop tree
 ------array access   store double %add16, double* %arrayidx18, align 8
-Start to dump loop tree
 ------array access   %22 = load double, double* %arrayidx20, align 8
-Start to dump loop tree
 ------array access   %26 = load double, double* %arrayidx24, align 8
-Start to dump loop tree
 ------array access   %29 = load double, double* %arrayidx26, align 8
-Start to dump loop tree
 ------array access   store double %add28, double* %arrayidx30, align 8
 
 Finish analysis loops
