@@ -1,6 +1,9 @@
 
 Start to analysis array index
 Array index info
+data.addr ((1024 * j) + i)
+data.addr ((1024 * j) + i)
+symmat.addr ((1024 * j1) + 1024)
 mean.addr j
 data.addr ((1024 * j) + i)
 mean.addr j
@@ -16,25 +19,22 @@ stddev.addr j
 stddev.addr j
 stddev.addr j
 stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+stddev.addr j
+mean.addr j
+data.addr ((1024 * j) + i)
+symmat.addr ((1024 * j2) + j1)
+data.addr ((1024 * j1) + i)
 data.addr ((1024 * j2) + i)
 symmat.addr ((1024 * j2) + j1)
 symmat.addr ((1024 * j2) + j1)
 symmat.addr ((1024 * j2) + j1)
 symmat.addr ((1024 * j1) + j2)
+data.addr ((1024 * j) + i)
+stddev.addr j
 symmat.addr 1048575
-stddev.addr j
-stddev.addr j
-stddev.addr j
-stddev.addr j
-mean.addr j
-data.addr ((1024 * j) + i)
-data.addr ((1024 * j) + i)
-stddev.addr j
-data.addr ((1024 * j) + i)
-data.addr ((1024 * j) + i)
-symmat.addr ((1024 * j1) + 1024)
-symmat.addr ((1024 * j2) + j1)
-data.addr ((1024 * j1) + i)
 
 Start to analyze argument
 i32 %m
@@ -64,95 +64,260 @@ Loop at depth 1 containing: %for.cond88<header><exiting>,%for.body91,%for.cond97
     Loop at depth 2 containing: %for.cond97<header><exiting>,%for.body100,%for.cond105,%for.end125,%for.inc134<latch>,%for.body108,%for.inc123
         Loop at depth 3 containing: %for.cond105<header><exiting>,%for.body108,%for.inc123<latch>
 
+Start to dump loop tree
+Start to dump loop tree
 --j
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----i
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 --j
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----i
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----j
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 --j1
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----j2
 ----Loop Bound: ((j1 + 1), 1024)
+Start to dump loop tree
 ------i
 ------Loop Bound: (0, 1024)
-start to analysis Ref
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+--Loop at depth 1 containing: %for.cond<header><exiting>,%for.body,%for.cond1,%for.end,%for.inc11<latch>,%for.body3,%for.inc
+    Loop at depth 2 containing: %for.cond1<header><exiting>,%for.body3,%for.inc<latch>
+entry
+for.cond
+for.body
+for.cond1
+for.body3
+for.inc
+for.end
+for.inc11
+for.end13
+for.cond14
+for.body16
+for.cond19
+for.body21
+for.inc39
+for.end41
+cond.true
+cond.false
+cond.end
+for.inc55
+for.end57
+for.cond58
+for.body61
+for.cond62
+for.body65
+for.inc82
+for.end84
+for.inc85
+for.end87
+for.cond88
+for.body91
+for.cond97
+for.body100
+for.cond105
+for.body108
+for.inc123
+for.end125
+for.inc134
+for.end136
+for.inc137
+for.end139
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+Loop at depth 1 containing: %for.cond<header><exiting>,%for.body,%for.cond1,%for.end,%for.inc11<latch>,%for.body3,%for.inc
+    Loop at depth 2 containing: %for.cond1<header><exiting>,%for.body3,%for.inc<latch>
+--Loop at depth 2 containing: %for.cond1<header><exiting>,%for.body3,%for.inc<latch>
+for.cond
+for.body
+for.cond1
+for.body3
+for.inc
+for.end
+for.inc11
+
+ start to analysis Ref
 Last level loop
-start to analysis Ref
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+Loop at depth 1 containing: %for.cond14<header><exiting>,%for.body16,%for.cond19,%for.end41,%cond.false,%cond.true,%cond.end,%for.inc55<latch>,%for.body21,%for.inc39
+    Loop at depth 2 containing: %for.cond19<header><exiting>,%for.body21,%for.inc39<latch>
+--Loop at depth 2 containing: %for.cond19<header><exiting>,%for.body21,%for.inc39<latch>
+for.cond14
+for.body16
+for.cond19
+for.body21
+for.inc39
+for.end41
+cond.true
+cond.false
+cond.end
+for.inc55
+
+ start to analysis Ref
 Last level loop
-start to analysis Ref
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+Loop at depth 1 containing: %for.cond58<header><exiting>,%for.body61,%for.cond62,%for.end84,%for.inc85<latch>,%for.body65,%for.inc82
+    Loop at depth 2 containing: %for.cond62<header><exiting>,%for.body65,%for.inc82<latch>
+--Loop at depth 2 containing: %for.cond62<header><exiting>,%for.body65,%for.inc82<latch>
+for.cond58
+for.body61
+for.cond62
+for.body65
+for.inc82
+for.end84
+for.inc85
+
+ start to analysis Ref
 Last level loop
-start to analysis Ref
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+Loop at depth 1 containing: %for.cond88<header><exiting>,%for.body91,%for.cond97,%for.end136,%for.inc137<latch>,%for.body100,%for.cond105,%for.end125,%for.inc134,%for.body108,%for.inc123
+    Loop at depth 2 containing: %for.cond97<header><exiting>,%for.body100,%for.cond105,%for.end125,%for.inc134<latch>,%for.body108,%for.inc123
+        Loop at depth 3 containing: %for.cond105<header><exiting>,%for.body108,%for.inc123<latch>
+--Loop at depth 2 containing: %for.cond97<header><exiting>,%for.body100,%for.cond105,%for.end125,%for.inc134<latch>,%for.body108,%for.inc123
+    Loop at depth 3 containing: %for.cond105<header><exiting>,%for.body108,%for.inc123<latch>
+for.cond88
+for.body91
+for.cond97
+for.body100
+for.cond105
+for.body108
+for.inc123
+for.end125
+for.inc134
+for.end136
+for.inc137
+
+ start to analysis Ref
 not Last level loop
-start to analysis Ref
+Loop at depth 2 containing: %for.cond97<header><exiting>,%for.body100,%for.cond105,%for.end125,%for.inc134<latch>,%for.body108,%for.inc123
+    Loop at depth 3 containing: %for.cond105<header><exiting>,%for.body108,%for.inc123<latch>
+--Loop at depth 3 containing: %for.cond105<header><exiting>,%for.body108,%for.inc123<latch>
+for.cond97
+for.body100
+for.cond105
+for.body108
+for.inc123
+for.end125
+for.inc134
+
+ start to analysis Ref
 Last level loop
+Start to dump loop tree
+Start to dump loop tree
 --j
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----array access   store double 0.000000e+00, double* %arrayidx, align 8
-----array access   %14 = load double, double* %arrayidx10, align 8
-----array access   store double %div, double* %arrayidx10, align 8
+Start to dump loop tree
 ----i
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 ------array access   %7 = load double, double* %arrayidx5, align 8
+Start to dump loop tree
 ------array access   %10 = load double, double* %arrayidx7, align 8
+Start to dump loop tree
 ------array access   store double %add8, double* %arrayidx7, align 8
+Start to dump loop tree
+----array access   %14 = load double, double* %arrayidx10, align 8
+Start to dump loop tree
+----array access   store double %div, double* %arrayidx10, align 8
+Start to dump loop tree
 --j
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----array access   store double 0.000000e+00, double* %arrayidx18, align 8
-----array access   %40 = load double, double* %arrayidx43, align 8
-----array access   store double %div44, double* %arrayidx43, align 8
-----array access   store double %conv, double* %arrayidx46, align 8
-----array access   %47 = load double, double* %arrayidx48, align 8
-----array access   %50 = load double, double* %arrayidx52, align 8
-----array access   store double %cond, double* %arrayidx54, align 8
+Start to dump loop tree
 ----i
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 ------array access   %23 = load double, double* %arrayidx25, align 8
+Start to dump loop tree
 ------array access   %26 = load double, double* %arrayidx27, align 8
+Start to dump loop tree
 ------array access   %30 = load double, double* %arrayidx31, align 8
+Start to dump loop tree
 ------array access   %33 = load double, double* %arrayidx33, align 8
+Start to dump loop tree
 ------array access   %36 = load double, double* %arrayidx37, align 8
+Start to dump loop tree
 ------array access   store double %add38, double* %arrayidx37, align 8
+Start to dump loop tree
+----array access   %40 = load double, double* %arrayidx43, align 8
+Start to dump loop tree
+----array access   store double %div44, double* %arrayidx43, align 8
+Start to dump loop tree
+----array access   store double %conv, double* %arrayidx46, align 8
+Start to dump loop tree
+----array access   %47 = load double, double* %arrayidx48, align 8
+Start to dump loop tree
+----array access   %50 = load double, double* %arrayidx52, align 8
+Start to dump loop tree
+----array access   store double %cond, double* %arrayidx54, align 8
+Start to dump loop tree
 --i
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----j
 ----Loop Bound: (0, 1024)
+Start to dump loop tree
 ------array access   %58 = load double, double* %arrayidx67, align 8
+Start to dump loop tree
 ------array access   %62 = load double, double* %arrayidx71, align 8
+Start to dump loop tree
 ------array access   store double %sub72, double* %arrayidx71, align 8
+Start to dump loop tree
 ------array access   %65 = load double, double* %arrayidx75, align 8
+Start to dump loop tree
 ------array access   %69 = load double, double* %arrayidx80, align 8
+Start to dump loop tree
 ------array access   store double %div81, double* %arrayidx80, align 8
+Start to dump loop tree
 --j1
 --Loop Bound: (0, 1024)
+Start to dump loop tree
 ----array access   store double 1.000000e+00, double* %arrayidx95, align 8
+Start to dump loop tree
 ----j2
 ----Loop Bound: ((j1 + 1), 1024)
+Start to dump loop tree
 ------array access   store double 0.000000e+00, double* %arrayidx104, align 8
-------array access   %98 = load double, double* %arrayidx129, align 8
-------array access   store double %98, double* %arrayidx133, align 8
+Start to dump loop tree
 ------i
 ------Loop Bound: (0, 1024)
+Start to dump loop tree
 --------array access   %85 = load double, double* %arrayidx112, align 8
+Start to dump loop tree
 --------array access   %89 = load double, double* %arrayidx116, align 8
+Start to dump loop tree
 --------array access   %93 = load double, double* %arrayidx121, align 8
+Start to dump loop tree
 --------array access   store double %add122, double* %arrayidx121, align 8
+Start to dump loop tree
+------array access   %98 = load double, double* %arrayidx129, align 8
+Start to dump loop tree
+------array access   store double %98, double* %arrayidx133, align 8
+Start to dump loop tree
 --array access   store double 1.000000e+00, double* %arrayidx140, align 8
 
 Finish analysis loops

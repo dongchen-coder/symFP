@@ -28,6 +28,8 @@
 using namespace llvm;
 using namespace std;
 
+#define LOOP_DEBUG
+
 namespace loopAnalysis {
     struct LoopIndvBoundAnalysis : public FunctionPass {
         static char ID;

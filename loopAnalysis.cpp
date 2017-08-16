@@ -142,11 +142,16 @@ namespace loopAnalysis {
     }
     
     LoopIndvBoundAnalysis::LoopTreeNodes* LoopIndvBoundAnalysis::LoopTreeConstructionRef(LoopTreeNodes* root, vector<BasicBlock*> BBList) {
-        
+#ifdef LOOP_DEBUG
+        errs() << "\n start to analysis Ref\n";
+#endif
         vector<LoopTreeNodes*>* nextWithRef = new vector<LoopTreeNodes*>;
         
         if (root->next == NULL) {
-            
+
+#ifdef LOOP_DEBUG
+            errs() << "Last level loop\n";
+#endif
             for (vector<BasicBlock*>::iterator BB = BBList.begin(), eBB = BBList.end(); BB != eBB; ++BB) {
                 for (BasicBlock::iterator Inst = (*BB)->begin(), eInst = (*BB)->end(); Inst != eInst; ++Inst) {
                     LoopTreeNodes* Tmp = ExtractRefInfo(&*Inst);
@@ -158,12 +163,28 @@ namespace loopAnalysis {
             
         } else {
             
+#ifdef LOOP_DEBUG
+            errs() << "not Last level loop\n";
+#endif
+            
             vector<LoopTreeNodes*>::iterator nextIter = root->next->begin();
             vector<BasicBlock*> BBinLoop = (*nextIter)->L->getBlocks();
-            
+
+#ifdef LOOP_DEBUG
+            if (root->L != NULL) {
+                root->L->dump();
+            }
+            errs() << "--";
+            (*nextIter)->L->dump();
+#endif
+
             for (vector<BasicBlock*>::iterator it = BBList.begin(), eit = BBList.end(); it != eit; ++it) {
             
                 BasicBlock* BB = *it;
+
+#ifdef LOOP_DEBUG
+                errs() << BB->getName() << "\n";
+#endif
                 
                 if (find(BBinLoop.begin(), BBinLoop.end(), BB) == BBinLoop.end() || BBinLoop.empty()) {
                     
@@ -200,7 +221,15 @@ namespace loopAnalysis {
         /* add Ref nodes to sub loops */
         for (vector<LoopTreeNodes*>::iterator it = root->next->begin(), eit = root->next->end(); it != eit; ++it) {
             if ((*it)->L != NULL) {
-                (*it) = LoopTreeConstructionRef((*it), (*it)->L->getBlocks());
+                
+                vector<BasicBlock*> newBBList;
+                for (vector<BasicBlock*>::iterator bit = BBList.begin(), ebit = BBList.end(); bit != ebit; ++bit) {
+                    if (find((*it)->L->getBlocks(), *bit) != (*it)->L->getBlocks().end()) {
+                        newBBList.push_back(*bit);
+                    }
+                }
+                
+                (*it) = LoopTreeConstructionRef((*it), newBBList);
             }
         }
         
@@ -272,14 +301,21 @@ namespace loopAnalysis {
             root->AA = NULL;
             root->next = new vector<LoopTreeNodes *>;
             
-            for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
+            for(LoopInfo::reverse_iterator it = LI.rbegin(), eit = LI.rend(); it != eit; ++it){
                 
                 LoopTreeNodes * Tmp = (LoopTreeNodes *) malloc(sizeof(LoopTreeNodes));
                 Tmp->L = (*it);
+                errs() << "\n";
+                Tmp->L->dump();
+                errs() << "\n";
                 Tmp->LIS = ExtractLoopInfo(*it);
                 Tmp->AA = NULL;
                 Tmp->LoopLevel = 1;
-                Tmp->next = new vector<LoopTreeNodes *>;
+                if (Tmp->L->getSubLoops().empty()) {
+                    Tmp->next = NULL;
+                } else {
+                    Tmp->next = new vector<LoopTreeNodes *>;
+                }
                 
                 root->next->push_back(Tmp);
                 
@@ -296,6 +332,11 @@ namespace loopAnalysis {
     
     /* Dump loopRef tree */
     void LoopIndvBoundAnalysis::DumpLoopTree(LoopTreeNodes* LTroot, std::string prefix) {
+   
+#ifdef LOOP_DEBUG
+        errs() << "Start to dump loop tree\n";
+        
+#endif
         
         if (LTroot != NULL) {
             
@@ -346,6 +387,7 @@ namespace loopAnalysis {
      * This pass is to construct a tree structure that stores loop hierarchy and references
      *
      */
+    
     bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
         
         errs() << "\nStart analysis loops\n";
@@ -355,6 +397,8 @@ namespace loopAnalysis {
         /* construct loop tree */
         LTroot = LoopTreeConstructionLoop(LTroot);
 
+        DumpLoopTree(LTroot, "");
+        
         /* decroate the loop tree with references */
         LTroot = LoopTreeConstructionRef(LTroot, getBasicBlocks(F));
         
