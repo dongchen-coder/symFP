@@ -43,21 +43,16 @@ namespace loopAnalysis {
         };
         
         /* The nodes in Loop tree can either be a loop or an array access */
-        struct LoopTreeNodes {
+        struct LoopRefTNode {
             int LoopLevel;
             Loop* L;
             LoopInfoStruct* LIS;
             Instruction* AA;
-            vector<LoopTreeNodes *>* next;
+            vector<LoopRefTNode *>* next;
         };
         
-        LoopTreeNodes* LoopInfoTree;
-        
-        //vector<LoopInfoStruct> LoopInfoVector;
-        
-        //void subLoop(Loop *L);
-        /* Find all Basic Induction Variable */
-        //void findIDV(Loop *L);
+        /* Root node for loop reference tree */
+        LoopRefTNode* LoopRefTree;
         
         /* Find the Loop Bound */
         LoopBound findLoopBound(Loop *L, Value *var);
@@ -71,12 +66,12 @@ namespace loopAnalysis {
         /* Get the Loop Bound in a string format */
         string getBound(Value *);
         
-        void DumpLoopTree(LoopTreeNodes* LTroot, std::string prefix);
+        void DumpLoopTree(LoopRefTNode* LTroot, std::string prefix);
         LoopInfoStruct* ExtractLoopInfo(Loop *L);
-        void LoopTreeConstruction(Loop* LI , LoopTreeNodes * root, int level);
-        LoopTreeNodes* LoopTreeConstructionLoop(LoopTreeNodes * root);
-        LoopTreeNodes* ExtractRefInfo(Instruction* Inst);
-        LoopTreeNodes* LoopTreeConstructionRef(LoopTreeNodes * root, vector<BasicBlock*> BBList);
+        void LoopTreeConstruction(Loop* LI , LoopRefTNode * root, int level);
+        LoopRefTNode* LoopTreeConstructionLoop(LoopRefTNode * root);
+        LoopRefTNode* ExtractRefInfo(Instruction* Inst);
+        LoopRefTNode* LoopTreeConstructionRef(LoopRefTNode * root, vector<BasicBlock*> BBList);
         
         //void inductionVariableAnalysis(Function &F);
         
