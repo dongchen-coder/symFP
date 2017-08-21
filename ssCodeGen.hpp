@@ -32,6 +32,9 @@ namespace ssCodeGen {
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
         
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> loopOrder;
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refOrder;
+        
         std::map<std::string, int> refToSameArrayCnt;
         std::map<Instruction*, int> refNumber;
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
@@ -42,8 +45,20 @@ namespace ssCodeGen {
         void pairRefRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
         void pairRefRTTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         
-        void useLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> indvs);
+        void useLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         std::string getBound(Value *bound);
+        
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findRefLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int refID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
+        void reuseLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
+        
+        void checkLocGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
+        
+        void checkIntervenBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
+        void checkIntervenTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        
+        void initRefOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        void initLoopOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        void init(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         
         bool runOnFunction(Function &F) override;
         void getAnalysisUsage(AnalysisUsage &AU) const override;
