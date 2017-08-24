@@ -129,6 +129,8 @@ namespace ssCodeGen {
             return;
         }
         
+        errs() << space + "bool findReuseFlag = false;\n";
+        
         for (unsigned long i = 0; i < reuseLoops.size(); i++) {
             
             if (loopOrder[useLoops[i]] == loopOrder[reuseLoops[i]]) {
@@ -163,13 +165,123 @@ namespace ssCodeGen {
         return;
     }
     
+    
+    void StaticSamplingCodeGen::checkIntervenRefGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops) {
+        
+        if (LoopRefTree == NULL) {
+            return;
+        }
+        
+        if (LoopRefTree->L != NULL) {
+            loops.push_back(LoopRefTree);
+        }
+        
+        if (LoopRefTree->AA != NULL) {
+            if (arrayName[LoopRefTree->AA] == refName && refNumber[LoopRefTree->AA] != reuseID) {
+                
+                /* need to fix when loop size is not zero */
+                /* generate loops */
+                std::string space = "    ";
+                if (loops.size() != 0 && useLoops.size() != 0 && reuseLoops.size() != 0) {
+                    if (loopOrder[loops[0]] >= loopOrder[useLoops[0]] && loopOrder[loops[0]] <= loopOrder[reuseLoops[0]]) {
+                        
+                        for (unsigned long i = 0; i < loops.size(); i++) {
+                            
+                            errs() << space + "for(";
+                            for (unsigned long j = 0; j < loops[i]->LIS->IDV->size(); j++) {
+                                errs() << "int " + (*loops[i]->LIS->IDV)[j]->getName() + "Interven" + " = ";
+                                if (i < useLoops.size()) {
+                                    if (useLoops[i] == loops[i]) {
+                                        errs() << (*useLoops[i]->LIS->IDV)[j]->getName();
+                                    } else {
+                                        
+                                    }
+                                } else {
+                                    
+                                }
+                                errs() << "; ";
+                                errs() << (*loops[i]->LIS->IDV)[j]->getName() + "Interven";
+                                errs() << " < ";
+                                if (i < reuseLoops.size()) {
+                                    if (reuseLoops[i] == loops[i]) {
+                                        errs() << (*reuseLoops[i]->LIS->IDV)[j]->getName();
+                                    } else {
+                                        
+                                    }
+                                } else {
+                                    
+                                }
+                                errs() << "; ";
+                                errs() << (*loops[i]->LIS->IDV)[j]->getName() + "Interven" + "++";
+                                errs() << ") {\n";
+                                space += "    ";
+                            }
+                        }
+                    }
+                }
+                
+                /* generate check same loc function */
+                errs() << space + "if( cal" + refName + std::to_string(refNumber[LoopRefTree->AA]);
+                errs() << "(";
+                std::string tmp = "";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                    for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                        tmp += (*(*it)->LIS->IDV)[i]->getName();
+                        tmp += "Interven";
+                        tmp += ", ";
+                    }
+                }
+                tmp.pop_back();
+                tmp.pop_back();
+                
+                errs() << tmp + ")";
+                errs() << " == ";
+                
+                errs() << "cal" + refName + std::to_string(useID);
+                errs() << "(";
+                tmp = "";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = useLoops.begin(), eit = useLoops.end(); it != eit; ++it) {
+                    for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                        tmp += (*(*it)->LIS->IDV)[i]->getName();
+                        tmp += ", ";
+                    }
+                }
+                tmp.pop_back();
+                tmp.pop_back();
+                
+                errs() << tmp + ")";
+                errs() << ") {\n";
+                
+                errs() << space + "    return true;\n";
+                errs() << space + "}\n";
+                
+                /* finalize */
+                for (unsigned long i = 0; i < loops.size(); i++){
+                    space.pop_back();
+                    space.pop_back();
+                    space.pop_back();
+                    space.pop_back();
+                    errs() << space + "}\n";
+                }
+            }
+        }
+        
+        if (LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                checkIntervenRefGen((*it), refName, useLoops, reuseLoops, useID, reuseID, loops);
+            }
+        }
+        
+        return;
+    }
+    
     void StaticSamplingCodeGen::checkIntervenBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int useID, int reuseID) {
         
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops;
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops = findRefLoops(LoopRefTree, refName, useID, loops);
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops = findRefLoops(LoopRefTree, refName, reuseID, loops);
         
-        
+        checkIntervenRefGen(LoopRefTree, refName, useLoops, reuseLoops, useID, reuseID, loops);
         
         return;
     }
@@ -208,7 +320,7 @@ namespace ssCodeGen {
                     reuseIndvs.pop_back();
                     reuseIndvs.pop_back();
                     
-                    errs() << "void checkInterven";
+                    errs() << "bool checkInterven";
                     errs() << refName + std::to_string(useID) + "_" + std::to_string(reuseID);
                     errs() << "(";
                     errs() << useIndvs + ", ";
@@ -216,6 +328,7 @@ namespace ssCodeGen {
                     
                     checkIntervenBodyGen(LoopRefTree, refName, useID, reuseID);
                     
+                    errs() << "    return false;\n";
                     errs() << "}\n";
                 }
             }
@@ -265,13 +378,39 @@ namespace ssCodeGen {
         
         /* Generate chechInterven() function call */
         space += "    ";
-        errs() << space + "checkInterven";
+        errs() << space +"if ( ";
+        errs() << "checkInterven";
         errs() << refName + std::to_string(useID) + "_" + std::to_string(reuseID);
-        errs() << "(" + useIndvs + ", " + reuseIndvs + ");\n";
-        errs() << space + "break;\n";
+        errs() << "(" + useIndvs + ", " + reuseIndvs + ")";
+        errs() << " == false) {\n";
+        
+        errs() << space + "    rtCal" + refName + std::to_string(useID) + "_" + std::to_string(reuseID) + "(";
+        errs() << useIndvs + ", " + reuseIndvs + ");\n";
+        
+        errs() << space + "}\n";
+        errs() << space + "findReuseFlag = true;\n";
+        
+        space.pop_back();
+        space.pop_back();
+        space.pop_back();
+        space.pop_back();
+        errs() << space + "}\n";
         
         /* finilize pair function */
-        for (unsigned long i = 0; i < useLoops.size() + reuseLoops.size() + 1; i++) {
+        for (unsigned long i = 0; i < reuseLoops.size(); i++) {
+            
+            errs() << space + "if (findReuseFlag == true) {\n";
+            errs() << space + "    break;\n";
+            errs() << space + "}\n";
+            
+            space.pop_back();
+            space.pop_back();
+            space.pop_back();
+            space.pop_back();
+            errs() << space + "}\n";
+        }
+        
+        for (unsigned long i = 0; i < useLoops.size(); i++) {
             space.pop_back();
             space.pop_back();
             space.pop_back();
@@ -304,6 +443,132 @@ namespace ssCodeGen {
                     errs() << "void pair" + it->first + std::to_string(i) + "_" + std::to_string(j) + "() {\n";
                     pairRefRTBodyGen(LoopRefTree, it->first, i, j);
                     errs() << "}\n";
+                }
+            }
+        }
+        
+        return;
+    }
+    
+    void StaticSamplingCodeGen::rtCalFuncBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops, int useID, int reuseID) {
+        
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIt = useLoops.begin();
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator reuseIt = reuseLoops.begin();
+        
+        std::string calExpr = "";
+        
+        while (useIt != useLoops.end() && reuseIt != reuseLoops.end()) {
+            if ((*useIt) == (*reuseIt)) {
+                calExpr += "(";
+                calExpr += (*(*reuseIt)->LIS->IDV)[0]->getName();
+                calExpr += "reuse";
+                calExpr += " - ";
+                calExpr += (*(*useIt)->LIS->IDV)[0]->getName();
+                calExpr += ")";
+                calExpr += " * ";
+                calExpr += std::to_string(refCntOfLoop[*useIt]);
+            } else {
+                calExpr += "(";
+                calExpr += getBound((*(*useIt)->LIS->LB)[0].second);
+                calExpr += " - ";
+                calExpr += (*(*useIt)->LIS->IDV)[0]->getName();
+                calExpr += ")";
+                calExpr += " * ";
+                calExpr += std::to_string(refCntOfLoop[*useIt]);
+                
+                /* need to add the ref cnt between two different loops */
+                
+                calExpr += "(";
+                calExpr += (*(*reuseIt)->LIS->IDV)[0]->getName();
+                calExpr += "reuse";
+                calExpr += " - ";
+                calExpr += getBound((*(*reuseIt)->LIS->LB)[0].first);
+                calExpr += ")";
+                calExpr += " * ";
+                calExpr += std::to_string(refCntOfLoop[*reuseIt]);
+            }
+            
+            calExpr += " + ";
+            
+            ++useIt;
+            ++reuseIt;
+        }
+        
+        /* need to deal with the loop lengths are different */
+        
+        
+        /* take ref access order into account */
+        
+        if ( !reuseLoops.empty() ) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = (*reuseLoops.rbegin())->next->begin(), eit = (*reuseLoops.rbegin())->next->end(); it != eit; ++it) {
+                
+                if ((*it)->AA != NULL) {
+                    if (refNumber[(*it)->AA] == reuseID && arrayName[(*it)->AA] == refName) {
+                        calExpr += std::to_string(refOrder[*it]);
+                    }
+                }
+                
+            }
+        }
+        
+        if ( !useLoops.empty() ) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = (*useLoops.rbegin())->next->begin(), eit = (*useLoops.rbegin())->next->end(); it != eit; ++it) {
+                if ((*it)->AA != NULL) {
+                    if (refNumber[(*it)->AA] == useID && arrayName[(*it)->AA] == refName) {
+                        calExpr += " - ";
+                        calExpr += std::to_string(refOrder[*it]);
+                    }
+                }
+            }
+        }
+        
+        errs() << "    return " + calExpr + ";\n";
+        
+        return;
+    }
+    
+    void StaticSamplingCodeGen::rtCalFuncTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+        
+        for (std::map<std::string, int>::iterator ref_it = refToSameArrayCnt.begin(), ref_eit = refToSameArrayCnt.end(); ref_it != ref_eit; ++ref_it) {
+            std::string refName = (*ref_it).first;
+            for (int useID = 0; useID < refToSameArrayCnt[refName]; useID++) {
+                for (int reuseID = 0; reuseID < refToSameArrayCnt[refName]; reuseID++) {
+                    
+                    std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops;
+                    std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops = findRefLoops(LoopRefTree, refName, useID, loops);
+                    std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops = findRefLoops(LoopRefTree, refName, reuseID, loops);
+                    
+                    std::string useIndvs = "";
+                    for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = useLoops.begin(), eit = useLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            useIndvs += "int ";
+                            useIndvs += (*(*it)->LIS->IDV)[i]->getName();
+                            useIndvs += ", ";
+                        }
+                    }
+                    useIndvs.pop_back();
+                    useIndvs.pop_back();
+                    
+                    std::string reuseIndvs = "";
+                    for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = reuseLoops.begin(), eit = reuseLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            reuseIndvs += "int ";
+                            reuseIndvs += (*(*it)->LIS->IDV)[i]->getName();
+                            reuseIndvs += "reuse";
+                            reuseIndvs += ", ";
+                        }
+                    }
+                    reuseIndvs.pop_back();
+                    reuseIndvs.pop_back();
+                    
+                    errs() << "void rtCal" + refName + std::to_string(useID) + "_" + std::to_string(reuseID) + "(";
+                    errs() << useIndvs + ", " + reuseIndvs;
+                    errs() << ") {\n";
+                    
+                    rtCalFuncBodyGen(LoopRefTree, refName, useLoops, reuseLoops, useID, reuseID);
+                    
+                    errs() << "}\n";
+                    
                 }
             }
         }
@@ -352,6 +617,41 @@ namespace ssCodeGen {
         return;
     }
     
+    void StaticSamplingCodeGen::rtHistoGen() {
+        
+        errs() << "std::map<uint64_t, uint64_t> rtHisto;\n";
+        errs() << "void rtHistoCal( int rt) {\n";
+        errs() << "    if (rtHisto.find(rt) == rtHisto.end()) { \n";
+        errs() << "        rtHisto[rt] = 1;\n";
+        errs() << "    } else {\n";
+        errs() << "        rtHisto[rt] += 1;\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        
+        return;
+    }
+    
+    void StaticSamplingCodeGen::mainGen() {
+        
+        errs() << "int main() {\n";
+        
+        std::string space = "    ";
+        
+        for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
+            for (int i = 0; i < (*it).second; i++) {
+                for (int j = 0; j < (*it).second; j++) {
+                    errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
+                }
+            }
+        }
+        
+        errs() << "    return 0;\n";
+        errs() << "}\n";
+        
+        return;
+    }
+    
     void StaticSamplingCodeGen::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->AA != NULL) {
@@ -371,6 +671,46 @@ namespace ssCodeGen {
         }
         
         return;
+    }
+    
+    int StaticSamplingCodeGen::initRefCntOfLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+        
+        if (LoopRefTree == NULL) {
+            return 0;
+        }
+        
+        if (LoopRefTree->L != NULL && LoopRefTree->next != NULL) {
+            
+            int cnt = 0;
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                
+                if ((*it)->AA != NULL) {
+                    cnt += 1;
+                }
+                
+                if ((*it)->L != NULL) {
+                    int lB = stoi(getBound((*(*it)->LIS->LB)[0].first));
+                    int uB = stoi(getBound((*(*it)->LIS->LB)[0].second));
+                    cnt += initRefCntOfLoop(*it) * (uB - lB);
+                }
+            }
+            
+            refCntOfLoop[LoopRefTree] = cnt;
+            errs() << "Loops: " << cnt << "\n";
+            return cnt;
+            
+        }
+        
+        /* root node */
+        if (LoopRefTree->L == NULL && LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if ((*it)->L != NULL) {
+                    initRefCntOfLoop(*it);
+                }
+            }
+        }
+        
+        return 0;
     }
     
     void StaticSamplingCodeGen::initLoopOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
@@ -405,7 +745,9 @@ namespace ssCodeGen {
                 if ((*it)->AA != NULL) {
                     refOrder[*it] = order;
                     order++;
-                    initRefOrder(*it);
+                }
+                if ((*it)->L != NULL) {
+                    initRefOrder(*it);;
                 }
             }
         }
@@ -418,6 +760,8 @@ namespace ssCodeGen {
         initLoopOrder(LoopRefTree);
         
         initRefOrder(LoopRefTree);
+        
+        initRefCntOfLoop(LoopRefTree);
         
         return;
     }
@@ -442,14 +786,23 @@ namespace ssCodeGen {
         /* number the references to the same array */
         numberRefToSameArray(LoopRefTree);
         
+        /* generate rtHistoCal function */
+        rtHistoGen();
+        
         /* generate address calculation functions */
         addrCalFuncGenTop(LoopRefTree);
+        
+        /* generate reuse time calculation function */
+        rtCalFuncTopGen(LoopRefTree);
         
         /* generate pair-wise rt top function */
         pairRefRTTopGen(LoopRefTree);
         
         /* generate checkInterven top function */
         checkIntervenTopGen(LoopRefTree);
+        
+        /* generate main function */
+        mainGen();
         
         return false;
     }

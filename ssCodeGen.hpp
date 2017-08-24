@@ -34,6 +34,7 @@ namespace ssCodeGen {
         
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> loopOrder;
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refOrder;
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refCntOfLoop;
         
         std::map<std::string, int> refToSameArrayCnt;
         std::map<Instruction*, int> refNumber;
@@ -53,9 +54,18 @@ namespace ssCodeGen {
         
         void checkLocGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
         
+        void checkIntervenRefGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops);
         void checkIntervenBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
         void checkIntervenTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         
+        void rtCalFuncBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> reuseLoops, int useID, int reuseID);
+        void rtCalFuncTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        
+        void rtHistoGen();
+        
+        void mainGen();
+        
+        int initRefCntOfLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initRefOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initLoopOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void init(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
