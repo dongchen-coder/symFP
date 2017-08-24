@@ -36,6 +36,8 @@ namespace ssCodeGen {
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refOrder;
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refCntOfLoop;
         
+        std::map<Value*, std::string> indvName;
+        
         std::map<std::string, int> refToSameArrayCnt;
         std::map<Instruction*, int> refNumber;
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
@@ -63,8 +65,12 @@ namespace ssCodeGen {
         
         void rtHistoGen();
         
+        void headerGen();
+        
         void mainGen();
         
+        void initArrayName();
+        void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         int initRefCntOfLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initRefOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initLoopOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);

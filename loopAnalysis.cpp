@@ -389,7 +389,7 @@ namespace loopAnalysis {
     
     bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
         
-        errs() << "\nStart analysis loops\n";
+        errs() << "\n /* Start analysis loops\n";
         
         LoopRefTNode* LTroot = NULL;
         
@@ -404,7 +404,7 @@ namespace loopAnalysis {
         /* dump loopRef tree */
         DumpLoopTree(LTroot, "");
         
-        errs() << "\nFinish analysis loops\n";
+        errs() << "\nFinish analysis loops */ \n";
         
         return false;
     }

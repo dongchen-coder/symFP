@@ -356,11 +356,13 @@ namespace idxAnalysis {
     }
     
     bool IndexAnalysis::runOnFunction(Function &F) {
-        errs() << "\nStart to analysis array index\n";
+        errs() << "\n /* Start to analysis array index\n";
         
         findAllArrayAccesses(F);
         
         dumpAllInfo();
+        
+        errs() << "\n Finish to analysis array index */ \n";
         
         return false;
     }

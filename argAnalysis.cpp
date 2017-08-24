@@ -18,10 +18,13 @@ namespace argAnalysis {
     
     bool ArgumentAnalysis::runOnFunction(Function &F) {
         
-        errs() << "\nStart to analyze argument\n";
+        errs() << "\n /* Start to analyze argument\n";
+        
         for (Function::arg_iterator it = F.arg_begin(), eit = F.arg_end(); it != eit; ++it) {
             it->dump();
         }
+        
+        errs() << "\n /* Start to analysis argument */ \n";
         
         return false;
     }

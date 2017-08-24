@@ -29,8 +29,8 @@ namespace symFP {
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override {
-            errs() << "Start to analyze function: ";
-            errs().write_escaped(F.getName()) << '\n';
+            errs() << " /* Start to analyze function:  \n";
+            errs().write_escaped(F.getName()) << " */ \n";
             
             getAnalysis<idxAnalysis::IndexAnalysis>();
             getAnalysis<argAnalysis::ArgumentAnalysis>();

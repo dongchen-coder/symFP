@@ -16,7 +16,9 @@ namespace gVarAnalysis {
     
     bool GlobalVariableAnalysis::runOnFunction(Function &F) {
         
-        errs() << "\nStart to analysis global variable\n";
+        errs() << "\n /* Start to analysis global variable \n";
+        
+        errs() << "\n Finish to analysis global variable */ \n";
         
         return false;
     }
