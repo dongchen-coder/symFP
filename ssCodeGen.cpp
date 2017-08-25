@@ -66,7 +66,15 @@ namespace ssCodeGen {
                         errs() << space + "for ( int " + indvName[(*(*lit)->LIS->IDV)[i]] << " = ";
                         errs() << getBound((*(*lit)->LIS->LB)[i].first) << "; ";
                         errs() << indvName[(*(*lit)->LIS->IDV)[i]] << " < " + getBound((*(*lit)->LIS->LB)[i].second) + "; ";
+#if SAMPLING == 0
                         errs() << indvName[(*(*lit)->LIS->IDV)[i]] << "++) {\n";
+#elif SAMPLING == 1
+                        errs() << indvName[(*(*lit)->LIS->IDV)[i]];
+                        errs() << " += ";
+                        errs() << "1 /" +  std::to_string(UNIFORM_SAMPLING_RATE);
+                        errs() << ") {\n";
+#endif
+
                     }
                     space += "    ";
                 }
@@ -140,7 +148,13 @@ namespace ssCodeGen {
                 for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
                     errs() << space + "for ( int " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
                     errs() << " = ";
-                    errs() << indvName[(*useLoops[i]->LIS->IDV)[j]] << "; ";
+                    errs() << indvName[(*useLoops[i]->LIS->IDV)[j]];
+ /*
+                    if (i == reuseLoops.size() - 1 && ) {
+                        errs() << " + 1";
+                    }
+ */                   
+                    errs() << "; ";
                     errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
                     errs() << " < ";
                     errs() << getBound((*reuseLoops[i]->LIS->LB)[j].second);
@@ -207,7 +221,7 @@ namespace ssCodeGen {
                                 errs() << " < ";
                                 if (i < reuseLoops.size()) {
                                     if (reuseLoops[i] == loops[i]) {
-                                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]];
+                                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
                                     } else {
                                         
                                     }
@@ -623,6 +637,7 @@ namespace ssCodeGen {
     void StaticSamplingCodeGen::headerGen() {
         
         errs() << "#include <map>\n";
+        errs() << "#include <iostream>\n";
         errs() << "using namespace std;\n";
         
         return;
@@ -643,6 +658,19 @@ namespace ssCodeGen {
         return;
     }
     
+    void StaticSamplingCodeGen::rtDumpGen() {
+        
+        errs() << "void rtDump() {\n";
+        errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
+        errs() << "    for (map<uint64_t, uint64_t>::iterator it = rtHisto.begin(), eit = rtHisto.end(); it != eit; ++it) {\n";
+        errs() << "        cout << it->first << \" \" << it->second << \"\\n\";\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        
+        return;
+    }
+    
     void StaticSamplingCodeGen::mainGen() {
         
         errs() << "int main() {\n";
@@ -652,10 +680,13 @@ namespace ssCodeGen {
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                 for (int j = 0; j < (*it).second; j++) {
+                    errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
                 }
             }
         }
+        
+        errs() << "    rtDump();\n";
         
         errs() << "    return 0;\n";
         errs() << "}\n";
@@ -682,6 +713,30 @@ namespace ssCodeGen {
         }
         
         return;
+    }
+    
+    int StaticSamplingCodeGen::initRefTotalOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, int order) {
+        
+        if (LoopRefTree == NULL) {
+            return -1;
+        }
+        
+        if (LoopRefTree->AA != NULL) {
+            refTotalOrder[LoopRefTree] = order;
+            
+            errs() << order << "\n";
+            
+            order++;
+            return order;
+        }
+        
+        if (LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                order = initRefTotalOrder(*it, order);
+            }
+        }
+        
+        return order;
     }
     
     int StaticSamplingCodeGen::initRefCntOfLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
@@ -808,6 +863,8 @@ namespace ssCodeGen {
         
         initArrayName();
         
+        initRefTotalOrder(LoopRefTree, 0);
+        
         return;
     }
     
@@ -848,6 +905,9 @@ namespace ssCodeGen {
         
         /* generate pair-wise rt top function */
         pairRefRTTopGen(LoopRefTree);
+        
+        /* generate rtDump function */
+        rtDumpGen();
         
         /* generate main function */
         mainGen();

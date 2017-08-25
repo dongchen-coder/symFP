@@ -22,6 +22,16 @@
 
 using namespace llvm;
 
+/*
+ * Sampling mode 0: No sampling
+ * Sampling mode 1: Uniform sampling
+ * Sampling mode 2: Random sampling
+ */
+
+#define SAMPLING 1
+
+#define UNIFORM_SAMPLING_RATE 0.005
+
 namespace ssCodeGen {
     
     struct StaticSamplingCodeGen : public FunctionPass {
@@ -35,6 +45,8 @@ namespace ssCodeGen {
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> loopOrder;
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refOrder;
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refCntOfLoop;
+        
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, int> refTotalOrder;
         
         std::map<Value*, std::string> indvName;
         
@@ -64,11 +76,13 @@ namespace ssCodeGen {
         void rtCalFuncTopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         
         void rtHistoGen();
+        void rtDumpGen();
         
         void headerGen();
         
         void mainGen();
         
+        int initRefTotalOrder(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, int order);
         void initArrayName();
         void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         int initRefCntOfLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
