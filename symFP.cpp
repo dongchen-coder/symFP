@@ -37,7 +37,9 @@ namespace symFP {
             getAnalysis<gVarAnalysis::GlobalVariableAnalysis>();
             getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>();
             //getAnalysis<brchAnalysis::BranchAnalysis>();
+            
             getAnalysis<ssCodeGen::StaticSamplingCodeGen>();
+            
             return false;
         }
 

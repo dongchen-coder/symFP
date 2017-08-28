@@ -78,9 +78,14 @@ namespace idxAnalysis {
         /* iterate over the instructions stacked to get the prefix expression */
         
         std::vector<std::string> expr;
+        
         for (std::vector<Instruction*>::iterator it = instStack.begin(), eit = instStack.end(); it != eit; ++it) {
             
             Instruction* pInst = *it;
+#ifdef IDX_DEBUG
+            pInst->dump();
+            errs() << expr.size() << "\n";
+#endif
             
             if (pInst->isCast()) {
                 //stack[i]->getOperand(0)->dump();
@@ -92,11 +97,16 @@ namespace idxAnalysis {
                         errs() << "Warning: PHI node without a name";
 #endif
                     }
+                } else if (isa<Instruction>(pInst->getOperand(0))) {
+                    Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
+                    if (tmp->isBinaryOp()) {
+                        expr.push_back(tmp->getOpcodeName());
+                    }
                 }
             } else if (pInst->isBinaryOp()) {
                 
                 std::string op(pInst->getOpcodeName());
-                expr.push_back(op);
+                //expr.push_back(op);
                 
                 if (pInst->getNumOperands() == 2) {
                     if (!isa<Instruction>(pInst->getOperand(0))) {
@@ -118,6 +128,14 @@ namespace idxAnalysis {
                             errs() << "Warning: PHI node without a name";
 #endif
                         }
+                    } else if (isa<LoadInst>(pInst->getOperand(0))) {
+                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(0));
+                        expr.push_back(ld->getOperand(0)->getName());
+                    } else if (isa<Instruction>(pInst->getOperand(0))) {
+                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
+                        if (tmp->isBinaryOp()) {
+                            expr.push_back(tmp->getOpcodeName());
+                        }
                     }
                     if (!isa<Instruction>(pInst->getOperand(1))) {
                         if(isa<Argument>(pInst->getOperand(1))) {
@@ -138,11 +156,17 @@ namespace idxAnalysis {
                             errs() << "Warning: PHI node without a name";
 #endif
                         }
+                    } else if (isa<LoadInst>(pInst->getOperand(1))) {
+                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(1));
+                        expr.push_back(ld->getOperand(0)->getName());
+                    } else if (isa<Instruction>(pInst->getOperand(1))) {
+                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(1));
+                        if (tmp->isBinaryOp()) {
+                            expr.push_back(tmp->getOpcodeName());
+                        }
                     }
                     
-                }
-                
-                if (pInst->getNumOperands() == 1) {
+                } else if (pInst->getNumOperands() == 1) {
                     if (!isa<Instruction>(pInst->getOperand(0))) {
                         if(isa<Argument>(pInst->getOperand(0))) {
                             expr.push_back(pInst->getOperand(0)->getName().str());
@@ -161,6 +185,14 @@ namespace idxAnalysis {
 #ifdef IDX_DEBUG
                             errs() << "Warning: PHI node without a name";
 #endif
+                        }
+                    } else if (isa<LoadInst>(pInst->getOperand(0))) {
+                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(0));
+                        expr.push_back(ld->getOperand(0)->getName());
+                    } else if (isa<Instruction>(pInst->getOperand(0))) {
+                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
+                        if (tmp->isBinaryOp()) {
+                            expr.push_back(tmp->getOpcodeName());
                         }
                     }
                 }
@@ -205,8 +237,10 @@ namespace idxAnalysis {
                         }
                     }
                 }
-            } else if (isa<AllocaInst>(pInst)) {
-                expr.push_back(pInst->getName());
+            //} else if (isa<LoadInst>(pInst)) {
+            //    expr.push_back(pInst->getOperand(0)->getName());
+            //} else if (isa<AllocaInst>(pInst)) {
+            //    expr.push_back(pInst->getName());
             } else {
 #ifdef IDX_DEBUG
                 errs() << "Warning: Other instructions\n";
@@ -220,36 +254,38 @@ namespace idxAnalysis {
 #endif
         }
         
+#ifdef IDX_DEBUG
+        for (unsigned long i = 0; i < expr.size(); i++) {
+            errs() << "Prefix expr: " << expr[i] << "\n";
+        }
+        errs() << "\n";
+#endif
+        
         /* Prefix expression to infix expression */
         std::string expr_infix;
         
-        int len = expr.size() - 1;
-        for (int i = len; i >= 0; i--) {
-            //errs() << expr[i] << " ";
-            bool flag = false;
-            if (expr[i] == "add") {
-                expr[i] = "(" + expr[i+1] + " + " + expr[i+2] + ")";
-                flag = true;
-            }
-            if (expr[i] == "sub") {
-                expr[i] = "(" + expr[i+1] + " - " + expr[i+2] + ")";
-                flag = true;
-            }
-            if (expr[i] == "mul") {
-                expr[i] = "(" + expr[i+1] + " * " + expr[i+2] + ")";
-                flag = true;
-            }
-            if (expr[i] == "div") {
-                expr[i] = "(" + expr[i+1] + " / " + expr[i+2] + ")";
-                flag = true;
+        while (expr.size() > 1) {
+            long i;
+            for (i = expr.size() - 1; i >= 0; i--) {
+                if (expr[i] == "add" || expr[i] == "sub" || expr[i] == "mul" || expr[i] == "div") {
+                    break;
+                }
             }
             
-            if (flag == true) {
-                for (int j = i+1; j <= len-2; j++) {
-                    expr[j] = expr[j+2] ;
-                }
-                len = len - 2;
+            if (expr[i] == "add") {
+                expr[i] = "(" + expr[expr.size() - 2] + " + " + expr[expr.size() - 1] + ")";
             }
+            if (expr[i] == "sub") {
+                expr[i] = "(" + expr[expr.size() - 2] + " - " + expr[expr.size() - 1] + ")";
+            }
+            if (expr[i] == "mul") {
+                expr[i] = "(" + expr[expr.size() - 2] + " * " + expr[expr.size() - 1] + ")";
+            }
+            if (expr[i] == "div") {
+                expr[i] = "(" + expr[expr.size() - 2] + " / " + expr[expr.size() - 1] + ")";
+            }
+            expr.pop_back();
+            expr.pop_back();
         }
         
         expr_infix = expr[0];

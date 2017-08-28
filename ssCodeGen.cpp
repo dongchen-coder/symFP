@@ -91,6 +91,32 @@ namespace ssCodeGen {
         return;
     }
     
+    
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* StaticSamplingCodeGen::findRef(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int refID) {
+        
+        if (LoopRefTree == NULL) {
+            return NULL;
+        }
+        
+        if (LoopRefTree->AA != NULL) {
+            if (arrayName[LoopRefTree->AA] == refName && refNumber[LoopRefTree->AA] == refID) {
+                return LoopRefTree;
+            }
+        }
+        
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* result = NULL;
+        if (LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* tmp = findRef(*it, refName, refID);
+                if (tmp != NULL) {
+                    result = tmp;
+                }
+            }
+        }
+        
+        return result;
+    }
+    
     std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> StaticSamplingCodeGen::findRefLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int refID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops) {
         
         if (LoopRefTree->L != NULL) {
@@ -144,20 +170,39 @@ namespace ssCodeGen {
         
         for (unsigned long i = 0; i < reuseLoops.size(); i++) {
             
-            if (loopOrder[useLoops[i]] == loopOrder[reuseLoops[i]]) {
+            if (useLoops[i] == reuseLoops[i]) {
                 for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
                     errs() << space + "for ( int " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
                     errs() << " = ";
                     errs() << indvName[(*useLoops[i]->LIS->IDV)[j]];
- /*
-                    if (i == reuseLoops.size() - 1 && ) {
-                        errs() << " + 1";
+
+                    if (i + 1 != reuseLoops.size()) {
+                        if (useLoops[i+1] != reuseLoops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                            errs() << " + 1";
+                        }
+                    } else if (i + 1 == reuseLoops.size()) {
+                        if (refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                            errs() << " + 1";
+                        }
                     }
- */                   
+                    
                     errs() << "; ";
                     errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
                     errs() << " < ";
                     errs() << getBound((*reuseLoops[i]->LIS->LB)[j].second);
+
+                    /*
+                    if (i + 1 != reuseLoops.size()) {
+                        if (useLoops[i+1] != reuseLoops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, useID)] > refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                            errs() << " - 1";
+                        }
+                    } else if (i + 1 == reuseLoops.size()) {
+                        if (refTotalOrder[findRef(LoopRefTree, refName, useID)] > refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                            errs() << " - 1";
+                        }
+                    }
+                    */
+                     
                     errs() << "; ";
                     errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse" + "++";
                     errs() << ") {\n";
@@ -207,25 +252,58 @@ namespace ssCodeGen {
                             errs() << space + "for(";
                             for (unsigned long j = 0; j < loops[i]->LIS->IDV->size(); j++) {
                                 errs() << "int " + indvName[(*loops[i]->LIS->IDV)[j]] + "Interven" + " = ";
+                                
                                 if (i < useLoops.size()) {
                                     if (useLoops[i] == loops[i]) {
                                         errs() << indvName[(*useLoops[i]->LIS->IDV)[j]];
+                                        
+                                        if (i + 1 < useLoops.size() && i + 1 < loops.size()) {
+                                            if (useLoops[i+1] != loops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, refNumber[LoopRefTree->AA])]) {
+                                                errs() << " + 1 ";
+                                            }
+                                        } else if (i + 1 == useLoops.size()) {
+                                            if (refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, refNumber[LoopRefTree->AA])]) {
+                                                errs() << " + 1 ";
+                                            }
+                                        }
+                    
                                     } else {
                                         
+                                        errs() << getBound((*loops[i]->LIS->LB)[j].first);
+                                        
                                     }
+                                    
                                 } else {
                                     
+                                    errs() << getBound((*loops[i]->LIS->LB)[j].first);
+                                    
                                 }
+                                
                                 errs() << "; ";
                                 errs() << indvName[(*loops[i]->LIS->IDV)[j]] + "Interven";
                                 errs() << " < ";
                                 if (i < reuseLoops.size()) {
                                     if (reuseLoops[i] == loops[i]) {
                                         errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                                        
+                                        if (i + 1 < reuseLoops.size() && i + 1 < loops.size()) {
+                                            if (reuseLoops[i+1] != loops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, reuseID)] < refTotalOrder[findRef(LoopRefTree, refName, refNumber[LoopRefTree->AA])]) {
+                                                errs() << " - 1 ";
+                                            }
+                                        } else if (i + 1 == reuseLoops.size()) {
+                                            if (refTotalOrder[findRef(LoopRefTree, refName, reuseID)] < refTotalOrder[findRef(LoopRefTree, refName, refNumber[LoopRefTree->AA])]) {
+                                                errs() << " -  1 ";
+                                            }
+                                        }
+                                        
                                     } else {
+                                        
+                                        errs() << getBound((*loops[i]->LIS->LB)[j].second);
                                         
                                     }
                                 } else {
+                                    
+                                    errs() << getBound((*loops[i]->LIS->LB)[j].second);
                                     
                                 }
                                 errs() << "; ";
@@ -401,8 +479,8 @@ namespace ssCodeGen {
         errs() << "(" + useIndvs + ", " + reuseIndvs + ")";
         errs() << " == false) {\n";
         
-        errs() << space + "    rtCal" + refName + std::to_string(useID) + "_" + std::to_string(reuseID) + "(";
-        errs() << useIndvs + ", " + reuseIndvs + ");\n";
+        errs() << space + "  rtHistoCal(  rtCal" + refName + std::to_string(useID) + "_" + std::to_string(reuseID) + "(";
+        errs() << useIndvs + ", " + reuseIndvs + ") );\n";
         
         errs() << space + "}\n";
         errs() << space + "findReuseFlag = true;\n";
@@ -682,11 +760,12 @@ namespace ssCodeGen {
                 for (int j = 0; j < (*it).second; j++) {
                     errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
+                    errs() << "    rtDump();\n";
                 }
             }
         }
         
-        errs() << "    rtDump();\n";
+        //errs() << "    rtDump();\n";
         
         errs() << "    return 0;\n";
         errs() << "}\n";
@@ -723,8 +802,6 @@ namespace ssCodeGen {
         
         if (LoopRefTree->AA != NULL) {
             refTotalOrder[LoopRefTree] = order;
-            
-            errs() << order << "\n";
             
             order++;
             return order;
