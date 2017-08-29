@@ -1,8 +1,8 @@
 #include "../utility/rt.h"
 
-#define NI 1024
-#define NJ 1024
-#define NK 1024
+#define NI 256
+#define NJ 256
+#define NK 256
 
 #define A_OFFSET 0
 #define B_OFFSET 
