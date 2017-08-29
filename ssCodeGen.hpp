@@ -65,7 +65,7 @@ namespace ssCodeGen {
         
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findRef(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int refID);
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findRefLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int refID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
-        void reuseLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
+        bool reuseLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         
         void checkLocGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::string refName, int useID, int reuseID);
         
