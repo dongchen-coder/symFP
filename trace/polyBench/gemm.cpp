@@ -4,48 +4,11 @@
 #define NJ 1024
 #define NK 1024
 
-void varify(double alpha, double beta, double* A, double* B, double* C) {
-    int i,j,k;
+#define A_OFFSET 0
+#define B_OFFSET NI * NK
+#define C_OFFSET NI * NK + NK * NJ
 
-    double *tempC = (double*)malloc( (NI * NJ) * sizeof(double));
-    
-    for (i = 0; i < NI; i++)
-    {
-        for (j = 0; j < NJ; j++)
-        {
-            tempC[i * NJ + j] *= beta;
-            
-            for (k = 0; k < NK; k++)
-            {
-                tempC[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-            }
-            if (tempC[i * NJ + j] != C[i * NJ + j]) {
-                return false;
-            }
-        }
-    } 
-    return true;  
-}
-
-// void gemm(int ni, int nj, int nk, double alpha, double beta, double* A, double* B, double* C)
-// {
-//     int i,j,k;
-    
-//     for (i = 0; i < NI; i++)
-//     {
-//         for (j = 0; j < NJ; j++)
-//         {
-//             C[i * NJ + j] *= beta;
-            
-//             for (k = 0; k < NK; k++)
-//             {
-//                 C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-//             }
-//         }
-//     }
-// }
-
-void gemm_trace(int ni, int nj, int nk, double alpha, double beta, double* A, double* B, double* C) {
+void gemm_trace(double alpha, double beta, double* A, double* B, double* C) {
     int i,j,k;
     
     for (i = 0; i < NI; i++)
@@ -53,14 +16,16 @@ void gemm_trace(int ni, int nj, int nk, double alpha, double beta, double* A, do
         for (j = 0; j < NJ; j++)
         {
             C[i * NJ + j] *= beta;
-            
+			rtTmpAccess(C_OFFSET + i * NJ + j); 
+			rtTmpAccess(C_OFFSET + i * NJ + j);           
+
             for (k = 0; k < NK; k++)
             {
                 C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-                rtTmpAccess(i * NK + k);                            // load A
-                rtTmpAccess(k * NJ + j + (NI * NK));                // load B
-                rtTmpAccess(i * NJ + j + (NI * NK) + (NK * NJ));    // load C
-                rtTmpAccess(i * NJ + j + (NI * NK) + (NK * NJ));    // store C
+				rtTmpAccess(C_OFFSET + i * NJ + j);
+				rtTmpAccess(A_OFFSET + i * NK + k);
+				rtTmpAccess(B_OFFSET + k * NJ + j);
+				rtTmpAccess(C_OFFSET + i * NJ + j);
             }
         }
     }
@@ -86,13 +51,8 @@ int main()
     double alpha = 1.0;
     double beta = 1.5;
 
-    gemm_trace(NI, NJ, NK, alpha, beta, A, B, C);
+    gemm_trace(alpha, beta, A, B, C);
     dumpRtTmp();
 
-    if (varify(alpha, beta, A, B, C)) {
-        cout << "Success" << endl;
-    } else {
-        cout << "Failed" << endl;
-    }
     return 0;
 }
