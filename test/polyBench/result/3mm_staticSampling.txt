@@ -1,0 +1,49 @@
+ check pair A_addr0 A_addr0
+  check pair B_addr0 B_addr0
+  check pair C_addr0 C_addr0
+  check pair D_addr0 D_addr0
+  check pair E_addr0 E_addr0
+  check pair E_addr0 E_addr1
+  check pair E_addr0 E_addr2
+  check pair E_addr0 E_addr3
+  check pair E_addr1 E_addr0
+  check pair E_addr1 E_addr1
+  check pair E_addr1 E_addr2
+  check pair E_addr1 E_addr3
+  check pair E_addr2 E_addr0
+  check pair E_addr2 E_addr1
+  check pair E_addr2 E_addr2
+  check pair E_addr2 E_addr3
+  check pair E_addr3 E_addr0
+  check pair E_addr3 E_addr1
+  check pair E_addr3 E_addr2
+  check pair E_addr3 E_addr3
+  check pair F_addr0 F_addr0
+  check pair F_addr0 F_addr1
+  check pair F_addr0 F_addr2
+  check pair F_addr0 F_addr3
+  check pair F_addr1 F_addr0
+  check pair F_addr1 F_addr1
+  check pair F_addr1 F_addr2
+  check pair F_addr1 F_addr3
+  check pair F_addr2 F_addr0
+  check pair F_addr2 F_addr1
+  check pair F_addr2 F_addr2
+  check pair F_addr2 F_addr3
+  check pair F_addr3 F_addr0
+  check pair F_addr3 F_addr1
+  check pair F_addr3 F_addr2
+  check pair F_addr3 F_addr3
+  check pair G_addr0 G_addr0
+  check pair G_addr0 G_addr1
+  check pair G_addr0 G_addr2
+  check pair G_addr1 G_addr0
+  check pair G_addr1 G_addr1
+  check pair G_addr1 G_addr2
+  check pair G_addr2 G_addr0
+  check pair G_addr2 G_addr1
+  check pair G_addr2 G_addr2
+ Start to dump reuse time histogram
+3 27
+1025 81
+262400 81
