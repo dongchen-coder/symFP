@@ -1,0 +1,218 @@
+ check pair A_addr0 A_addr0
+ Start to dump reuse time histogram
+ check pair A_addr0 A_addr1
+ Start to dump reuse time histogram
+4096 121
+ check pair A_addr1 A_addr0
+ Start to dump reuse time histogram
+4096 121
+ check pair A_addr1 A_addr1
+ Start to dump reuse time histogram
+4096 121
+ check pair tmp_addr0 tmp_addr0
+ Start to dump reuse time histogram
+4096 121
+ check pair tmp_addr0 tmp_addr1
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr0 tmp_addr2
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr0 tmp_addr3
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr1 tmp_addr0
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr1 tmp_addr1
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr1 tmp_addr2
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr1 tmp_addr3
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr2 tmp_addr0
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr2 tmp_addr1
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr2 tmp_addr2
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr2 tmp_addr3
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr3 tmp_addr0
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr3 tmp_addr1
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr3 tmp_addr2
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair tmp_addr3 tmp_addr3
+ Start to dump reuse time histogram
+1 11
+4096 121
+ check pair x_addr0 x_addr0
+ Start to dump reuse time histogram
+1 11
+4096 121
+8193 121
+ check pair y_addr0 y_addr0
+ Start to dump reuse time histogram
+1 11
+4096 121
+8193 121
+ check pair y_addr0 y_addr1
+ Start to dump reuse time histogram
+1 11
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr0 y_addr2
+ Start to dump reuse time histogram
+1 11
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr1 y_addr0
+ Start to dump reuse time histogram
+1 11
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr1 y_addr1
+ Start to dump reuse time histogram
+1 11
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr1 y_addr2
+ Start to dump reuse time histogram
+1 11
+3 121
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr2 y_addr0
+ Start to dump reuse time histogram
+1 11
+3 121
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8193 121
+ check pair y_addr2 y_addr1
+ Start to dump reuse time histogram
+1 11
+3 121
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8190 121
+8193 121
+ check pair y_addr2 y_addr2
+ Start to dump reuse time histogram
+1 11
+3 121
+1024 1
+1324 1
+1624 1
+1924 1
+2224 1
+2524 1
+2824 1
+3124 1
+3424 1
+3724 1
+4024 1
+4096 121
+8190 121
+8193 121

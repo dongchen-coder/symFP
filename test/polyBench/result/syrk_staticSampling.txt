@@ -1,0 +1,206 @@
+ check pair A_addr0 A_addr0
+ Start to dump reuse time histogram
+1024 18
+ check pair A_addr0 A_addr1
+ Start to dump reuse time histogram
+1 9
+1024 18
+ check pair A_addr1 A_addr0
+ Start to dump reuse time histogram
+1 9
+1023 9
+1024 18
+ check pair A_addr1 A_addr1
+ Start to dump reuse time histogram
+1 9
+1023 9
+1024 18
+262144 18
+ check pair C_addr0 C_addr0
+ Start to dump reuse time histogram
+1 9
+1023 9
+1024 18
+262144 18
+ check pair C_addr0 C_addr1
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+262144 18
+ check pair C_addr0 C_addr2
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+262144 18
+ check pair C_addr0 C_addr3
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+262144 18
+ check pair C_addr1 C_addr0
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+262144 18
+ check pair C_addr1 C_addr1
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+262144 18
+ check pair C_addr1 C_addr2
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr1 C_addr3
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr2 C_addr0
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr2 C_addr1
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr2 C_addr2
+ Start to dump reuse time histogram
+1 18
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr2 C_addr3
+ Start to dump reuse time histogram
+1 45
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr3 C_addr0
+ Start to dump reuse time histogram
+1 45
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr3 C_addr1
+ Start to dump reuse time histogram
+1 45
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr3 C_addr2
+ Start to dump reuse time histogram
+1 45
+3 27
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
+ check pair C_addr3 C_addr3
+ Start to dump reuse time histogram
+1 45
+3 27
+1023 9
+1024 18
+131585 1
+233785 1
+262144 18
+335985 1
+26294785 1
+26396985 1
+26499185 1
+52457985 1
+52560185 1
+52662385 1
