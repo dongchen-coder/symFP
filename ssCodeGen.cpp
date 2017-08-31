@@ -1258,12 +1258,13 @@ namespace ssCodeGen {
     
     void StaticSamplingCodeGen::rtHistoGen() {
         
-        errs() << "std::map<uint64_t, uint64_t> rtHisto;\n";
+        errs() << "std::map<uint64_t, double> RT;\n";
+        errs() << "std::map<uint64_t, double> MR;\n";
         errs() << "void rtHistoCal( int rt) {\n";
-        errs() << "    if (rtHisto.find(rt) == rtHisto.end()) { \n";
-        errs() << "        rtHisto[rt] = 1;\n";
+        errs() << "    if (RT.find(rt) == RT.end()) { \n";
+        errs() << "        RT[rt] = 1;\n";
         errs() << "    } else {\n";
-        errs() << "        rtHisto[rt] += 1;\n";
+        errs() << "        RT[rt] += 1;\n";
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
@@ -1275,9 +1276,93 @@ namespace ssCodeGen {
         
         errs() << "void rtDump() {\n";
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
-        errs() << "    for (map<uint64_t, uint64_t>::iterator it = rtHisto.begin(), eit = rtHisto.end(); it != eit; ++it) {\n";
+        errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
         errs() << "        cout << it->first << \" \" << it->second << \"\\n\";\n";
         errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        
+        return;
+    }
+    
+    void StaticSamplingCodeGen::rtToMRGen() {
+        
+        errs() << "void RTtoMR_AET() {\n";
+        
+        std::string space = "    ";
+        errs() << space + "std::map<uint64_t, double> P;\n";
+        errs() << space + "double total_num_RT = 0;\n";
+        errs() << space + "uint64_t max_RT = 0;\n";
+        
+        errs() << space + "for (std::map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {\n";
+        errs() << space + "    total_num_RT += it->second;\n";
+        errs() << space + "    if (max_RT < it->first) {\n";
+        errs() << space + "        max_RT = it->first;\n";
+        errs() << space + "    }\n";
+        errs() << space + "}\n";
+        
+        errs() << space + "double accumulate_num_RT = 0;\n";
+        errs() << space + "for (std::map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {\n";
+        errs() << space + "    P[it->first] = accumulate_num_RT / total_num_RT;\n";
+        errs() << space + "    accumulate_num_RT += it->second;\n";
+        errs() << space + "}\n";
+        
+        errs() << space + "P[0] = 1;\n";
+        
+        errs() << space + "double sum_P = 0;\n";
+        errs() << space + "uint64_t t = 0;\n";
+        errs() << space + "uint64_t prev_t = 0;\n";
+        errs() << space + "for (uint64_t c = 0; c <= max_RT; c++) {\n";
+        errs() << space + "    while (sum_P < c && t <= max_RT) {\n";
+        errs() << space + "        if (P.find(t) != P.end()) {\n";
+        errs() << space + "            sum_P += P[t];\n";
+        errs() << space + "            prev_t = t;\n";
+        errs() << space + "        } else {\n";
+        errs() << space + "            sum_P += P[prev_t];\n";
+        errs() << space + "        }\n";
+        errs() << space + "        t++;\n";
+        errs() << space + "    }\n";
+        
+        errs() << space + "    MR[c] = P[prev_t];\n";
+        errs() << space + "}\n";
+        
+        errs() << space + "return;\n";
+        
+        errs() << "}\n";
+        
+        return;
+    }
+    
+    void StaticSamplingCodeGen::mrDumpGen() {
+        
+        errs() << "void dumpMR() {\n";
+            
+        errs() << "    cout << \"miss ratio\" << endl;\n";
+            
+        errs() << "    std::map<uint64_t, double>::iterator it1 = MR.begin();\n";
+        errs() << "    std::map<uint64_t, double>::iterator it2 = MR.begin();\n";
+        
+        errs() << "    while(it1 != MR.end()) {\n";
+        errs() << "        while(1) {\n";
+        errs() << "            std::map<uint64_t, double>::iterator it3 = it2;\n";
+        errs() << "            ++it3;\n";
+        errs() << "            if (it3 == MR.end()) {\n";
+        errs() << "                break;\n";
+        errs() << "            }\n";
+        errs() << "            if (it1->second - it3->second < 0.00001) {\n";
+        errs() << "                ++it2;\n";
+        errs() << "            } else {\n";
+        errs() << "                break;\n";
+        errs() << "            }\n";
+        errs() << "        }\n";
+        errs() << "        cout << it1->first << \" \" << it1->second << endl;\n";
+        errs() << "        if (it1 != it2) {\n";
+        errs() << "            cout << it2->first << \" \" << it2->second << endl;\n";
+        errs() << "        }\n";
+        errs() << "        it1 = ++it2;\n";
+        errs() << "        it2 = it1;\n";
+        errs() << "    }\n";
+            
         errs() << "    return;\n";
         errs() << "}\n";
         
@@ -1293,7 +1378,7 @@ namespace ssCodeGen {
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                 for (int j = 0; j < (*it).second; j++) {
-                    errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
+                    //errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
                     //errs() << "    rtDump();\n";
                 }
@@ -1301,6 +1386,10 @@ namespace ssCodeGen {
         }
         
         errs() << "    rtDump();\n";
+        
+        errs() << "    RTtoMR_AET();";
+        
+        errs() << "    dumpMR();";
         
         errs() << "    return 0;\n";
         errs() << "}\n";
@@ -1511,6 +1600,9 @@ namespace ssCodeGen {
         /* generate rtHistoCal function */
         rtHistoGen();
         
+        /* generate rtToMR function */
+        rtToMRGen();
+        
         /* generate address calculation functions */
         addrCalFuncGenTop(LoopRefTree);
         
@@ -1525,6 +1617,9 @@ namespace ssCodeGen {
         
         /* generate rtDump function */
         rtDumpGen();
+        
+        /* generate mrDump function */
+        mrDumpGen();
         
         /* generate main function */
         mainGen();

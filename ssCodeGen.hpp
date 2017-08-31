@@ -81,6 +81,9 @@ namespace ssCodeGen {
         void rtHistoGen();
         void rtDumpGen();
         
+        void rtToMRGen();
+        void mrDumpGen();
+        
         void headerGen();
         
         void mainGen();
