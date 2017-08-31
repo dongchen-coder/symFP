@@ -24,7 +24,7 @@ namespace argAnalysis {
             it->dump();
         }
         
-        errs() << "\n /* Start to analysis argument */ \n";
+        errs() << "\n Start to analysis argument */ \n";
         
         return false;
     }

@@ -82,6 +82,7 @@ namespace idxAnalysis {
         for (std::vector<Instruction*>::iterator it = instStack.begin(), eit = instStack.end(); it != eit; ++it) {
             
             Instruction* pInst = *it;
+            
 #ifdef IDX_DEBUG
             pInst->dump();
             errs() << expr.size() << "\n";
@@ -101,6 +102,9 @@ namespace idxAnalysis {
                     Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
                     if (tmp->isBinaryOp()) {
                         expr.push_back(tmp->getOpcodeName());
+                    } else if (isa<LoadInst>(tmp)) {
+                        LoadInst* ld = dyn_cast<LoadInst>(tmp);
+                        expr.push_back(ld->getOperand(0)->getName());
                     }
                 }
             } else if (pInst->isBinaryOp()) {

@@ -32,6 +32,8 @@ using namespace llvm;
 
 #define UNIFORM_SAMPLING_RATE 0.01
 
+#define RANDOM_SAMPLING_NUM 10000
+
 namespace ssCodeGen {
     
     struct StaticSamplingCodeGen : public FunctionPass {

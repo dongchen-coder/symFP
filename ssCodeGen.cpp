@@ -57,27 +57,80 @@ namespace ssCodeGen {
         
         if (LoopRefTree->AA != NULL) {
             if (arrayName[LoopRefTree->AA] == refName && refNumber[LoopRefTree->AA] == useID) {
+#if SAMPLING == 0
                 std::string space = "    ";
                 for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
                     for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
-                        
-                        ;
-                        
                         errs() << space + "for ( int " + indvName[(*(*lit)->LIS->IDV)[i]] << " = ";
                         errs() << getBound((*(*lit)->LIS->LB)[i].first) << "; ";
                         errs() << indvName[(*(*lit)->LIS->IDV)[i]] << " < " + getBound((*(*lit)->LIS->LB)[i].second) + "; ";
-#if SAMPLING == 0
                         errs() << indvName[(*(*lit)->LIS->IDV)[i]] << "++) {\n";
+                    }
+                    space += "    ";
+                }
 #elif SAMPLING == 1
+                std::string space = "    ";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        errs() << space + "for ( int " + indvName[(*(*lit)->LIS->IDV)[i]] << " = ";
+                        errs() << getBound((*(*lit)->LIS->LB)[i].first) << "; ";
+                        errs() << indvName[(*(*lit)->LIS->IDV)[i]] << " < " + getBound((*(*lit)->LIS->LB)[i].second) + "; ";
                         errs() << indvName[(*(*lit)->LIS->IDV)[i]];
                         errs() << " += ";
                         errs() << "1 /" +  std::to_string(UNIFORM_SAMPLING_RATE);
                         errs() << ") {\n";
-#endif
-
                     }
                     space += "    ";
                 }
+#elif SAMPLING == 2
+                std::string space = "    ";
+                errs() << "set<string> record;\n";
+                errs() << space + "for ( int s = 0; s < " + std::to_string(RANDOM_SAMPLING_NUM) + "; s++) {\n";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        errs() << space + "    int " + indvName[(*(*lit)->LIS->IDV)[i]] + " = ";
+                        errs() << "rand() % (" + (getBound((*(*lit)->LIS->LB)[i].second) + " - " + getBound((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound((*(*lit)->LIS->LB)[i].first);
+                        errs() << ";\n";
+                    }
+                }
+                
+                std::string idx_string_tmp = "";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        idx_string_tmp += "std::to_string(";
+                        idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]];
+                        idx_string_tmp += ") + \"_\" + ";
+                    }
+                }
+                idx_string_tmp.pop_back();
+                idx_string_tmp.pop_back();
+                
+                space += "    ";
+                errs() << space + "string idx_string = " + idx_string_tmp + ";\n";
+                errs() << space + "while ( record.find(idx_string) != record.end() ) {\n";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        errs() << space + "    " + indvName[(*(*lit)->LIS->IDV)[i]] + " = ";
+                        errs() << "rand() % (" + (getBound((*(*lit)->LIS->LB)[i].second) + " - " + getBound((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound((*(*lit)->LIS->LB)[i].first);
+                        errs() << ";\n";
+                    }
+                }
+                
+                idx_string_tmp = "";
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        idx_string_tmp += "std::to_string(";
+                        idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]];
+                        idx_string_tmp += ") + \"_\" + ";
+                    }
+                }
+                idx_string_tmp.pop_back();
+                idx_string_tmp.pop_back();
+                
+                errs() << space + "    idx_string = " + idx_string_tmp + ";\n";
+                errs() << space + "}\n";
+                errs() << space + "record.insert( idx_string );\n";
+#endif
             }
             return;
         }
@@ -156,9 +209,13 @@ namespace ssCodeGen {
         }
         
         std::string space = "    ";
+#if (SAMPLING == 0 || SAMPLING == 1)
         for (unsigned long i = 0; i < useLoops.size(); i++) {
             space += "    ";
         }
+#elif SAMPLING == 2
+        space += "    ";
+#endif
         
         if (breakflag == true) {
             for (unsigned long i = 0; i < useLoops.size(); i++) {
@@ -789,7 +846,7 @@ namespace ssCodeGen {
             space.pop_back();
             errs() << space + "}\n";
         }
-        
+#if (SAMPLING == 0 || SAMPLING == 1)
         for (unsigned long i = 0; i < useLoops.size(); i++) {
             space.pop_back();
             space.pop_back();
@@ -797,7 +854,13 @@ namespace ssCodeGen {
             space.pop_back();
             errs() << space + "}\n";
         }
-        
+#elif SAMPLING == 2
+        space.pop_back();
+        space.pop_back();
+        space.pop_back();
+        space.pop_back();
+        errs() << space + "}\n";
+#endif
         return;
     }
     
@@ -1185,6 +1248,8 @@ namespace ssCodeGen {
     void StaticSamplingCodeGen::headerGen() {
         
         errs() << "#include <map>\n";
+        errs() << "#include <set>\n";
+        errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
         errs() << "using namespace std;\n";
         
@@ -1230,12 +1295,12 @@ namespace ssCodeGen {
                 for (int j = 0; j < (*it).second; j++) {
                     errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
-                    errs() << "    rtDump();\n";
+                    //errs() << "    rtDump();\n";
                 }
             }
         }
         
-        //errs() << "    rtDump();\n";
+        errs() << "    rtDump();\n";
         
         errs() << "    return 0;\n";
         errs() << "}\n";
