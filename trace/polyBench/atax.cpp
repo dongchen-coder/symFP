@@ -66,6 +66,8 @@ int main() {
 
     atax_cpu_trace(A, x, y, tmp, NX, NY);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

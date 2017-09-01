@@ -111,6 +111,8 @@ int main() {
 
     mm3_cpu_trace(a, b, c, d, e, f, g);
     dumpRtTmp();
+	RTtoMR_AET();
+	dumpMR();	
 
     return 0;
 }

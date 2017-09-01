@@ -97,6 +97,8 @@ int main(int argc, char const *argv[])
 
     gemver_trace(alpha, beta, A, u1, v1, u2, v2, w, x, y, z);
     dumpRtTmp();
-
+	RTtoMR_AET();
+    dumpMR();
+	
     return 0;
 }

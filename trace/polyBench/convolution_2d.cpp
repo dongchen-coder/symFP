@@ -56,7 +56,8 @@ int main()
 
     conv2D_trace(A, B);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
-    return 0;
     return 0;
 }

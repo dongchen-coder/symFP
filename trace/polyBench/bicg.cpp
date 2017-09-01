@@ -65,6 +65,8 @@ int main() {
 
     bicg_cpu_trace(A, r, s, p ,q, NX, NY);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();	
 
     return 0;
 }

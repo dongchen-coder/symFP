@@ -37,15 +37,15 @@ atax:
 	g++ $(TEST_DIR)/3mm.cpp -O3 -o $(TEST_DIR)/3mm_trace
 
 run_trace:
-	$(TEST_DIR)/stencil_trace > $(TEST_DIR)/result/stencil_trace.txt
-	$(TEST_DIR)/convolution_3d_trace > $(TEST_DIR)/result/convolution_3d_trace.txt
-	$(TEST_DIR)/convolution_2d_trace > $(TEST_DIR)/result/convolution_2d_trace.txt
-	$(TEST_DIR)/syrk_trace > $(TEST_DIR)/result/syrk_trace.txt
-	$(TEST_DIR)/mvt_trace > $(TEST_DIR)/result/mvt_trace.txt
-	$(TEST_DIR)/gesummv_trace > $(TEST_DIR)/result/gesummv_trace.txt
-	$(TEST_DIR)/gemver_trace > $(TEST_DIR)/result/gemver_trace.txt
-	$(TEST_DIR)/gemm_trace > $(TEST_DIR)/result/gemm_trace.txt
-	$(TEST_DIR)/bicg_trace > $(TEST_DIR)/result/bicg_trace.txt
-	$(TEST_DIR)/atax_trace > $(TEST_DIR)/result/atax_trace.txt
-	$(TEST_DIR)/3mm_trace > $(TEST_DIR)/result/3mm_trace.txt
+	$(TEST_DIR)/stencil_trace > $(TEST_DIR)/result/stencil_trace_result.txt
+	$(TEST_DIR)/convolution_3d_trace > $(TEST_DIR)/result/convolution_3d_trace_result.txt
+	$(TEST_DIR)/convolution_2d_trace > $(TEST_DIR)/result/convolution_2d_trace_result.txt
+	$(TEST_DIR)/syrk_trace > $(TEST_DIR)/result/syrk_trace_result.txt
+	$(TEST_DIR)/mvt_trace > $(TEST_DIR)/result/mvt_trace_result.txt
+	$(TEST_DIR)/gesummv_trace > $(TEST_DIR)/result/gesummv_trace_result.txt
+	$(TEST_DIR)/gemver_trace > $(TEST_DIR)/result/gemver_trace_result.txt
+	$(TEST_DIR)/gemm_trace > $(TEST_DIR)/result/gemm_trace_result.txt
+	$(TEST_DIR)/bicg_trace > $(TEST_DIR)/result/bicg_trace_result.txt
+	$(TEST_DIR)/atax_trace > $(TEST_DIR)/result/atax_trace_result.txt
+	$(TEST_DIR)/3mm_trace > $(TEST_DIR)/result/3mm_trace_result.txt
 

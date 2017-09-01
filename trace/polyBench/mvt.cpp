@@ -66,6 +66,8 @@ int main(int argc, char const *argv[])
 
     runMvt_trace( a, x1, x2, y1, y2);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

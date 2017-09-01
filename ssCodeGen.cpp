@@ -84,7 +84,7 @@ namespace ssCodeGen {
                 }
 #elif SAMPLING == 2
                 std::string space = "    ";
-                errs() << "set<string> record;\n";
+                errs() << space + "set<string> record;\n";
                 errs() << space + "for ( int s = 0; s < " + std::to_string(RANDOM_SAMPLING_NUM) + "; s++) {\n";
                 for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
                     for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
@@ -216,8 +216,9 @@ namespace ssCodeGen {
 #elif SAMPLING == 2
         space += "    ";
 #endif
-        
+
         if (breakflag == true) {
+#if (SAMPLING == 0 || SAMPLING == 1)
             for (unsigned long i = 0; i < useLoops.size(); i++) {
                 errs() << "    break;\n";
                 errs() << "}\n";
@@ -226,6 +227,10 @@ namespace ssCodeGen {
                 space.pop_back();
                 space.pop_back();
             }
+#elif SAMPLING == 2
+            errs() << "    break;\n";
+            errs() << "}\n";
+#endif
             return false;
         }
         

@@ -41,6 +41,8 @@ int main() {
 
     stencil_trace(a, b, DIM_SIZE);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     if (varify(b, a)) {
         cout << "Success" << endl;

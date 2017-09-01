@@ -53,6 +53,8 @@ int main()
 
     gemm_trace(alpha, beta, A, B, C);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

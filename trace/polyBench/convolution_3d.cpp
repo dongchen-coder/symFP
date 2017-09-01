@@ -81,6 +81,8 @@ int main()
 
     conv3D_trace(A, B);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

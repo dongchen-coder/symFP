@@ -67,6 +67,8 @@ int main(int argc, char const *argv[])
 
     gesummv_trace(alpha, beta, A, B, tmp, x, y);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

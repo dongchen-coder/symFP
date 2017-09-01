@@ -123,6 +123,8 @@ int main() {
 
     correlation_trace(data, mean, stddev, symmat);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }

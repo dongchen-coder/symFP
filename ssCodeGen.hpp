@@ -28,11 +28,11 @@ using namespace llvm;
  * Sampling mode 2: Random sampling
  */
 
-#define SAMPLING 1
+#define SAMPLING 2
 
 #define UNIFORM_SAMPLING_RATE 0.01
 
-#define RANDOM_SAMPLING_NUM 10000
+#define RANDOM_SAMPLING_NUM 1000
 
 namespace ssCodeGen {
     

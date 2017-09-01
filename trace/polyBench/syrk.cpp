@@ -54,6 +54,8 @@ int main(int argc, char const *argv[])
 
     syrk_trace(alpha, beta, A, C);
     dumpRtTmp();
+	RTtoMR_AET();
+    dumpMR();
 
     return 0;
 }
