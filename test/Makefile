@@ -15,7 +15,7 @@ OPT= $(LLVM_BIN_DIR)/opt
 LLC= $(LLVM_BIN_DIR)/llc
 CC= $(CLANG_BIN_DIR)/clang
 
-polyBench: stencil convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax 3mm
+polyBench: stencil convolution_2d syrk mvt gesummv gemver gemm bicg atax 3mm convolution_3d
 # correlation covariance
 
 check: $(TEST_DIR)/stencil.c

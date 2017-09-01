@@ -1,8 +1,8 @@
 //void conv3D(int ni, int nj, int nk, DATA_TYPE POLYBENCH_3D(A, NI, NJ, NK, ni, nj, nk), DATA_TYPE POLYBENCH_3D(B, NI, NJ, NK, ni, nj, nk))
 
-#define NI 1024
-#define NJ 1024
-#define NK 1024
+#define NI 256
+#define NJ 256
+#define NK 256
 
 void conv3D(int ni, int nj, int nk, double* A, double* B)
 {

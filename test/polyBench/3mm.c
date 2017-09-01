@@ -8,11 +8,11 @@
              DATA_TYPE POLYBENCH_2D(G,NI,NL,ni,nl))
 */
 
-#define NI 1024
-#define NJ 1024
-#define NL 1024
-#define NK 1024
-#define NM 1024
+#define NI 256
+#define NJ 256
+#define NL 256
+#define NK 256
+#define NM 256
 
 void mm3_cpu(int ni, int nj, int nk, int nl, int nm,
              double * E, double* A, double* B, double* F, double* C, double* D, double* G)
