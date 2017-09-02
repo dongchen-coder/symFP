@@ -1010,6 +1010,26 @@ namespace ssCodeGen {
                 bool useFlag = false;
                 for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                     if (std::find(reuseLoops.begin(), reuseLoops.end(), *it) != reuseLoops.end()) {
+                        
+                        // calculate inside reuse loop
+                        int i = 0;
+                        while (reuseLoops[i] != *it) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator reuseIter = reuseLoops[i]->next->begin(), reuseEIter = reuseLoops[i]->next->end(); reuseIter != reuseEIter; ++reuseIter) {
+                                if ((*reuseIter) != reuseLoops[i+1]) {
+                                    if ((*reuseIter)->AA != NULL) {
+                                        calExpr += "1 + ";
+                                    }
+                                    if ((*reuseIter)->L != NULL) {
+                                        calExpr += std::to_string(refCntOfLoop[*reuseIter]);
+                                        calExpr += " + ";
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            i++;
+                        }
+                        
                         break;
                     }
                     if (useFlag == true) {
@@ -1044,6 +1064,26 @@ namespace ssCodeGen {
                         }
                     }
                     if (std::find(useLoops.begin(), useLoops.end(), *it) != useLoops.end()) {
+                        
+                        // calculate inside use loop
+                        int i = 0;
+                        while (useLoops[i] != *it) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = reuseLoops[i]->next->begin(), useEIter = reuseLoops[i]->next->end(); useIter != useEIter; ++useIter) {
+                                if ((*useIter) != useLoops[i+1]) {
+                                    if ((*useIter)->AA != NULL) {
+                                        calExpr += "1 + ";
+                                    }
+                                    if ((*useIter)->L != NULL) {
+                                        calExpr += std::to_string(refCntOfLoop[*useIter]);
+                                        calExpr += " + ";
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            i++;
+                        }
+                        
                         useFlag = true;
                     }
                 }
@@ -1053,6 +1093,27 @@ namespace ssCodeGen {
                 
                 for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                     if (std::find(reuseLoops.begin(), reuseLoops.end(), *it) != reuseLoops.end()) {
+                        
+                        // calculate inside reuse loop
+                        int i = 0;
+                        while (reuseLoops[i] != *it) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator reuseIter = reuseLoops[i]->next->begin(), reuseEIter = reuseLoops[i]->next->end(); reuseIter != reuseEIter; ++reuseIter) {
+                                if ((*reuseIter) != reuseLoops[i+1]) {
+                                    if ((*reuseIter)->AA != NULL) {
+                                        calExpr += "1 + ";
+                                    }
+                                    if ((*reuseIter)->L != NULL) {
+                                        calExpr += std::to_string(refCntOfLoop[*reuseIter]);
+                                        calExpr += " + ";
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            i++;
+                        }
+
+                        
                         break;
                     }
                     if (useFlag == true) {
@@ -1066,6 +1127,26 @@ namespace ssCodeGen {
                     }
                     
                     if (std::find(useLoops.begin(), useLoops.end(), *it) != useLoops.end()) {
+                        
+                        // calculate inside use loop
+                        int i = 0;
+                        while (useLoops[i] != *it) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = reuseLoops[i]->next->begin(), useEIter = reuseLoops[i]->next->end(); useIter != useEIter; ++useIter) {
+                                if ((*useIter) != useLoops[i+1]) {
+                                    if ((*useIter)->AA != NULL) {
+                                        calExpr += "1 + ";
+                                    }
+                                    if ((*useIter)->L != NULL) {
+                                        calExpr += std::to_string(refCntOfLoop[*useIter]);
+                                        calExpr += " + ";
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                            i++;
+                        }
+                        
                         useFlag = true;
                     }
                 }
@@ -1390,7 +1471,7 @@ namespace ssCodeGen {
             }
         }
         
-        errs() << "    rtDump();\n";
+        //errs() << "    rtDump();\n";
         
         errs() << "    RTtoMR_AET();";
         
