@@ -539,12 +539,18 @@ namespace ssCodeGen {
                                     if (i < useLoops.size()) {
                                         if (useLoops[i] == loops[i]) {
                                             intervenLB += indvName[(*useLoops[i]->LIS->IDV)[j]];
-                                        
+                                            
                                             if (i + 1 < useLoops.size() && i + 1 < loops.size()) {
                                                 if (useLoops[i+1] != loops[i+1] && refTotalOrder[findRef(LoopRefTreeRoot, refName, useID)] >= refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
                                                     intervenLB += " + 1 ";
                                                 }
                                             } else if (i + 1 == useLoops.size()) {
+                                                if (refTotalOrder[findRef(LoopRefTreeRoot, refName, useID)] >= refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
+                                                    intervenLB += " + 1 ";
+                                                }
+                                            }
+                                            /* new add */
+                                            else if (i + 1 == loops.size()) {
                                                 if (refTotalOrder[findRef(LoopRefTreeRoot, refName, useID)] >= refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
                                                     intervenLB += " + 1 ";
                                                 }
@@ -1469,9 +1475,9 @@ namespace ssCodeGen {
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                 for (int j = 0; j < (*it).second; j++) {
-                    errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
+                    //errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
-                    errs() << "    rtDump();\n";
+                    //errs() << "    rtDump();\n";
                 }
             }
         }
