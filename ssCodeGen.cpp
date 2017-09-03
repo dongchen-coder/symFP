@@ -1012,8 +1012,7 @@ namespace ssCodeGen {
                     if (std::find(reuseLoops.begin(), reuseLoops.end(), *it) != reuseLoops.end()) {
                         
                         // calculate inside reuse loop
-                        int i = 0;
-                        while (reuseLoops[i] != *it) {
+                        for (unsigned long i = 0; i + 1 < reuseLoops.size(); i++) {
                             for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator reuseIter = reuseLoops[i]->next->begin(), reuseEIter = reuseLoops[i]->next->end(); reuseIter != reuseEIter; ++reuseIter) {
                                 if ((*reuseIter) != reuseLoops[i+1]) {
                                     if ((*reuseIter)->AA != NULL) {
@@ -1021,13 +1020,15 @@ namespace ssCodeGen {
                                     }
                                     if ((*reuseIter)->L != NULL) {
                                         calExpr += std::to_string(refCntOfLoop[*reuseIter]);
+                                        calExpr += " * (";
+                                        calExpr += getBound((*(*reuseIter)->LIS->LB)[0].second);
+                                        calExpr += " - ";
+                                        calExpr += getBound((*(*reuseIter)->LIS->LB)[0].first);
+                                        calExpr += ")";
                                         calExpr += " + ";
                                     }
-                                } else {
-                                    break;
                                 }
                             }
-                            i++;
                         }
                         
                         break;
@@ -1066,22 +1067,24 @@ namespace ssCodeGen {
                     if (std::find(useLoops.begin(), useLoops.end(), *it) != useLoops.end()) {
                         
                         // calculate inside use loop
-                        int i = 0;
-                        while (useLoops[i] != *it) {
-                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = reuseLoops[i]->next->begin(), useEIter = reuseLoops[i]->next->end(); useIter != useEIter; ++useIter) {
+                        
+                        for (unsigned long i = 0; i + 1 < useLoops.size(); i++) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = useLoops[i]->next->begin(), useEIter = useLoops[i]->next->end(); useIter != useEIter; ++useIter) {
                                 if ((*useIter) != useLoops[i+1]) {
                                     if ((*useIter)->AA != NULL) {
                                         calExpr += "1 + ";
                                     }
                                     if ((*useIter)->L != NULL) {
                                         calExpr += std::to_string(refCntOfLoop[*useIter]);
+                                        calExpr += " * (";
+                                        calExpr += getBound((*(*useIter)->LIS->LB)[0].second);
+                                        calExpr += " - ";
+                                        calExpr += getBound((*(*useIter)->LIS->LB)[0].first);
+                                        calExpr += ")";
                                         calExpr += " + ";
                                     }
-                                } else {
-                                    break;
                                 }
                             }
-                            i++;
                         }
                         
                         useFlag = true;
@@ -1095,8 +1098,7 @@ namespace ssCodeGen {
                     if (std::find(reuseLoops.begin(), reuseLoops.end(), *it) != reuseLoops.end()) {
                         
                         // calculate inside reuse loop
-                        int i = 0;
-                        while (reuseLoops[i] != *it) {
+                        for (unsigned long i = 0; i + 1 < reuseLoops.size(); i++) {
                             for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator reuseIter = reuseLoops[i]->next->begin(), reuseEIter = reuseLoops[i]->next->end(); reuseIter != reuseEIter; ++reuseIter) {
                                 if ((*reuseIter) != reuseLoops[i+1]) {
                                     if ((*reuseIter)->AA != NULL) {
@@ -1104,13 +1106,15 @@ namespace ssCodeGen {
                                     }
                                     if ((*reuseIter)->L != NULL) {
                                         calExpr += std::to_string(refCntOfLoop[*reuseIter]);
+                                        calExpr += " * (";
+                                        calExpr += getBound((*(*reuseIter)->LIS->LB)[0].second);
+                                        calExpr += " - ";
+                                        calExpr += getBound((*(*reuseIter)->LIS->LB)[0].first);
+                                        calExpr += ")";
                                         calExpr += " + ";
                                     }
-                                } else {
-                                    break;
                                 }
                             }
-                            i++;
                         }
 
                         
@@ -1129,22 +1133,23 @@ namespace ssCodeGen {
                     if (std::find(useLoops.begin(), useLoops.end(), *it) != useLoops.end()) {
                         
                         // calculate inside use loop
-                        int i = 0;
-                        while (useLoops[i] != *it) {
-                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = reuseLoops[i]->next->begin(), useEIter = reuseLoops[i]->next->end(); useIter != useEIter; ++useIter) {
+                        for (unsigned long i = 0; i + 1 < useLoops.size(); i++) {
+                            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator useIter = useLoops[i]->next->begin(), useEIter = useLoops[i]->next->end(); useIter != useEIter; ++useIter) {
                                 if ((*useIter) != useLoops[i+1]) {
                                     if ((*useIter)->AA != NULL) {
                                         calExpr += "1 + ";
                                     }
                                     if ((*useIter)->L != NULL) {
                                         calExpr += std::to_string(refCntOfLoop[*useIter]);
+                                        calExpr += " * (";
+                                        calExpr += getBound((*(*useIter)->LIS->LB)[0].second);
+                                        calExpr += " - ";
+                                        calExpr += getBound((*(*useIter)->LIS->LB)[0].first);
+                                        calExpr += ")";
                                         calExpr += " + ";
                                     }
-                                } else {
-                                    break;
                                 }
                             }
-                            i++;
                         }
                         
                         useFlag = true;
@@ -1464,9 +1469,9 @@ namespace ssCodeGen {
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                 for (int j = 0; j < (*it).second; j++) {
-                    //errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
+                    errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
-                    //errs() << "    rtDump();\n";
+                    errs() << "    rtDump();\n";
                 }
             }
         }
