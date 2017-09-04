@@ -32,7 +32,7 @@ using namespace llvm;
 
 #define UNIFORM_SAMPLING_RATE 0.01
 
-#define RANDOM_SAMPLING_NUM 1000
+#define RANDOM_SAMPLING_RATE 0.001
 
 namespace ssCodeGen {
     

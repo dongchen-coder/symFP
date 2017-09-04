@@ -355,7 +355,8 @@ namespace loopAnalysis {
             
             if (LTroot->AA != NULL) {
                 errs() << prefix + "array access ";
-                LTroot->AA->dump();
+                errs() << arrayName[LTroot->AA] << " ";
+                errs() << arrayExpression[LTroot->AA] << "\n";
             }
             
             if (LTroot->next != NULL) {
@@ -390,6 +391,9 @@ namespace loopAnalysis {
     bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
         
         errs() << "\n /* Start analysis loops\n";
+        
+        arrayName = getAnalysis<idxAnalysis::IndexAnalysis>().arrayName;
+        arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
         
         LoopRefTNode* LTroot = NULL;
         

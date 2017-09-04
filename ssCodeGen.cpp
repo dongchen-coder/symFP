@@ -85,7 +85,15 @@ namespace ssCodeGen {
 #elif SAMPLING == 2
                 std::string space = "    ";
                 errs() << space + "set<string> record;\n";
-                errs() << space + "for ( int s = 0; s < " + std::to_string(RANDOM_SAMPLING_NUM) + "; s++) {\n";
+                errs() << space + "for ( int s = 0; s < ";
+                int sampling_num = 1;
+                for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+                    for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                        sampling_num *= (int) ((stoi(getBound((*(*lit)->LIS->LB)[i].second)) - stoi(getBound((*(*lit)->LIS->LB)[i].first))) * RANDOM_SAMPLING_RATE);
+                    }
+                }
+                errs() << std::to_string(sampling_num);
+                errs() << "; s++) {\n";
                 for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
                     for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
                         errs() << space + "    int " + indvName[(*(*lit)->LIS->IDV)[i]] + " = ";
@@ -434,6 +442,12 @@ namespace ssCodeGen {
                                                     intervenLB += " + 1 ";
                                                 }
                                             }
+                                            /* new add 2 */
+                                            else if (i + 1 == loops.size()) {
+                                                if (refTotalOrder[findRef(LoopRefTreeRoot, refName, useID)] >= refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
+                                                    intervenLB += " + 1 ";
+                                                }
+                                            }
                                             
                                         } else {
                                             
@@ -492,6 +506,13 @@ namespace ssCodeGen {
                                                     intervenUB += " - 1 ";
                                                 }
                                             } else if (i + 1 == reuseLoops.size()) {
+                                                
+                                                if (refTotalOrder[findRef(LoopRefTreeRoot, refName, reuseID)] < refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
+                                                    intervenUB += " - 1 ";
+                                                }
+                                            }
+                                            /* new add 2 */
+                                            else if (i + 1 == loops.size()) {
                                                 
                                                 if (refTotalOrder[findRef(LoopRefTreeRoot, refName, reuseID)] < refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
                                                     intervenUB += " - 1 ";
@@ -588,7 +609,12 @@ namespace ssCodeGen {
                                                     intervenUB += " - 1 ";
                                                 }
                                             } else if (i + 1 == reuseLoops.size()) {
-                                            
+                                                if (refTotalOrder[findRef(LoopRefTreeRoot, refName, reuseID)] < refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
+                                                    intervenUB += " - 1 ";
+                                                }
+                                            }
+                                            /* new add 2*/
+                                            else if (i + 1 == loops.size()) {
                                                 if (refTotalOrder[findRef(LoopRefTreeRoot, refName, reuseID)] < refTotalOrder[findRef(LoopRefTreeRoot, refName, refNumber[LoopRefTree->AA])]) {
                                                     intervenUB += " - 1 ";
                                                 }

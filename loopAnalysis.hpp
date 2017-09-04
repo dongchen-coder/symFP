@@ -35,6 +35,9 @@ namespace loopAnalysis {
         static char ID;
         LoopIndvBoundAnalysis();
         
+        std::map<Instruction*, std::string> arrayName;
+        std::map<Instruction*, std::string> arrayExpression;
+        
         typedef pair<Value*, Value*> LoopBound;
         
         struct LoopInfoStruct{
