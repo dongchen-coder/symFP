@@ -2,9 +2,18 @@
 
 This is the underdevelopment symblic footprint repository (based on LLVM-4.0.0). 
 
-symFP is the major analysis pass which is dependent on the other four analysis passes (index, argument, global variable and loop information analysis pass).
+Symbolic footprint is aiming to provide detailed miss ratio curves statically for each function.
 
-## LoopIndvAnalysis Pass
+# Code structure
+
+There are 5 analysis passes, 1 code generation pass and 1 top wrapper pass. 
+
+## symFP Pass (Top)
+
+symFP is the top wrapper analysis pass which runs other 5 analysis passes (ArgumentAnalysis, BranchAnalysis, GlobalVariableAnalysis, IndexAnalysis, LoopIndvBoundAnalysis) and 1 code generation pass (ssCodeGen). 
+
+## LoopIndvAnalysis Pass 
+
 This pass analyze the loop information in the program. All Loop information was encapsulated in a LoopInfoStruct structrue.
 Here is the detail:
 ```C++
