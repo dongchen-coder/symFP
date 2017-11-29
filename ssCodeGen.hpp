@@ -28,11 +28,21 @@ using namespace llvm;
  * Sampling mode 2: Random sampling
  */
 
+#define CLS 32
+#define DS 8
+
 #define SAMPLING 2
 
 #define UNIFORM_SAMPLING_RATE 0.01
 
-#define RANDOM_SAMPLING_RATE 0.001
+#define RANDOM_SAMPLING_RATE 0.02
+
+//#define PARALLEL_OMP
+#define PARALLEL_CXX_THREAD
+
+//#define SHORT_CUT
+
+//#define SHORT_CUT_SIM
 
 namespace ssCodeGen {
     

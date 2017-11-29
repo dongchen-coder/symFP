@@ -6,6 +6,7 @@
 //
 //
 
+/*
 #include "brchAnalysis.hpp"
 
 using namespace std;
@@ -60,7 +61,7 @@ namespace brchAnalysis {
             }
         }
         
-        /* Can not iterpret the info */
+        // Can not iterpret the info
         // dumpBranchInfoStruct();
         
         return false;
@@ -106,11 +107,11 @@ namespace brchAnalysis {
         
     }
     
-    /*
+    /
      * Check Whether the Branch Condition contains the Loop Indv
      * @para *L     Loop Object to be analyzed
      * @para val    Variables contains in the
-     */
+     /
     bool BranchAnalysis::CheckBranchValid(Loop* L, Value* val) {
         if (isa<ConstantInt>(val)) { // constant value
             return false;
@@ -143,11 +144,11 @@ namespace brchAnalysis {
         }
     }
     
-    /* 
+    /
      * Check Whether the Condition Var belongs to the Loop Indv of the current Loop/its subLoop 
      * @para *L     Loop Object to be analyzed
      * @para var    Condition Variable
-     */
+     /
     bool BranchAnalysis::CheckIndvVar(Loop* L, string var) {
         for (loopAnalysis::LoopIndvBoundAnalysis::LoopInfoStruct ls: getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopInfoVector) {
             
@@ -280,3 +281,4 @@ namespace brchAnalysis {
         
     }
 }
+*/

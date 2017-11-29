@@ -5,7 +5,7 @@
 //  Created by Fangzhou Liu on 2017/7/11.
 //
 //
-
+/*
 #ifndef brchAnalysis_hpp
 #define brchAnalysis_hpp
 
@@ -29,31 +29,31 @@ namespace brchAnalysis {
         static char ID;
         BranchAnalysis();
         
-        /* Extract the Conditions From the Block Within the Loop */
+        // Extract the Conditions From the Block Within the Loop
         void BranchConditionAnalysis(Function &F);
         
-        /* Analysis pass main function */
+        // Analysis pass main function
         bool runOnFunction(Function &F) override;
         
-        /* Find the If Body in the Loop */
+        // Find the If Body in the Loop
         vector<BasicBlock *> FindIfBody(Loop *L);
         
-        /* Find the Branch Conditions */
+        // Find the Branch Conditions
         void FindBranch(Loop *L);
         
-        /* Check whether the branch is valid */
+        // Check whether the branch is valid
         bool CheckBranchValid(Loop *L, Value *v);
 
-        /* Check Whether the Condition Var belongs to the self/parent Loop Indv */
+        // Check Whether the Condition Var belongs to the self/parent Loop Indv
         bool CheckIndvVar(Loop *L, string var);
         
-        /* Print the Conditions */
+        // Print the Conditions
         void dumpBranchInfoStruct();
         
-        /* Return the String Representation of a Value */
+        // Return the String Representation of a Value
         string dumpValue(Value *v);
         
-        /* Return the String Representation of a Array */
+        // Return the String Representation of a Array
         string dumpArray(Value *arr);
         
         
@@ -62,4 +62,6 @@ namespace brchAnalysis {
 }
 
 
-#endif /* brchAnalysis_hpp */
+#endif  
+
+*/

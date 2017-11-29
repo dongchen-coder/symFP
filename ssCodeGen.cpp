@@ -11,7 +11,7 @@
 namespace ssCodeGen {
     
     char StaticSamplingCodeGen::ID = 0;
-    static RegisterPass<StaticSamplingCodeGen> X("ssCodeGen", "static sampling code generating pass", false, false);
+    static RegisterPass<StaticSamplingCodeGen> X("ssCodeGen", "static sampling code generating pass (reference pair based)", false, false);
     
     StaticSamplingCodeGen::StaticSamplingCodeGen() : FunctionPass(ID) {}
     
@@ -206,6 +206,34 @@ namespace ssCodeGen {
         return result;
     }
     
+    std::string findOffset(std::string expression, std::string idxName) {
+        std::string tmp;
+        for (unsigned long i = 0; i < expression.size(); i++) {
+            if (expression[i] == '(') {
+                tmp = "";
+                continue;
+            }
+            if (expression[i] == ')') {
+
+                if (std::find(tmp.begin(), tmp.end(), idxName[0]) != tmp.end()) {
+                    std::string::size_type i = tmp.find(idxName);
+                    
+                    if (i != std::string::npos)
+                        tmp.erase(i, idxName.length());
+                    break;
+                } else {
+                    tmp = "";
+                }
+
+                continue;
+            }
+            tmp.push_back(expression[i]);
+        }
+
+        return tmp;
+    }
+
+    
     bool StaticSamplingCodeGen::reuseLoopGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int useID, int reuseID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops) {
         
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> useLoops = findRefLoops(LoopRefTree, refName, useID, loops);
@@ -241,7 +269,146 @@ namespace ssCodeGen {
 #endif
             return false;
         }
+
+
+#ifdef SHORT_CUT
+        errs() << space + "bool findReuseFlag = false;\n";
+        for (unsigned long i = 0; i < reuseLoops.size(); i++) {
+            for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * use = findRef(LoopRefTree, refName, useID);
+                std::string use_offset = findOffset(arrayExpression[use->AA], indvName[(*useLoops[i]->LIS->IDV)[j]]);
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * reuse = findRef(LoopRefTree, refName, reuseID);
+                std::string reuse_offset = findOffset(arrayExpression[reuse->AA], indvName[(*reuseLoops[i]->LIS->IDV)[j]]);
+                
+                errs() << space + "int " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse" + use_offset;
+                errs() << ";\n";
+                
+            }
+        }
+        std::map<Value*, std::string> loopLB;
+        std::map<Value*, std::string> loopUB;
         
+        for (unsigned long i = 0; i < reuseLoops.size(); i++) {
+            
+            if (useLoops[i] == reuseLoops[i]) {
+                
+                if (i == 0) {
+                    for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                        errs() << space + "if ( " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                        errs() << " >= ";
+                        
+                        std::string tmpLB = indvName[(*useLoops[i]->LIS->IDV)[j]];
+                        
+                        if (i + 1 != reuseLoops.size()) {
+                            if (useLoops[i+1] != reuseLoops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                                tmpLB += " + 1";
+                            }
+                        } else if (i + 1 == reuseLoops.size()) {
+                            if (refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                                tmpLB += " + 1";
+                            }
+                        }
+                        errs() << tmpLB;
+                        loopLB[(*reuseLoops[i]->LIS->IDV)[j]] = tmpLB;
+                        
+                        errs() << "&& ";
+                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                        errs() << " < ";
+                        errs() << getBound((*reuseLoops[i]->LIS->LB)[j].second);
+                        
+                        errs() << ") {\n";
+                        space += "    ";
+                    }
+                }
+                
+                if (i > 0) {
+                    
+                    for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                        errs() << space + "int " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuseLB";
+                        errs() << ";\n";
+                    }
+                    
+                    errs() << space + "if (";
+                    
+                    for (unsigned long ii = 0; ii < i; ii++) {
+                        for (unsigned long j = 0; j < reuseLoops[ii]->LIS->IDV->size(); j++) {
+                            errs() << indvName[(*reuseLoops[ii]->LIS->IDV)[j]] + "reuse" + " == " + loopLB[(*reuseLoops[ii]->LIS->IDV)[j]];
+                            if (!(ii == i - 1 && j == reuseLoops[ii]->LIS->IDV->size() - 1)) {
+                                errs() << " && ";
+                            }
+                        }
+                    }
+                    
+                    errs() << ") {\n";
+                    
+                    for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                        errs() << space + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuseLB";
+                        errs() << " = ";
+                        
+                        std::string tmpLB = indvName[(*useLoops[i]->LIS->IDV)[j]];
+                        
+                        if (i + 1 != reuseLoops.size()) {
+                            if (useLoops[i+1] != reuseLoops[i+1] && refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                                tmpLB += " + 1";
+                            }
+                        } else if (i + 1 == reuseLoops.size()) {
+                            if (refTotalOrder[findRef(LoopRefTree, refName, useID)] >= refTotalOrder[findRef(LoopRefTree, refName, reuseID)]) {
+                                tmpLB += " + 1";
+                            }
+                        }
+                        errs() << tmpLB;
+                        loopLB[(*useLoops[i]->LIS->IDV)[j]] = tmpLB;
+                        
+                        errs() << ";\n";
+                        
+                    }
+                    
+                    errs() << space + "} else {\n";
+                    
+                    for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                        errs() << space + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuseLB";
+                        errs() << " = ";
+                        errs() << getBound((*reuseLoops[i]->LIS->LB)[j].first);
+                        errs() << ";\n";
+                    }
+                    
+                    errs() << space + "}\n";
+                    
+                    for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                        
+                        errs() << space + "if ( ";
+                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                        errs() << " >= ";
+                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuseLB";
+                        errs() << " && ";
+                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                        errs() << " < ";
+                        errs() << getBound((*reuseLoops[i]->LIS->LB)[j].second);
+                        
+                        errs() << "; ";
+                        errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse" + "++";
+                        errs() << ") {\n";
+                        space += "    ";
+                    }
+                }
+                
+            } else {
+                for (unsigned long j = 0; j < reuseLoops[i]->LIS->IDV->size(); j++) {
+                    errs() << space + "if ( " + indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                    errs() << " >= ";
+                    errs() << getBound((*reuseLoops[i]->LIS->LB)[j].first) << " && ";
+                    errs() << indvName[(*reuseLoops[i]->LIS->IDV)[j]] + "reuse";
+                    errs() << " < ";
+                    errs() << getBound((*reuseLoops[i]->LIS->LB)[j].second);
+                    errs() << ") {\n";
+                    space += "    ";
+                }
+            }
+            
+        }
+        
+#else
         errs() << space + "bool findReuseFlag = false;\n";
         
         std::map<Value*, std::string> loopLB;
@@ -365,9 +532,9 @@ namespace ssCodeGen {
                     space += "    ";
                 }
             }
-            
         }
         
+#endif
         return true;
     }
     
@@ -686,6 +853,9 @@ namespace ssCodeGen {
                             space.pop_back();
                             space.pop_back();
                             space.pop_back();
+#ifdef SHORT_CUT_SIM
+                            errs() << space + "break;\n";
+#endif
                             errs() << space + "}\n";
                         }
                     }
@@ -848,7 +1018,12 @@ namespace ssCodeGen {
         }
         reuseIndvs.pop_back();
         reuseIndvs.pop_back();
+#ifdef SHORT_CUT_SIM
+        errs() << reuseIndvs + ") && true) {\n";;
+#else
         errs() << reuseIndvs + ") ) {\n";
+#endif
+        
         
         /* Generate chechInterven() function call */
         space += "    ";
@@ -1345,7 +1520,11 @@ namespace ssCodeGen {
             arguments.pop_back();
             errs() << arguments;
             errs() << ") {\n";
+#if defined (CLS) && defined (DS)
+            errs() << "    int result = (" + arrayExpression[LoopRefTree->AA] + ") * " + std::to_string(DS) + " / " + std::to_string(CLS) + ";\n";
+#else
             errs() << "    int result = " + arrayExpression[LoopRefTree->AA] + ";\n";
+#endif
             errs() << "    return result;\n";
             errs() << "}\n";
             return;
@@ -1374,7 +1553,15 @@ namespace ssCodeGen {
         errs() << "#include <set>\n";
         errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "#include <thread>\n";
+        errs() << "#include <mutex>\n";
+#endif
         errs() << "using namespace std;\n";
+        
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "std::mutex mtx;\n";
+#endif
         
         return;
     }
@@ -1384,11 +1571,31 @@ namespace ssCodeGen {
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
         errs() << "void rtHistoCal( int rt) {\n";
+#ifdef PARALLEL_OMP
+        errs() << "    #pragma omp critical\n";
+        errs() << "    {";
+        errs() << "        if (RT.find(rt) == RT.end()) { \n";
+        errs() << "            RT[rt] = 1;\n";
+        errs() << "        } else {\n";
+        errs() << "            RT[rt] += 1;\n";
+        errs() << "        }\n";
+        errs() << "    }";
+#elif defined(PARALLEL_CXX_THREAD)
+        errs() << "    std::unique_lock<std::mutex> lck (mtx,std::defer_lock);\n";
+        errs() << "    lck.lock();\n";
         errs() << "    if (RT.find(rt) == RT.end()) { \n";
         errs() << "        RT[rt] = 1;\n";
         errs() << "    } else {\n";
         errs() << "        RT[rt] += 1;\n";
         errs() << "    }\n";
+        errs() << "    lck.unlock();\n";
+#else
+        errs() << "    if (RT.find(rt) == RT.end()) { \n";
+        errs() << "        RT[rt] = 1;\n";
+        errs() << "    } else {\n";
+        errs() << "        RT[rt] += 1;\n";
+        errs() << "    }\n";
+#endif
         errs() << "    return;\n";
         errs() << "}\n";
         
@@ -1497,16 +1704,45 @@ namespace ssCodeGen {
         errs() << "int main() {\n";
         
         std::string space = "    ";
+
+#ifdef PARALLEL_OMP
+        errs() << "#pragma omp parallel sections\n";
+        errs() << "{\n";
+#endif
         
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                 for (int j = 0; j < (*it).second; j++) {
                     //errs() << space + "cout << \" check pair " + (*it).first + std::to_string(i) + " " + (*it).first + std::to_string(j) + "\\n \";\n";
+#ifdef PARALLEL_OMP
+                    errs() << space + "#pragma omp section\n";
+                    errs() << space + "{ ";
+                    errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "(); ";
+                    errs() << space + "}\n";
+#elif defined(PARALLEL_CXX_THREAD)
+                    errs() << space + "std::thread t_"+ (*it).first + "_" +std::to_string(i)+"_"+std::to_string(j)+"(";
+                    errs() << "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + ");\n";
+                    
+#else
                     errs() << space + "pair" + (*it).first + std::to_string(i) + "_" + std::to_string(j) + "();\n";
-                    //errs() << "    rtDump();\n";
+#endif
                 }
             }
         }
+        
+#ifdef PARALLEL_OMP
+        errs() << "}\n";
+#endif
+        
+#ifdef PARALLEL_CXX_THREAD
+        for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
+            for (int i = 0; i < (*it).second; i++) {
+                for (int j = 0; j < (*it).second; j++) {
+                    errs() << space + "t_" + (*it).first + "_" +std::to_string(i)+"_"+std::to_string(j) + ".join();\n";
+                }
+            }
+        }
+#endif
         
         //errs() << "    rtDump();\n";
         

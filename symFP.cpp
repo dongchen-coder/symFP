@@ -19,6 +19,9 @@
 #include "loopAnalysis.hpp"
 //#include "brchAnalysis.hpp"
 #include "ssCodeGen.hpp"
+#include "ssCodeGen_ref.hpp"
+
+//#define REF_PAIR
 
 using namespace llvm;
 
@@ -37,8 +40,12 @@ namespace symFP {
             getAnalysis<gVarAnalysis::GlobalVariableAnalysis>();
             getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>();
             //getAnalysis<brchAnalysis::BranchAnalysis>();
-            
+
+#ifdef REF_PAIR
             getAnalysis<ssCodeGen::StaticSamplingCodeGen>();
+#else
+            getAnalysis<ssCodeGen_ref::StaticSamplingCodeGen_ref>();
+#endif
             
             return false;
         }
@@ -50,7 +57,11 @@ namespace symFP {
             AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
             AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
             //AU.addRequired<brchAnalysis::BranchAnalysis>();
+#ifdef REF_PAIR
             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();
+#else
+            AU.addRequired<ssCodeGen_ref::StaticSamplingCodeGen_ref>();
+#endif
         }
     };
     
