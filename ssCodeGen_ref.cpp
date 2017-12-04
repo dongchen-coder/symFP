@@ -332,6 +332,83 @@ namespace ssCodeGen_ref {
         return loopRes;
     }
     
+    
+    /* Search result reuse */
+    void StaticSamplingCodeGen_ref::searchReuseSameLoopInitGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
+        
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "uint64_t prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
+                    for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
+                    }
+                }
+            }
+        }
+    
+        return;
+    }
+    
+    void StaticSamplingCodeGen_ref::searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
+        
+        
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "if ( prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + " != -1) {\n";
+                    errs() << space + "    if ( calAddr" + refName + std::to_string(refNumber[(*ait)->AA]) + "( ";
+                    string tmp = "";
+                    for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            
+                            tmp += indvName[(*(*it)->LIS->IDV)[i]] + "_Start";
+                            tmp += " - prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_Start_" + refName + std::to_string(refNumber[(*ait)->AA]);
+                            tmp += " + prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_End_" + refName + std::to_string(refNumber[(*ait)->AA]);
+                            tmp += ", ";
+                        }
+                    }
+                    if (loops.size() != 0) {
+                        tmp.pop_back();
+                        tmp.pop_back();
+                    }
+                    
+                    errs() << tmp + ")";
+                    errs() << " == ";
+                    
+                    errs() << "calAddr" + refName + std::to_string(useID);
+                    errs() << "(";
+                    
+                    tmp = "";
+                    for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            tmp += indvName[(*(*it)->LIS->IDV)[i]];
+                            tmp += "_Start";
+                            tmp += ", ";
+                        }
+                    }
+                    if (loops.size() != 0) {
+                        tmp.pop_back();
+                        tmp.pop_back();
+                    }
+                    errs() << tmp + ")) {\n";
+                    
+                    errs() << space + "        rtHistoCal(prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + ");\n";
+//                    errs() << space + "        cout << \"Find match\\n\";\n";
+                    errs() << space + "        goto EndSample;\n";
+                    
+                    errs() << space + "    }\n";
+                    errs() << space + "}\n";
+                }
+            }
+        }
+        
+        return;
+    }
+    
+    
+    /* Generating Reuse Search */
     bool StaticSamplingCodeGen_ref::refRTSearchGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
@@ -430,6 +507,11 @@ namespace ssCodeGen_ref {
                     errs() << tmp + ")) {\n";
                     
                     errs() << space + "        rtHistoCal(cnt);\n";
+#ifdef SEARCH_REUSE
+                    if (std::find(loops.back()->next->begin(), loops.back()->next->end(), LoopRefTree) != loops.back()->next->end()) {
+                        errs() << space + "prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " = cnt;\n";
+                    }
+#endif
                     errs() << space + "        goto EndSample;\n";
                     
                     errs() << space + "    }\n";
@@ -465,7 +547,13 @@ namespace ssCodeGen_ref {
         
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops = findLoops(LoopRefTree, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>());
         
+#ifdef SEARCH_REUSE
+        errs() << "    /* Generating search reuse init code */\n";
+        searchReuseSameLoopInitGen(refName, useID, loops, "    ");
+#endif
+        
 #if SAMPLING ==2
+        errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
         errs() << space + "set<string> record;\n";
         errs() << space + "for ( int s = 0; s < ";
@@ -524,13 +612,18 @@ namespace ssCodeGen_ref {
         errs() << space + "}\n";
         errs() << space + "record.insert( idx_string );\n";
 #endif
-        
+  
         errs() << space + "uint64_t cnt = 0;\n";
         errs() << space + "bool cntStart = false;\n";
         errs() << "\n";
-        errs() << space + "/* Generating search code */\n";
-        errs() << "\n";
         
+#ifdef SEARCH_REUSE
+        errs() << "        /* Generating search reuse body code */\n";
+        searchReuseSameLoopBodyGen(refName, useID, loops, "        ");
+#endif
+        
+        errs() << space + "/* Generating reuse search code */\n";
+        errs() << "\n";
         refRTSearchGen(LoopRefTree, false, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
         
         errs() << "EndSample:\n";
@@ -573,7 +666,6 @@ namespace ssCodeGen_ref {
         
         return;
     }
-    
     
     
     bool StaticSamplingCodeGen_ref::runOnFunction(Function &F) {
