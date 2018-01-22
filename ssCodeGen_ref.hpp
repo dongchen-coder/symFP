@@ -19,7 +19,10 @@ using namespace llvm;
 #define SAMPLING 2
 #define RANDOM_REF_SAMPLING_RATE 0.02
 
-#define SEARCH_REUSE
+#define PROFILE_SEARCH_REUSE
+
+#define SEARCH_REUSE_SAME_LOOP
+#define SEARCH_REUSE_DIFFERENT_LOOPS
 
 namespace ssCodeGen_ref {
     struct StaticSamplingCodeGen_ref : public FunctionPass {
@@ -49,6 +52,11 @@ namespace ssCodeGen_ref {
         
         string getBound(Value *bound);
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
+        
+        void searchReuseDifferentLoopsUpdateFuncGen();
+        void searchReuseDifferentLoopsCalFuncGen();
+        bool searchReuseDifferentLoopsInitGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID,std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space);
+        bool searchReuseDifferentLoopsBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID,std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space);
         
         void searchReuseSameLoopInitGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space);
         void searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space);
