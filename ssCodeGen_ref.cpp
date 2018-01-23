@@ -126,6 +126,7 @@ namespace ssCodeGen_ref {
         errs() << "#include <set>\n";
         errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
+        errs() << "#include <cmath>\n";
 #ifdef PARALLEL_CXX_THREAD
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
@@ -332,7 +333,6 @@ namespace ssCodeGen_ref {
         return loopRes;
     }
     
-    
     /* Search result reuse (Different loop) */
     /* a is coefficient vector */
     /* x is the input matrix */
@@ -340,42 +340,52 @@ namespace ssCodeGen_ref {
     /* length */
     void StaticSamplingCodeGen_ref::searchReuseDifferentLoopsUpdateFuncGen() {
         errs() << "void updateCoefficient(float* a, int** x, int length, int* y) {\n";
+        errs() << "    double** x_tmp = new double*[length];\n";
         errs() << "    for (int i = 0; i < length; i++) {\n";
-        errs() << "        double maxEl = abs(x[i][i]);\n";
+        errs() << "        x_tmp[i] = new double[length];\n";
+        errs() << "        for (int j = 0; j < length; j++) {\n";
+        errs() << "            x_tmp[i][j] = (double) x[i][j];\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    double* y_tmp = new double[length];\n";
+        errs() << "    for (int i = 0; i < length; i++) {\n";
+        errs() << "        y_tmp[i] = y[i];\n";
+        errs() << "    }\n";
+        errs() << "    for (int i = 0; i < length; i++) {\n";
+        errs() << "        double maxEl = abs(x_tmp[i][i]);\n";
         errs() << "        int maxRow = i;\n";
         errs() << "        for (int k=i+1; k< length; k++) {\n";
-        errs() << "            if (abs(x[k][i]) > maxEl) {\n";
-        errs() << "                maxEl = abs(x[k][i]);\n";
+        errs() << "            if (abs(x_tmp[k][i]) > maxEl) {\n";
+        errs() << "                maxEl = abs(x_tmp[k][i]);\n";
         errs() << "                maxRow = k;\n";
         errs() << "            }\n";
         errs() << "        }\n";
         errs() << "        for (int k=i; k< length;k++) {\n";
-        errs() << "            double tmp = x[maxRow][k];\n";
-        errs() << "            x[maxRow][k] = x[i][k];\n";
-        errs() << "            x[i][k] = tmp;\n";
+        errs() << "            double tmp = x_tmp[maxRow][k];\n";
+        errs() << "            x_tmp[maxRow][k] = x_tmp[i][k];\n";
+        errs() << "            x_tmp[i][k] = tmp;\n";
         errs() << "        }\n";
-        errs() << "        double tmp = y[maxRow];\n";
-        errs() << "        y[maxRow] = y[i];\n";
-        errs() << "        y[i] = tmp;\n";
+        errs() << "        double tmp = y_tmp[maxRow];\n";
+        errs() << "        y_tmp[maxRow] = y_tmp[i];\n";
+        errs() << "        y_tmp[i] = tmp;\n";
         errs() << "        for (int k=i+1; k< length; k++) {\n";
-        errs() << "            double c = -x[k][i]/x[i][i];\n";
+        errs() << "            double c = -x_tmp[i][k]/x_tmp[i][i];\n";
         errs() << "            for (int j=i; j< length; j++) {\n";
         errs() << "                if (i==j) {\n";
-        errs() << "                    x[k][j] = 0;\n";
+        errs() << "                    x_tmp[j][k] = 0;\n";
         errs() << "                } else {\n";
-        errs() << "                    x[k][j] += c * x[i][j];\n";
+        errs() << "                    x_tmp[j][k] += c * x_tmp[j][i];\n";
         errs() << "                }\n";
         errs() << "            }\n";
-        errs() << "            y[k] += c * y[i];\n";
+        errs() << "            y_tmp[k] += c * y_tmp[i];\n";
         errs() << "        }\n";
         errs() << "    }\n";
         errs() << "    for (int i=length-1; i>=0; i--) {\n";
-        errs() << "        a[i] = y[i]/x[i][i];\n";
-        errs() << "        for (int k=i-1;k>=0; k--) {\n";
-        errs() << "            y[k] -= x[k][i] * a[i];\n";
+        errs() << "        a[i] = y_tmp[i]/x_tmp[i][i];\n";
+        errs() << "        for (int k=i-1; k>=0; k--) {\n";
+        errs() << "            y_tmp[k] -= x_tmp[i][k] * a[i];\n";
         errs() << "        }\n";
         errs() << "    }\n";
-        errs() << "    return;\n";
         errs() << "}\n";
         
         return;
@@ -388,6 +398,7 @@ namespace ssCodeGen_ref {
         errs() << "    for (int i = 0; i < length; i++) {\n";
         errs() << "        tmp += a[i] * x[i];\n";
         errs() << "    }\n";
+        errs() << "    tmp += a[length];\n";
         errs() << "    return (int) tmp;\n";
         errs() << "}\n";
         
@@ -419,9 +430,12 @@ namespace ssCodeGen_ref {
                         errs() << space + "int* prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " = new int[" + std::to_string(numRecord) +"];\n";
                         errs() << space + "std::fill(prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + ", prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " + " +  std::to_string(numRecord) + ", -1);\n";
                         errs() << space + "x_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[" + std::to_string(cntTmp) + "] = prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + ";\n";
-                        
                         cntTmp++;
                     }
+                    
+                    errs() << space + "int * prev_one_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " = new int[" + std::to_string(numRecord) +"];\n";
+                    errs() << space + "std::fill(prev_one_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + ", prev_one_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " + " + std::to_string(numRecord) + ", 1);\n";
+                    errs() << space + "x_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[" + std::to_string(cntTmp) + "] = prev_one_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + ";\n";
                     
                     for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
                         errs() << space + "int prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[" + std::to_string(numRecord) +"];\n";
@@ -472,7 +486,13 @@ namespace ssCodeGen_ref {
                     }
                     errs() << ") {\n";
 
-                    /* genrate if statement to check prediction access the same location or not */
+                    /* generate assignment statements to init curr_v_ */
+                    for (unsigned long i = 0; i < loops.size(); i++) {
+                        errs() << "curr_v_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[" + std::to_string(i) + "] = " + indvName[(*(loops[i])->LIS->IDV)[0]] + "_Start;\n";
+                    }
+                    errs() << "curr_v_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[" + std::to_string(loops.size()) + "] = 1;\n";
+                    
+                    /* generate if statement to check prediction access the same location or not */
                     errs() << space + "    if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
                     for (unsigned long i = 0; i < currentLoops.size(); i++) {
                         errs() << "calWithCoefficient( ";
@@ -503,6 +523,7 @@ namespace ssCodeGen_ref {
 
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        pred_num++;\n";
+                    errs() << space + "        pred_dl_num++;\n";
                     errs() << space + "        pred = ";
                     errs() << " calWithCoefficient(";
                     errs() << "a_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]);
@@ -573,7 +594,6 @@ namespace ssCodeGen_ref {
     
     void StaticSamplingCodeGen_ref::searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
         
-        
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
             if ((*ait)->AA != NULL) {
                 if (arrayName[(*ait)->AA] == refName) {
@@ -616,6 +636,7 @@ namespace ssCodeGen_ref {
 
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        pred_num++;\n";
+                    errs() << space + "        pred_sl_num++;\n";
                     errs() << space + "        pred = " + "prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + ";\n";
 #endif
                     
@@ -742,6 +763,9 @@ namespace ssCodeGen_ref {
 
 #ifdef SEARCH_REUSE_SAME_LOOP
                     if (std::find(loops.back()->next->begin(), loops.back()->next->end(), LoopRefTree) != loops.back()->next->end()) {
+#ifdef PROFILE_SEARCH_REUSE
+                        errs() << space + "        reuse_in_same_loop++;\n";
+#endif
                         errs() << space + "        prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " = cnt;\n";
                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                             errs() << space + "        prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + " = " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start" + ";\n";
@@ -752,11 +776,17 @@ namespace ssCodeGen_ref {
 
                     
 #ifdef SEARCH_REUSE_DIFFERENT_LOOPS
-                    if (std::find(loops.back()->next->begin(), loops.back()->next->end(), LoopRefTree) == loops.back()->next->end())  {
+//                    if (std::find(loops.back()->next->begin(), loops.back()->next->end(), LoopRefTree) == loops.back()->next->end())  {
+                    if (loops.front() != currentLoops.front()) {
+#ifdef PROFILE_SEARCH_REUSE
+                        errs() << space + "        reuse_in_diff_loops++;\n";
+#endif
                         errs() << space + "        prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "_idx" + "] = cnt;\n";
                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                             errs() << space + "        prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "_idx" + "] = " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start" + ";\n";
                         }
+                        errs() << space + "prev_one_Start_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "_idx" + "] = 1;\n";
+                        
                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
                             errs() << space + "        prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "[prev_cnt_" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "_idx" + "] = " + indvName[(*(*it)->LIS->IDV)[0]] + ";\n";
                         }
@@ -829,7 +859,11 @@ namespace ssCodeGen_ref {
 #ifdef PROFILE_SEARCH_REUSE
         errs() << "    /* Generating profile counter */\n";
         errs() << "    uint64_t pred_num = 0;\n";
+        errs() << "    uint64_t pred_sl_num = 0;\n";
+        errs() << "    uint64_t pred_dl_num = 0;\n";
         errs() << "    uint64_t sample_num = 0;\n";
+        errs() << "    uint64_t reuse_in_same_loop = 0;\n";
+        errs() << "    uint64_t reuse_in_diff_loops = 0;\n";
         errs() << "    uint64_t no_reuse_num = 0;\n";
         errs() << "    uint64_t mis_pred_num = 0;\n";
         errs() << "    uint64_t pred = 0;\n";
@@ -924,6 +958,7 @@ namespace ssCodeGen_ref {
         
         
 #ifdef PROFILE_SEARCH_REUSE
+        errs() << "        /* Finished search reuse */\n";
         errs() << "PROFILE:\n";
         errs() << "sample_num++;\n";
 #endif
@@ -943,10 +978,15 @@ namespace ssCodeGen_ref {
         errs() << space + "}\n";
 
 #ifdef PROFILE_SEARCH_REUSE
-        // SN: sample number, NSR: Num of samples have reuse, PN: Predict num, MPN: Miss Predict num
+        // SN: sample number, NSR: Num of samples have reuse, RSL: reuses from same loop, RDL: reuses from diff loops, PN: Predict num, MPN: Miss Predict num
+        // PSL: predicted in same loop, PDL: predicted in diff loops
         errs() << "std::cout << \"SN \" << sample_num << \" \";\n";
         errs() << "std::cout << \"NSR \" << sample_num - no_reuse_num << \" \";\n";
+        errs() << "std::cout << \"RSL \" << reuse_in_same_loop << \" \";\n";
+        errs() << "std::cout << \"RDL \" << reuse_in_diff_loops << \" \";\n";
         errs() << "std::cout << \"PN \" << pred_num << \" \";\n";
+        errs() << "std::cout << \"PSL \" << pred_sl_num << \" \";\n";
+        errs() << "std::cout << \"PDL \" << pred_dl_num << \" \";\n";
         errs() << "std::cout << \"MPN \" << mis_pred_num << std::endl;\n";
 #endif
         
