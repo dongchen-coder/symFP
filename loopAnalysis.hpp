@@ -60,8 +60,9 @@ namespace loopAnalysis {
         /* Find the Loop Bound */
         LoopBound findLoopBound(Loop *L, Value *var);
         
-        /* Find All the BasicBlocks within the SubLoops */
+        /* Find All the Cond/Inc BasicBlocks within the SubLoops */
         vector<BasicBlock *> getSubLoopCondBlock(Loop *L);
+        vector<BasicBlock *> getSubLoopIncBlock(Loop *L);
         
         /* Print Func */
         //void dumpLoopInfoStruct();
