@@ -18,6 +18,42 @@ namespace loopAnalysis {
     
     LoopIndvBoundAnalysis::LoopIndvBoundAnalysis() : FunctionPass(ID) {}
     
+    string LoopIndvBoundAnalysis::predicateToString(llvm::CmpInst::Predicate PREDICATE) {
+        switch (PREDICATE) {
+            case llvm::CmpInst::ICMP_EQ:
+                return "=";
+                break;
+            case llvm::CmpInst::ICMP_NE:
+                return "!=";
+                break;
+            case llvm::CmpInst::ICMP_SGE:
+                return ">=";
+                break;
+            case llvm::CmpInst::ICMP_SGT:
+                return ">";
+                break;
+            case llvm::CmpInst::ICMP_SLE:
+                return "<=";
+                break;
+            case llvm::CmpInst::ICMP_SLT:
+                return "<";
+                break;
+            case llvm::CmpInst::ICMP_UGE:
+                return ">=";
+                break;
+            case llvm::CmpInst::ICMP_UGT:
+                return ">";
+                break;
+            case llvm::CmpInst::ICMP_ULE:
+                return "<=";
+            case llvm::CmpInst::ICMP_ULT:
+                return ">";
+            default:
+                break;
+        }
+        return "";
+    }
+    
     LoopIndvBoundAnalysis::LoopBound LoopIndvBoundAnalysis::findLoopBound(Loop *L, Value *var) {
         
         Value* ub;
@@ -29,7 +65,10 @@ namespace loopAnalysis {
              if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
                 
                 for(BasicBlock::iterator it = b->begin(), eit = b->end(); it != eit; ++it) {
-                    if (isa<ICmpInst>(*it)) {
+                    /*if (isa<ICmpInst>(*it)) {
+                        
+                        
+                        
                         Value *v = it->getOperand(1);
                         if (isa<ConstantInt>(v)) {
                             ub = v;
@@ -37,7 +76,9 @@ namespace loopAnalysis {
                             LoadInst* ldTmp = dyn_cast<LoadInst>(v);
                             ub = ldTmp->getOperand(0);
                         }
-                    } else if (isa<CmpInst>(*it)) {
+                    } else*/
+                    if (isa<CmpInst>(*it)) {
+                        
                         Value *v = it->getOperand(1);
                         if (isa<ConstantInt>(v)) {
                             ub = v;
@@ -267,29 +308,54 @@ namespace loopAnalysis {
     
     LoopIndvBoundAnalysis::LoopInfoStruct* LoopIndvBoundAnalysis::ExtractLoopInfo(Loop *L) {
         
-        vector<BasicBlock *> subLoopCondBlocks = getSubLoopIncBlock(L);
+        vector<BasicBlock *> subLoopIncBlocks = getSubLoopIncBlock(L);
 
         vector<Value *>* IDV = new vector<Value *>;
         vector<LoopIndvBoundAnalysis::LoopBound>* LB = new vector<LoopIndvBoundAnalysis::LoopBound>;
+        vector<Value *>* INC = new vector<Value *>;
+        vector<llvm::CmpInst::Predicate>* PREDICATE = new vector<llvm::CmpInst::Predicate>;
         
         LoopIndvBoundAnalysis::LoopInfoStruct* LIS = new LoopIndvBoundAnalysis::LoopInfoStruct;
         
         
         // find all BasicBlocks in the loop L
         for (BasicBlock *b : L->getBlocks()) {
-            if (std::regex_match (b->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
-                
+            if (std::regex_match (b->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)")) && find(subLoopIncBlocks.begin(), subLoopIncBlocks.end(), b) == subLoopIncBlocks.end()) {
                 for (Instruction &II : *b) {
                     if (isa<LoadInst>(II)) {
                         IDV->push_back(II.getOperand(0));
                         LB->push_back(findLoopBound(L, II.getOperand(0)));
                     }
+                    
+                    if (isa<StoreInst>(II)) {
+                        INC->push_back(II.getOperand(0));
+                    }
                 }
             }
         }
         
+        vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
+        
+        for (BasicBlock *b : L->getBlocks()) {
+            if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
+                
+                PREDICATE->push_back(llvm::CmpInst::BAD_ICMP_PREDICATE);
+                
+                for(BasicBlock::iterator it = b->begin(), eit = b->end(); it != eit; ++it) {
+                    if (isa<CmpInst>(*it)) {
+                        CmpInst* CmpTmp = dyn_cast<CmpInst>(it);
+                        PREDICATE->pop_back();
+                        PREDICATE->push_back(CmpTmp->getPredicate());
+                    }
+                }
+            }
+        }
+        
+        
         LIS->IDV = IDV;
         LIS->LB = LB;
+        LIS->INC = INC;
+        LIS->PREDICATE = PREDICATE;
         
         return LIS;
     }
@@ -384,6 +450,14 @@ namespace loopAnalysis {
                 
                 for (vector<LoopBound>::iterator it = LTroot->LIS->LB->begin(), eit = LTroot->LIS->LB->end(); it != eit; ++it) {
                     errs() << prefix << "Loop Bound: (" << getBound((*it).first) << ", " << getBound((*it).second) << ")\n";
+                }
+                
+                for (vector<Value*>::iterator it = LTroot->LIS->INC->begin(), eit = LTroot->LIS->INC->end(); it != eit; ++it) {
+                    errs() << prefix << "Loop inc: " << getBound(*it) << "\n";
+                }
+                
+                for (vector<llvm::CmpInst::Predicate>::iterator it = LTroot->LIS->PREDICATE->begin(), eit = LTroot->LIS->PREDICATE->end(); it != eit; ++it) {
+                    errs() << prefix << "Loop predicate: " << predicateToString(*it) << "\n";
                 }
             }
             

@@ -41,8 +41,10 @@ namespace loopAnalysis {
         typedef pair<Value*, Value*> LoopBound;
         
         struct LoopInfoStruct{
-            vector<Value *>* IDV;
-            vector<LoopIndvBoundAnalysis::LoopBound>* LB;
+            vector<Value *>* IDV;                            // induction variable
+            vector<Value *>* INC;                            // stride
+            vector<LoopIndvBoundAnalysis::LoopBound>* LB;    // bounds
+            vector<llvm::CmpInst::Predicate>* PREDICATE;       // upper bound condition >, >=, <, <=
         };
         
         /* The nodes in Loop tree can either be a loop or an array access */
@@ -68,7 +70,10 @@ namespace loopAnalysis {
         //void dumpLoopInfoStruct();
         
         /* Get the Loop Bound in a string format */
-        string getBound(Value *);
+        string getBound(Value * expr);
+        
+        /* Predicate to string */
+        string predicateToString(llvm::CmpInst::Predicate PREDICATE);
         
         void DumpLoopTree(LoopRefTNode* LTroot, std::string prefix);
         LoopInfoStruct* ExtractLoopInfo(Loop *L);
