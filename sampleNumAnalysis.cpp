@@ -67,12 +67,26 @@ namespace sampleNumAnalysis {
 
     int SampleNumberAnalysis::valueOfExpression(llvm::Value *expr, std::map<Value *, int> counter) {
         
+//        errs() << "In valueOfExpression: ";
+//        for (std::map<Value *, int>::iterator it = counter.begin(), eit = counter.end(); it != eit; ++it) {
+            
+//            errs() << it->first << " " << it->second << " ";
+//        }
+//        errs() << "\n";
+        
+        
+        
         if (isa<Instruction>(expr)) {
             
             Instruction *inst = cast<Instruction>(expr);
             
             switch (inst->getOpcode()) {
                 case Instruction::Add:
+                    
+//                    inst->getOperand(0)->dump();
+                    
+//                    errs() << valueOfExpression(inst->getOperand(0), counter) << " " << valueOfExpression(inst->getOperand(1), counter) << "\n";
+                    
                     return  valueOfExpression(inst->getOperand(0), counter) + valueOfExpression(inst->getOperand(1), counter);
                     break;
                 case Instruction::Sub:
@@ -87,7 +101,7 @@ namespace sampleNumAnalysis {
                     return valueOfExpression(inst->getOperand(0), counter) / valueOfExpression(inst->getOperand(1), counter);
                     break;
                 case Instruction::Load:
-                    return counter[expr];
+                    return valueOfExpression(inst->getOperand(0), counter);
                     break;
                 case Instruction::Alloca:
                     return counter[expr];
@@ -99,8 +113,8 @@ namespace sampleNumAnalysis {
         else if (isa<ConstantInt>(expr)) {
             return dyn_cast<ConstantInt>(expr)->getValue().getSExtValue();
         }
-        return 0;
         
+        return 0;
     }
     
     void SampleNumberAnalysis::calculateSampleNum(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops) {
@@ -152,23 +166,45 @@ namespace sampleNumAnalysis {
                     for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
                         int stride = getConstantStride((*(*lit)->LIS->INC)[i]);
                         if (stride < 0) {
-                            sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second))) / (uint64_t) (-stride);
+                            if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_UGE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SGE) {
+                                sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second)) + 1) / (uint64_t) (-stride);
+                            } else {
+                                sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second))) / (uint64_t) (-stride);
+                            }
                         } else {
-                            sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first))) / (uint64_t) (stride);
+                            if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLE) {
+                                sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first)) + 1) / (uint64_t) (stride);
+                            } else {
+                                sampling_num *= ((uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].second)) - (uint64_t) stoi(getBound((*(*lit)->LIS->LB)[i].first))) / (uint64_t) (stride);
+                            }
                         }
-                    } 
+                    }
                 }
                 
                 sampleNum[LoopRefTree] = sampling_num * RANDOM_REF_SAMPLING_RATE;
                 
-//                errs() << "here sample num " << sampling_num << "\n";
+//                errs() << "sample num (calculated) " << sampling_num << "\n";
                 
             } else {
                 
                 std::map<Value*, int> counter;
+                std::map<int, Value*> counter_idx;
                 
                 vector<bool> lbConstant(loops_New.size());
                 vector<bool> ubConstant(loops_New.size());
+                
+                /* init counter idx */
+                for (unsigned long i = 0; i < loops_New.size(); i++) {
+                    if (isa<LoadInst>((*loops_New[i]->LIS->IDV)[0])) {
+                        LoadInst* tmp = dyn_cast<LoadInst>((*loops_New[i]->LIS->IDV)[0]);
+                        counter_idx[i] = tmp->getOperand(0);
+                    } else if (isa<AllocaInst>((*loops_New[i]->LIS->IDV)[0])) {
+                        counter_idx[i] = (*loops_New[i]->LIS->IDV)[0];
+                    } else {
+                        errs() << "Error in init counter\n";
+                    }
+//                    errs() << counter_idx[i] << "\n";
+                }
                 
                 /* check constant bounds */
                 for (unsigned long i = 0; i < loops_New.size(); i++) {
@@ -193,63 +229,181 @@ namespace sampleNumAnalysis {
                 }
 
                 /* init counter */
+                errs() << "init counter: ";
+                
                 for (unsigned long i = 0; i < loops_New.size(); i++) {
                     if (i == 0) {
-                        counter[(*loops_New[i]->LIS->IDV)[0]] = stoi(getBound((*loops_New[i]->LIS->LB)[0].first));
+                        counter[counter_idx[i]] = stoi(getBound((*loops_New[i]->LIS->LB)[0].first));
                     } else {
                         if (lbConstant[i] == true) {
-                            counter[(*loops_New[i]->LIS->IDV)[0]] = stoi(getBound((*loops_New[i]->LIS->LB)[0].first));
+                            counter[counter_idx[i]] = stoi(getBound((*loops_New[i]->LIS->LB)[0].first));
                         } else {
-                            counter[(*loops_New[i]->LIS->IDV)[0]] = valueOfExpression((*loops_New[i]->LIS->LB)[0].first, counter);
+                            counter[counter_idx[i]] = valueOfExpression((*loops_New[i]->LIS->LB)[0].first, counter);
+                            //(*loops_New[i]->LIS->IDV)[0]->dump();
                         }
                     }
                     
-//                    errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
+                    errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
                     
                 }
-//                errs() << "\n";
+                errs() << "\n";
                 
+                errs() << "Dump stride: ";
+                for (unsigned long i = 0; i < loops_New.size(); i++) {
+                    errs() << getConstantStride((*loops_New[i]->LIS->INC)[0]) << " ";
+                }
+                errs() << "\n";
                 
                 /* iterate to get sample number */
                 
                 uint64_t sampling_num = 0;
                 int i_idx = loops_New.size() - 1;
+                
+//                errs() << "num of loops: " << loops_New.size();
+//                LoopRefTree->L->dump();
+                
+                vector<int> stride(loops_New.size());
+                
+                for (unsigned long i = 0; i < loops_New.size(); i++) {
+                    stride[i] = getConstantStride((*loops_New[i]->LIS->INC)[0]);
+                }
+                
                 while(1) {
                     
-
-//                    errs() << "counter: ";
-//                    for (unsigned long i = 0; i < loops_New.size(); i++) {
-//                        errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
-//                    }
-//                    errs() << getBound((*loops_New[i_idx]->LIS->LB)[0].second);
-//                    errs() << "\n";
-                    
+/*
+                    errs() << "counter: ";
+                    for (unsigned long i = 0; i < loops_New.size(); i++) {
+                        errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
+                    }
+//                    errs() << sampling_num;
+                    errs() << "\n";
+*/
+ 
 //                    (*loops_New[i_idx]->LIS->LB)[0].second->dump();
                     
                     int last_level_ub = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter);
                     
 //                    errs() << "last level: " << last_level_ub << " - " << counter[(*loops_New[i_idx]->LIS->IDV)[0]] << "\n";
-                    if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] < last_level_ub) {
-                        sampling_num += last_level_ub - counter[(*loops_New[i_idx]->LIS->IDV)[0]];
-                    }
-                    
-                    while(i_idx - 1 >= 0) {
-                        i_idx -= 1;
-                        counter[(*loops_New[i_idx]->LIS->IDV)[0]] ++;
-                        if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] < valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
-                            break;
+                    if (stride[i_idx] < 0) {
+                
+                        int last_level_lb = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].first, counter);
+                        if (last_level_lb > last_level_ub) {
+                            sampling_num += last_level_lb - last_level_ub;
+                        }
+                        if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_UGE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SGE) && last_level_lb == last_level_ub) {
+                            sampling_num += 1;
+                        }
+                        
+                    } else {
+                        
+                        int last_level_lb = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].first, counter);
+                        
+                        if (last_level_lb < last_level_ub) {
+                            sampling_num += last_level_ub - last_level_lb;
+                            
+//                            errs() << getBound((*loops_New[i_idx]->LIS->LB)[0].first) << "\n";
+//                            errs() << "last level +: " << last_level_ub << " " << last_level_lb << " " << last_level_ub - last_level_lb << "\n";
+                            
+                        }
+                        if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_ULE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SLE) && last_level_lb == last_level_ub) {
+                            sampling_num += 1;
                         }
                     }
                     
-                    if (i_idx == 0 && counter[(*loops_New[i_idx]->LIS->IDV)[0]] == valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
-                        break;
+                    
+                    /* here */
+//                    errs() << "--------------\n";
+                    while(i_idx - 1 >= 0) {
+                        i_idx -= 1;
+                        
+//                        counter[(*loops_New[i_idx]->LIS->IDV)[0]] += stride[i_idx];
+                        counter[counter_idx[i_idx]] += stride[i_idx];
+                        
+                        if (stride[i_idx] < 0) {
+                            
+                            if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_UGE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SGE)) {
+//                                if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] >= valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                if (counter[counter_idx[i_idx]] >= valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                    break;
+                                }
+                            } else {
+//                                if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] > valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                if (counter[counter_idx[i_idx]] > valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                    break;
+                                }
+                            }
+                            
+                            
+                        } else {
+                            
+//                            errs() << "Bound: " << getBound((*loops_New[i_idx]->LIS->LB)[0].second) << " ";
+//                            errs() << "compare: " << counter[counter_idx[i_idx]] << " " << valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter) << " idx: " << i_idx <<"\n";
+                            
+                            if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_ULE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SLE)) {
+//                                if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] <= valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                if (counter[counter_idx[i_idx]] <= valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                    break;
+                                }
+                            } else {
+//                                if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] < valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                if (counter[counter_idx[i_idx]] < valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter)) {
+                                    break;
+                                }
+                            }
+                        }
                     }
+/*
+                    errs() << "------------\n";
+                    errs() << "counter: ";
+                    for (unsigned long i = 0; i < loops_New.size(); i++) {
+                        errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
+                    }
+                    //                    errs() << sampling_num;
+                    errs() << "\n";
+                    errs() <<"=========";
+*/
+                    if (i_idx == 0 ) {
+                        if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_ULE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SLE)) {
+                            
+//                            if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] > valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                            if (counter[counter_idx[i_idx]] > valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                                break;
+                            
+                        } else if (((*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_UGE || (*loops_New[i_idx]->LIS->PREDICATE)[0] == llvm::ICmpInst::ICMP_SGE)) {
+                            
+//                            if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] < valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                            if (counter[counter_idx[i_idx]] < valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                                break;
+                            
+                        } else {
+                            
+//                            if (counter[(*loops_New[i_idx]->LIS->IDV)[0]] == valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                            if (counter[counter_idx[i_idx]] == valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].second, counter))
+                                break;
+                            
+                        }
+                    }
+                    
                     i_idx++;
+           
+//                    errs() << " " << i_idx << "\n";
+                    
                     
                     while(i_idx < loops_New.size()) {
-                        counter[(*loops_New[i_idx]->LIS->IDV)[0]] = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].first, counter);
+//                        counter[(*loops_New[i_idx]->LIS->IDV)[0]] = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].first, counter);
+                        counter[counter_idx[i_idx]] = valueOfExpression((*loops_New[i_idx]->LIS->LB)[0].first, counter);
                         i_idx++;
                     }
+/*
+                    errs() << "counter: ";
+                    for (unsigned long i = 0; i < loops_New.size(); i++) {
+                        errs() << counter[(*loops_New[i]->LIS->IDV)[0]] << " ";
+                    }
+                    //                    errs() << sampling_num;
+                    errs() << "\n\n\n";
+*/
+                    
+                    
                     i_idx = loops_New.size() - 1;
                 }
                 
@@ -258,7 +412,9 @@ namespace sampleNumAnalysis {
 //                }
 //                errs() << "\n";
                 
-//                errs() << "sample number " << sampling_num << "\n";
+//                errs() << "sample number (executed) " << sampling_num << "\n";
+                
+//                exit(0);
                 
                 sampleNum[LoopRefTree] = sampling_num * RANDOM_REF_SAMPLING_RATE;
 
