@@ -15,7 +15,15 @@ add_llvm_loadable_module(LLVMSymFP
 
   loopAnalysis.hpp
   loopAnalysis.cpp
-  
+
+  sampleNumAnalysis.hpp
+  sampleNumAnalysis.cpp
+
+  ssCodeGen.hpp
+  ssCodeGen.cpp
+
+  ssCodeGen_ref.hpp
+  ssCodeGen_ref.cpp
 
   DEPENDS
   intrinsics_gen

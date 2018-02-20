@@ -297,6 +297,44 @@ namespace ssCodeGen_ref {
                 case Instruction::Load:
                     return inst->getOperand(0)->getName().str();
                     break;
+                case Instruction::Alloca:
+                    return inst->getName().str();
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(bound)) {
+            return to_string(dyn_cast<ConstantInt>(bound)->getValue().getSExtValue());
+        }
+        return "";
+    }
+    
+    string StaticSamplingCodeGen_ref::getBound_Start(Value *bound) {
+        
+        if (isa<Instruction>(bound)) {
+            
+            Instruction *inst = cast<Instruction>(bound);
+            
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                    return "(" + getBound_Start(inst->getOperand(0)) + " + " + getBound_Start(inst->getOperand(1)) + ")";
+                    break;
+                case Instruction::Sub:
+                    return "(" + getBound_Start(inst->getOperand(0)) + " - " + getBound_Start(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Mul:
+                    return "(" + getBound_Start(inst->getOperand(0)) + " * " + getBound_Start(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    return "(" + getBound_Start(inst->getOperand(0)) + " / " + getBound_Start(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Load:
+                    return inst->getOperand(0)->getName().str() + "_Start";
+                    break;
+                case Instruction::Alloca:
+                    return inst->getName().str() + "_Start";
                 default:
                     break;
             }
@@ -573,10 +611,12 @@ namespace ssCodeGen_ref {
         return GenFlag;
     }
     
-    
+
     /* Search result reuse (Same loop) */
     void StaticSamplingCodeGen_ref::searchReuseSameLoopInitGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
         
+        //errs() << "Search result reuse: (ref name " << refName << " ) ( ID " << useID << " ) ( numOfLoops " << loops.size() << " )\n";
+
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
             if ((*ait)->AA != NULL) {
                 if (arrayName[(*ait)->AA] == refName) {
@@ -706,10 +746,36 @@ namespace ssCodeGen_ref {
                 errs() << " = " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum;
                 errs() << "; ";
                 errs() << indvName[(*LoopRefTree->LIS->IDV)[0]];
-                errs() << " < ";
+                
+                if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
+                    errs() << " <= ";
+                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE) {
+                    errs() << " >= ";
+                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
+                    errs() << " < ";
+                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                    errs() << " > ";
+                } else {
+                    errs() << "\n Error recognizing predicates \n";
+                }
+                
                 errs() << getBound((*LoopRefTree->LIS->LB)[0].second);
                 errs() << "; ";
-                errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
+                
+                /* need to take stride into consideration */
+                if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
+                    
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
+                    
+                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                    
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "--";
+                    
+                } else {
+                    errs() << "\n Error in geting stride \n";
+                }
+                
+                
                 errs() << ") {\n";
             }
             
@@ -872,33 +938,66 @@ namespace ssCodeGen_ref {
         
 #ifdef SEARCH_REUSE_SAME_LOOP
         errs() << "    /* Generating search reuse init code (same loop) */\n";
-        searchReuseSameLoopInitGen(refName, useID, loops, "    ");
+        if (loops.size() != 0) {
+            searchReuseSameLoopInitGen(refName, useID, loops, "    ");
+        }
 #endif
 
 #ifdef SEARCH_REUSE_DIFFERENT_LOOPS
         errs() << "    /* Generating search reuse init code (different loops) */\n";
-        searchReuseDifferentLoopsInitGen(LoopRefTree, false, refName, useID, loops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
+        if (loops.size() != 0) {
+            searchReuseDifferentLoopsInitGen(LoopRefTree, false, refName, useID, loops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
+        }
 #endif
         
 #if SAMPLING ==2
         errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
         errs() << space + "set<string> record;\n";
+        
+        
         errs() << space + "for ( int s = 0; s < ";
-        int sampling_num = 1;
-        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
-            for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
-                sampling_num *= (int) ((stoi(getBound((*(*lit)->LIS->LB)[i].second)) - stoi(getBound((*(*lit)->LIS->LB)[i].first))) * RANDOM_REF_SAMPLING_RATE);
-            }
+        if (sampleNum.find(loops.back()) != sampleNum.end()) {
+            errs() << std::to_string(sampleNum[loops.back()]);
+        } else {
+            errs() << "ERROR in finding bounds\n";
         }
-        errs() << std::to_string(sampling_num);
         errs() << ";) {\n";
+        
+
+        errs() << "SAMPLE:\n";
         
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
             for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+
+                if (lit != loops.begin()) {
+                    if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SGE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_UGE) {
+                        errs() << space + "    if ( (" + (getBound_Start((*(*lit)->LIS->LB)[i].second) + " - " + getBound_Start((*(*lit)->LIS->LB)[i].first)) + " + 1) == 0) goto SAMPLE;\n";
+                    } else if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SGT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_UGT) {
+                        errs() << space + "    if ( (" + (getBound_Start((*(*lit)->LIS->LB)[i].second) + " - " + getBound_Start((*(*lit)->LIS->LB)[i].first)) + ") == 0) goto SAMPLE;\n";
+                    } else {
+                        errs() << "\n Error in generating random sample \n";
+                    }
+                }
+                
                 errs() << space + "    int " + indvName[(*(*lit)->LIS->IDV)[i]] + "_Start" + " = ";
-                errs() << "rand() % (" + (getBound((*(*lit)->LIS->LB)[i].second) + " - " + getBound((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound((*(*lit)->LIS->LB)[i].first);
+
+                if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SGE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_UGE) {
+                    
+                    errs() << "rand() % (" + (getBound_Start((*(*lit)->LIS->LB)[i].second) + " - " + getBound_Start((*(*lit)->LIS->LB)[i].first)) + " + 1) + " + getBound_Start((*(*lit)->LIS->LB)[i].first);
+                    
+                } else if ((*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SGT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULT || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_UGT) {
+                    
+                    errs() << "rand() % (" + (getBound_Start((*(*lit)->LIS->LB)[i].second) + " - " + getBound_Start((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound_Start((*(*lit)->LIS->LB)[i].first);
+                    
+                } else {
+                    
+                    errs() << "\n Error in generating random sample \n";
+                    
+                }
+
                 errs() << ";\n";
+                
             }
         }
         
@@ -915,11 +1014,13 @@ namespace ssCodeGen_ref {
         
         space += "    ";
         errs() << space + "string idx_string = " + idx_string_tmp + ";\n";
+
+/*
         errs() << space + "while ( record.find(idx_string) != record.end() ) {\n";
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
             for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
                 errs() << space + "    " + indvName[(*(*lit)->LIS->IDV)[i]] + "_Start" + " = ";
-                errs() << "rand() % (" + (getBound((*(*lit)->LIS->LB)[i].second) + " - " + getBound((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound((*(*lit)->LIS->LB)[i].first);
+                errs() << "rand() % (" + (getBound_Start((*(*lit)->LIS->LB)[i].second) + " - " + getBound_Start((*(*lit)->LIS->LB)[i].first)) + ") + " + getBound_Start((*(*lit)->LIS->LB)[i].first);
                 errs() << ";\n";
             }
         }
@@ -932,12 +1033,15 @@ namespace ssCodeGen_ref {
                 idx_string_tmp += ") + \"_\" + ";
             }
         }
-        
         idx_string_tmp.pop_back();
         idx_string_tmp.pop_back();
-        
+ 
         errs() << space + "    idx_string = " + idx_string_tmp + ";\n";
         errs() << space + "}\n";
+*/
+        
+        errs() << space + "if ( record.find(idx_string) != record.end() ) goto SAMPLE;\n";
+        
         errs() << space + "record.insert( idx_string );\n";
 #endif
   
@@ -948,12 +1052,16 @@ namespace ssCodeGen_ref {
         
 #ifdef SEARCH_REUSE_SAME_LOOP
         errs() << "        /* Generating search reuse body code (use reuse are in the same loop) */\n";
-        searchReuseSameLoopBodyGen(refName, useID, loops, "        ");
+        if (loops.size() != 0) {
+            searchReuseSameLoopBodyGen(refName, useID, loops, "        ");
+        }
 #endif
         
 #ifdef SEARCH_REUSE_DIFFERENT_LOOPS
         errs() << "        /* Generating search reuse body code (use reuse are in different loop) */\n";
-        searchReuseDifferentLoopsBodyGen(LoopRefTree, false, refName, useID, loops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "        ");
+        if (loops.size() != 0) {
+            searchReuseDifferentLoopsBodyGen(LoopRefTree, false, refName, useID, loops, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "        ");
+        }
 #endif
         
         
@@ -1018,9 +1126,12 @@ namespace ssCodeGen_ref {
             }
         }
         
+#ifndef PROFILE_SEARCH_REUSE
         errs() << "    rtDump();\n";
         errs() << "    RTtoMR_AET();\n";
         errs() << "    dumpMR();\n";
+#endif
+        
         errs() << "    return 0;\n";
         errs() << "}\n";
         
@@ -1036,16 +1147,19 @@ namespace ssCodeGen_ref {
         arrayName = getAnalysis<idxAnalysis::IndexAnalysis>().arrayName;
         arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
-        
+        sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
+
+
+
         /* init */
         initArrayName();
         numberRefToSameArray(LoopRefTree);
         numberLoops(LoopRefTree);
         initIndvName(LoopRefTree);
-        
+
         /* generate headers */
         headerGen();
-        
+
         /* generate rtHistoCal function */
         rtHistoGen();
         
@@ -1072,7 +1186,7 @@ namespace ssCodeGen_ref {
         
         /* generate main function */
         mainGen();
-        
+
         return false;
     }
     
@@ -1083,6 +1197,7 @@ namespace ssCodeGen_ref {
         AU.addRequired<argAnalysis::ArgumentAnalysis>();
         AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
         AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
+        AU.addRequired<sampleNumAnalysis::SampleNumberAnalysis>();
         
         return;
     }

@@ -10,6 +10,7 @@
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "sampleNumAnalysis.hpp"
 
 using namespace llvm;
 
@@ -36,6 +37,8 @@ namespace ssCodeGen_ref {
         std::map<std::string, int> refToSameArrayCnt;
         std::map<Value*, std::string> indvName;
         
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
+        
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
@@ -50,7 +53,9 @@ namespace ssCodeGen_ref {
         void mrDumpGen();
         void headerGen();
         
-        string getBound(Value *bound);
+        string getBound(Value* bound);
+        string getBound_Start(Value* bound);
+        
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         
         void searchReuseDifferentLoopsUpdateFuncGen();

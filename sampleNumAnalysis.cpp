@@ -181,7 +181,12 @@ namespace sampleNumAnalysis {
                     }
                 }
                 
-                sampleNum[LoopRefTree] = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                
+                for (int i = 0; i < loops_New.size(); i++) {
+                    sampling_num = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                }
+                
+                sampleNum[LoopRefTree] = sampling_num;
                 
 //                errs() << "sample num (calculated) " << sampling_num << "\n";
                 
@@ -415,8 +420,11 @@ namespace sampleNumAnalysis {
 //                errs() << "sample number (executed) " << sampling_num << "\n";
                 
 //                exit(0);
+                for (int i = 0; i < loops_New.size(); i++) {
+                    sampling_num = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                }
                 
-                sampleNum[LoopRefTree] = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                sampleNum[LoopRefTree] = sampling_num;
 
             }
         }
