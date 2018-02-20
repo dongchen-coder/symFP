@@ -112,6 +112,7 @@ namespace loopAnalysis {
         return make_pair(lb, ub);
     }
 
+    /* Get expression for bounds */
     string LoopIndvBoundAnalysis::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
@@ -150,16 +151,12 @@ namespace loopAnalysis {
         return "";
     }
     
-    /*
-     * 获得Loop L所有子Loop中的cond BasicBlock
-     */
-    
+    /* Get all condition basic block among all basic blocks inside loop L */
     vector<BasicBlock *> LoopIndvBoundAnalysis::getSubLoopCondBlock(Loop *L) {
         vector<BasicBlock *> temp;
         for (Loop *SL : L->getSubLoops()) {
             for (BasicBlock *BB: SL->getBlocks()) {
                 if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
-                    //                    errs() << BB->getName() + " \n";
                     temp.push_back(BB);
                 }
             }
@@ -167,12 +164,12 @@ namespace loopAnalysis {
         return temp;
     }
     
+    /* Get all increment basic block among all basic blocks inside loop L */
     vector<BasicBlock *> LoopIndvBoundAnalysis::getSubLoopIncBlock(Loop *L) {
         vector<BasicBlock *> temp;
         for (Loop *SL : L->getSubLoops()) {
             for (BasicBlock *BB: SL->getBlocks()) {
                 if (std::regex_match (BB->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)"))) {
-                    //                    errs() << BB->getName() + " \n";
                     temp.push_back(BB);
                 }
             }
@@ -180,6 +177,7 @@ namespace loopAnalysis {
         return temp;
     }
     
+    /* Create and init node for references */
     LoopIndvBoundAnalysis::LoopRefTNode* LoopIndvBoundAnalysis::ExtractRefInfo(Instruction* Inst) {
         
         LoopIndvBoundAnalysis::LoopRefTNode* node = NULL;
@@ -210,6 +208,7 @@ namespace loopAnalysis {
         return node;
     }
     
+    /* Decroate the loop tree with references */
     LoopIndvBoundAnalysis::LoopRefTNode* LoopIndvBoundAnalysis::LoopTreeConstructionRef(LoopRefTNode* root, vector<BasicBlock*> BBList) {
 #ifdef LOOP_DEBUG
         errs() << "\n start to analysis Ref\n";
@@ -279,7 +278,6 @@ namespace loopAnalysis {
                     
                 }
             }
-            
         }
         
         if (root->next != NULL) {
@@ -305,11 +303,9 @@ namespace loopAnalysis {
         return root;
     }
     
-    
+    /* Init loopInfoStruct for each loop L */
     LoopIndvBoundAnalysis::LoopInfoStruct* LoopIndvBoundAnalysis::ExtractLoopInfo(Loop *L) {
         
-        vector<BasicBlock *> subLoopIncBlocks = getSubLoopIncBlock(L);
-
         vector<Value *>* IDV = new vector<Value *>;
         vector<LoopIndvBoundAnalysis::LoopBound>* LB = new vector<LoopIndvBoundAnalysis::LoopBound>;
         vector<Value *>* INC = new vector<Value *>;
@@ -317,8 +313,8 @@ namespace loopAnalysis {
         
         LoopIndvBoundAnalysis::LoopInfoStruct* LIS = new LoopIndvBoundAnalysis::LoopInfoStruct;
         
-        
-        // find all BasicBlocks in the loop L
+        /* Extracting loop bounds (LB) / induction variable (IDV) / stride (INC) */
+        vector<BasicBlock *> subLoopIncBlocks = getSubLoopIncBlock(L);
         for (BasicBlock *b : L->getBlocks()) {
             if (std::regex_match (b->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)")) && find(subLoopIncBlocks.begin(), subLoopIncBlocks.end(), b) == subLoopIncBlocks.end()) {
                 for (Instruction &II : *b) {
@@ -334,8 +330,8 @@ namespace loopAnalysis {
             }
         }
         
+        /* Extracting loop condition predicate */
         vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
-        
         for (BasicBlock *b : L->getBlocks()) {
             if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
                 
@@ -351,7 +347,7 @@ namespace loopAnalysis {
             }
         }
         
-        
+        /* assign extracted information to struct */
         LIS->IDV = IDV;
         LIS->LB = LB;
         LIS->INC = INC;
@@ -360,6 +356,7 @@ namespace loopAnalysis {
         return LIS;
     }
     
+    /* Construct loop tree sub routine (references are not included): extract information for sub loops */
     void LoopIndvBoundAnalysis::LoopTreeConstruction(Loop* L, LoopRefTNode * root, int level) {
         
         if (L != NULL) {
@@ -384,8 +381,11 @@ namespace loopAnalysis {
         return;
     }
     
+    
+    /* Construct loop tree (references are not included) */
     LoopIndvBoundAnalysis::LoopRefTNode* LoopIndvBoundAnalysis::LoopTreeConstructionLoop(LoopRefTNode* root) {
         
+        /* using llvm internal loop analysis */
         LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
         
         if (!LI.empty()) {
@@ -429,12 +429,11 @@ namespace loopAnalysis {
         return root;
     }
     
-    /* Dump loopRef tree */
+    /* Dump loop/reference tree */
     void LoopIndvBoundAnalysis::DumpLoopTree(LoopRefTNode* LTroot, std::string prefix) {
    
 #ifdef LOOP_DEBUG
         errs() << "Start to dump loop tree\n";
-        
 #endif
         
         if (LTroot != NULL) {
@@ -490,12 +489,9 @@ namespace loopAnalysis {
         return BBList;
     }
     
-    /* Main function for loop induction variable analysis and loop bound analysis 
-     * 
+    /* Main function for loop induction variable analysis and loop bound analysis
      * This pass is to construct a tree structure that stores loop hierarchy and references
-     *
      */
-    
     bool LoopIndvBoundAnalysis::runOnFunction(Function &F) {
         
         errs() << "\n /* Start analysis loops\n";

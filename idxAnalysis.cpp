@@ -18,6 +18,9 @@ namespace idxAnalysis {
     
     IndexAnalysis::IndexAnalysis() : FunctionPass(ID), arrayName(), arrayExpression() {}
     
+    /* Pushing all instructions that related to the index expression of a load/store instruction into a stack (vector).
+       This function will be called by function computeExpression() */
+    
     std::vector<Instruction*> IndexAnalysis::instStackInit(Instruction* inst) {
         std::vector<Instruction*> instStack;
         instStack.push_back(inst);
@@ -67,16 +70,20 @@ namespace idxAnalysis {
         return instStack;
     }
     
+    
+    /* Extracting array index expression from load/store instruction 
+       1. Pushing all related instructions into stack by calling instStackInit()
+       2. Scanning instruction stack to get a prefix expression 
+       3. Convert prefix expression to infix expression */
     std::string IndexAnalysis::computeExpression(Instruction *inst) {
         
         std::vector<Instruction*> instStack = instStackInit(inst);
         
         if (instStack.size() == 0) {
-            return "No expression";
+            return "Warning: No expression";
         }
         
         /* iterate over the instructions stacked to get the prefix expression */
-        
         std::vector<std::string> expr;
         
         for (std::vector<Instruction*>::iterator it = instStack.begin(), eit = instStack.end(); it != eit; ++it) {
@@ -297,21 +304,28 @@ namespace idxAnalysis {
         return expr_infix;
     }
     
+    /* Extracting array name from load/store instruction */
     std::string IndexAnalysis::getArrayName(GetElementPtrInst* inst) {
         std::string nameTmp = "";
         
         if (isa<LoadInst>(inst->getPointerOperand())) {
+            /* Load instruction */
             LoadInst* ldTmp = dyn_cast<LoadInst>(inst->getPointerOperand());
             nameTmp = ldTmp->getOperand(0)->getName();
         } else {
+            /* Store instruction */
             nameTmp = inst->getPointerOperand()->getName();
         }
         
         return nameTmp;
     }
     
+    /* Scan all IR instructions in function to find load/stores accessing arrays */
     void IndexAnalysis::findAllArrayAccesses(Function &F) {
+        
+        /* Using instruction iterator to interating through all the IR instructions in the functions */
         for (inst_iterator it = inst_begin(F), eit = inst_end(F); it != eit; ++it) {
+            
             if (isa<LoadInst>(*it)) {
                 if (isa<GetElementPtrInst>(it->getOperand(0))) {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(0));
@@ -387,6 +401,8 @@ namespace idxAnalysis {
         return;
     }
     
+    /* Dump (array name, index expression) pairs for all references inside the function.
+       Two hash tables are used to store array names and index expressions, the keys are load/store instruction pointers */
     void IndexAnalysis::dumpAllInfo() {
         errs() << "Array index info\n";
         for (std::map<Instruction*, std::string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
@@ -395,6 +411,7 @@ namespace idxAnalysis {
         return;
     }
     
+    /* Analysis main function: information are dumped as comments at the beginning of generated static sampling code */
     bool IndexAnalysis::runOnFunction(Function &F) {
         errs() << "\n /* Start to analysis array index\n";
         
