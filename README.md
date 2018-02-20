@@ -1,8 +1,11 @@
-# Symbolic Footprint
+# Static Parallel Sampling (SPS)
 
-This is the underdevelopment symblic footprint repository (based on LLVM-4.0.0). 
+This is the underdevelopment Static Parallel Sampling (SPS) repository (based on LLVM-4.0.0). 
 
-Symbolic footprint is aiming to provide detailed miss ratio curves statically for each function.
+SPS is aiming to provide detailed miss ratio curves statically. 
+For each function, SPS consumes LLVM IR code as input. 
+Then SPS analyzes the IR code and generates a specialized C++ static sampling code.
+By compiling and running the generated C++ static sampling code, miss ratio curve will be derived.
 
 ## Usage
 
