@@ -69,7 +69,7 @@ $ make
 ```
 
 ### Precision Test (Fig. 5)
-Here is the guide for running the precision test. In this test, we compare the miss ratio curve after doing the SPS and trace analysis.
+Here is the guide for running the precision test. This test result corresponds to Figure 5 in the paper. In this test, we compare the miss ratio curve after doing the SPS and trace analysis.
 ```bash
 # go to the sps_pldi18_aec/test_run/ directory 
 # run the script for static parallel sampling locality analysis and trace analysis. Notes that the running time for this two script will last around XXX minutes.
@@ -83,16 +83,20 @@ $ python plotMRC_staticSampling_VS_trace_cl.py
 ```
 
 ### Overhead Test (Fig. 6)
-Here is the guide for running the overhead test. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
+Here is the guide for running the overhead test. This test result corresponds to Figure 6 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
 ```bash
+# go to the sps_pldi18_aec/test_run/ directory 
 ```
 
 ### Parallel Test (Fig. 7)
-
+Here is the guide for running the overhead test. This test result corresponds to Figure 7 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
 ```bash
+# go to the sps_pldi18_aec/test_run/ directory 
 ```
 
 # Explanation
+The reason we gives the binary code(.bc) file for all benchmarks is that we doesn't install Clang in our docker container. Installing clang and llvm will consumes lots of time and space.
+
 When running our SPS analysis, the miss ratio curve may have a bit difference than what we showed in the paper because of the following reasons:
 - We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container. This modification will XXX the overhead. Here is the function we modified later(the outer for-loop).
 ```C++
