@@ -95,7 +95,10 @@ Here is the guide for running the overhead test. This test result corresponds to
 ```
 
 # Explanation
-The reason we gives the binary code(.bc) file for all benchmarks is that we doesn't install Clang in our docker container. Installing clang and llvm will consumes lots of time and space.
+
+This provided version is adjusted from the newest version of the tool we are developping. The implementation provided is extracted according to the experiments in the paper and compromised due to docker vm environment (regix).
+
+The reason we gives the binary code(.bc) file for all benchmarks is that we doesn't install Clang in our docker container. Installing clang and llvm will consumes lots of time and space (fails a lot when building the docker file installing Clang).
 
 When running our SPS analysis, the miss ratio curve may have a bit difference than what we showed in the paper because of the following reasons:
 - We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container. This modification will XXX the overhead. Here is the function we modified later(the outer for-loop).
