@@ -14,7 +14,7 @@ $ docker build -t sps-image ./sps_pldi18_aec
 To launch the docker container, typing the following command on your command-line tools. 
 ```bash
 # under the directory that contains sps_pldi18_aec/
-$ docker run -it --memory-swap -1 -v $PWD/sps_pldi18_aec:/sps_pldi18_aec --name sps sps-image /bin/bash
+$ docker run -it -v $PWD/sps_pldi18_aec:/sps_pldi18_aec --name sps sps-image /bin/bash
 ```
 After launching the docker container, you can see something like `#root@2bd62a73d523` on your command line. Notes that the string after `#root@` is a sequence of random number/letter, it may not be the same as the example we give here. 
 
