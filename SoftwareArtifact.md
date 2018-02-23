@@ -37,7 +37,7 @@ This directory contains all the
 Docker can be downloaded from [Docker Installation Guide](https://docs.docker.com/docker-for-mac/install/). Currently, it supports Mac, Windows, Linux(Ubuntu, Debian, CentOS, Fedora, Binaries). After installation, you can use `docker --version` command to check whether the docker was installed correctly. A correct installation will show the version of docker on the command line, i.e. `Docker version 17.12.0-ce, build c97c6d6`
  
 ### Build Docker Image
-This image will occupy 2.33 GB on your machine, and the building process will last for a couple minutes.
+This image will occupy 2.33 GB on your machine, and the building process will last for about 30-40 minutes.
 ```bash
 # run this command under that path contains Dockerfile
 $ docker build -t sps-image ./sps_pldi18_aec
@@ -69,12 +69,17 @@ $ make
 ### Test
 ```bash
 # go to the sps_pldi18_aec/test_run/ directory 
-# run the script for static parallel sampling locality analysis and trace analysis 
+# run the script for static parallel sampling locality analysis and trace analysis. Notes that the running time for this two script will last around XXX minutes.
 $ sh run_ss.sh
 $ sh run_trace.sh
 
 # Then run the python code showing the analysis result diagram, which comparing the miss ratio curve between our SPS method and Trace Analysis
 $ python plotMRC_staticSampling_VS_trace_cl.py
 ```
+
+# Explanation
+When running our SPS analysis, the miss ratio curve may be a bit different than what we showed in the paper for the following reasons:
+- We limit the miss ratio calculation due to the memory limitation of the Docker container.
+- We use random sampling as one of the sampling methods.
 
 
