@@ -25,11 +25,11 @@ This file was used to build the docker image, this image contains ubuntu-16.04 a
 #### CMakeList.txt
 This file was used to configure the running environment of all benchmarks including generating the Makefile for SPS compiler passes.
 #### sps/
-This directory contains all the compiler pass for this paper
+This directory contains all the source code for SPS compiler passes.
 #### test_facility/
-This directory contains Poly Benchmark suite, the binary code file and IR file of these benchmarks after compiling, the source code and executable file for newly-generated static sampling code and trace analysis code,  and the test result after static sampling methods and trace analysis methods respectivley. 
+This directory contains Poly Benchmark suite(for SPS and Trace analysis), the binary code file and IR file of these benchmarks, the source code and executable file for newly-generated static sampling code and trace analysis code,  and the test result after static sampling methods and trace analysis methods respectivley. 
 #### test_run/
-This directory contains all the 
+This directory contains all the script for compiling and running SPS/trace analysis or drawing figures, together wtih all test results.
 
 # Quick Start
 
@@ -44,10 +44,12 @@ $ docker build -t sps-image ./sps_pldi18_aec
 ```
 
 ### Run Docker Container
+Before running the Docker container, please set the memory contraint for docker container from 2GB to 3GB. In Mac or Windows, this can be easily done in Preferences/Advanced Tab after clicking the icon shown in status bar.
+
 To launch the docker container, typing the following command on your command-line tools. 
 ```bash
 # under the directory that contains sps_pldi18_aec/
-$ docker run -it -v $PWD/sps_pldi18_aec:/sps_pldi18_aec --name sps sps-image /bin/bash
+$ docker run -it --memory-swap -1 -v $PWD/sps_pldi18_aec:/sps_pldi18_aec --name sps sps-image /bin/bash
 ```
 After launching the docker container, you can see something like `#root@2bd62a73d523` on your command line. Notes that the string after `#root@` is a sequence of random number/letter, it may not be the same as the example we give here. 
 
@@ -66,7 +68,8 @@ $ cmake ..
 $ make
 ```
 
-### Test
+### Precision Test (Fig. 5)
+Here is the guide for running the precision test. In this test, we compare the miss ratio curve after doing the SPS and trace analysis.
 ```bash
 # go to the sps_pldi18_aec/test_run/ directory 
 # run the script for static parallel sampling locality analysis and trace analysis. Notes that the running time for this two script will last around XXX minutes.
@@ -74,12 +77,38 @@ $ sh run_ss.sh
 $ sh run_trace.sh
 
 # Then run the python code showing the analysis result diagram, which comparing the miss ratio curve between our SPS method and Trace Analysis
+
+# Notes that this code should be run out of Docker container.
 $ python plotMRC_staticSampling_VS_trace_cl.py
 ```
 
+### Overhead Test (Fig. 6)
+Here is the guide for running the overhead test. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
+```bash
+```
+
+### Parallel Test (Fig. 7)
+
+```bash
+```
+
 # Explanation
-When running our SPS analysis, the miss ratio curve may be a bit different than what we showed in the paper for the following reasons:
-- We limit the miss ratio calculation due to the memory limitation of the Docker container.
-- We use random sampling as one of the sampling methods.
+When running our SPS analysis, the miss ratio curve may have a bit difference than what we showed in the paper because of the following reasons:
+- We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container. This modification will XXX the overhead. Here is the function we modified later(the outer for-loop).
+```C++
+for (uint64_t c = 0; c <= max_RT && c <= 100000; c++) {
+        while (sum_P < c && t <= max_RT) {
+            if (P.find(t) != P.end()) {
+                sum_P += P[t];
+                prev_t = t;
+            } else {
+                sum_P += P[prev_t];
+            }
+            t++;
+        }
+        MR[c] = P[prev_t];
+}
+```
+- We use random sampling as one of the sampling methods. This randomness leads to 
 
 
