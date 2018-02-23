@@ -1,3 +1,36 @@
+
+# File Descriptin
+This repository contains following files or directories:
+```
+|---CMakeList.txt
+|---Dockerfile
+|---sps
+|---test_facility
+    |---bc
+    |---ir
+    |---polyBench
+    |---polyBench_trace
+    |---ss_bin
+    |---ss_code
+    |---ss_result
+    |---trace_bin
+    |---trace_result
+|---test_run
+    |---overhead
+    |---parallel
+    |---precision
+```
+#### Dockerfile
+This file was used to build the docker image, this image contains ubuntu-16.04 and llvm-4.0.0.
+#### CMakeList.txt
+This file was used to configure the running environment of all benchmarks including generating the Makefile for SPS compiler passes.
+#### sps/
+This directory contains all the compiler pass for this paper
+#### test_facility/
+This directory contains Poly Benchmark suite, the binary code file and IR file of these benchmarks after compiling, the source code and executable file for newly-generated static sampling code and trace analysis code,  and the test result after static sampling methods and trace analysis methods respectivley. 
+#### test_run/
+This directory contains all the 
+
 # Quick Start
 
 ### Install Docker
@@ -35,9 +68,13 @@ $ make
 
 ### Test
 ```bash
-# go to the sps_pldi18_aec/test directory 
-$ make
-# or if 
+# go to the sps_pldi18_aec/test_run/ directory 
+# run the script for static parallel sampling locality analysis and trace analysis 
+$ sh run_ss.sh
+$ sh run_trace.sh
+
+# Then run the python code showing the analysis result diagram, which comparing the miss ratio curve between our SPS method and Trace Analysis
+$ python plotMRC_staticSampling_VS_trace_cl.py
 ```
 
 
