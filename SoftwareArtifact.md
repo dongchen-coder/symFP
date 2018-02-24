@@ -71,8 +71,9 @@ $ make
 ### Precision Test (Fig. 5)
 Here is the guide for running the precision test. This test result corresponds to Figure 5 in the paper. In this test, we compare the miss ratio curve after doing the SPS and trace analysis.
 ```bash
-# go to the sps_pldi18_aec/test_run/ directory 
-# run the script for static parallel sampling locality analysis and trace analysis. Notes that the running time for this two script will last around XXX minutes.
+# go to the sps_pldi18_aec/test_run/precision directory 
+# run the script that calculate the miss ratio for static parallel sampling locality analysis and trace analysis. 
+# Notes that the running time for this two script will last around XXX minutes.
 $ sh run_ss.sh
 $ sh run_trace.sh
 
@@ -85,13 +86,21 @@ $ python plotMRC_staticSampling_VS_trace_cl.py
 ### Overhead Test (Fig. 6)
 Here is the guide for running the overhead test. This test result corresponds to Figure 6 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
 ```bash
-# go to the sps_pldi18_aec/test_run/ directory 
+# go to the sps_pldi18_aec/test_run/overhead directory 
+# run the script that gather the runtime statistic for static parallel sampling locality analysis and trace analysis. 
+# Notes that the running time for this two script will last around XXX minutes.
+$ sh time_ss.sh
+$ sh time_trace.sh
+
+# Then run the python code showing the performance diagram, which comparing the runnint time between the static sampling and trace analysis.
+$ python plotRT_staticSampling_VS_trace_cl.py
 ```
 
 ### Parallel Test (Fig. 7)
 Here is the guide for running the overhead test. This test result corresponds to Figure 7 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
 ```bash
 # go to the sps_pldi18_aec/test_run/ directory 
+
 ```
 
 # Explanation
