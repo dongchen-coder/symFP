@@ -1,4 +1,3 @@
-
 # File Descriptin
 This repository contains following files or directories:
 ```
@@ -99,8 +98,10 @@ $ python plotRT_staticSampling_VS_trace_cl.py
 ### Parallel Test (Fig. 7)
 Here is the guide for running the overhead test. This test result corresponds to Figure 7 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
 ```bash
-# go to the sps_pldi18_aec/test_run/ directory 
-
+# go to the sps_pldi18_aec/test_run/parallel directory 
+# run the script that gather the runtime statistic for static sampling locality analysis in parallel. 
+# Notes that the running time for this two script will last around XXX minutes.
+$ sh time_pp.sh
 ```
 
 # Explanation
