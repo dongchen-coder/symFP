@@ -1,3 +1,6 @@
+<div style="text-align:center"><h1>Locality Analysis Through Static Parallel Sampling Software Artifact</h1></div>
+
+
 # What to expect
 
 Here we provide the artifact that contains codes, testing shell scripts and plotting python scripts for Static Parallel Sampling (SPS). We extracted the minimal code needed from the newest version of the Static Parallel Sampling tools and provided it with a Dockerfile to regenerate the testing environment needed. 
@@ -29,14 +32,14 @@ Our artifact contains following components:
 - **CMakeList.txt**: Cmake setup for SPS which are implemented as LLVM analysis passes.
 - **sps/**: The source code for SPS. It first provides one array index analysis pass (idxAnalysis.cpp, idxAnalysis.hpp) and one loop analysis pass (loopAnalysis.cpp, loopAnalysis.hpp) to generate the tree representation of the program. Then it provides one generation pass (ssCodeGen_ref.cpp, ssCodeGen_ref.hpp) to generate static sampling code from the extracted tree representation. At last, it provides one wrapper pass static sampling pass (sps.cpp) and one header file to define sampling rate and enable parallel sampling by macros.
 - **test_facility/**: It contains Poly Benchmarks, fft and makefiles to assist auto scripts in test_run to generate our results. Here is the detail description for each directory:
-    - **bc**: The binary code(.bc) file of all benchmarks, which will be used for SPS analysis.
-    - **ir**: The IR for all benchmarks.
-    - **polyBench & polyBench_trace**: The benchmark program suite for SPS and trace analysis respectively.
-    - **ss_bin**: The executable program for SPS.
-    - **ss_code**: The auto-generated program by SPS that do the sampling and calculate the miss ratio for each memory reference in parallel.
-    - **ss_result**: The SPS analysis result.
-    - **trace_bin**: The executable program for trace analysis.
-    - **trace_result**: The trace analysis result.
+    - **bc/**: The binary code(.bc) file of all benchmarks, which will be used for SPS analysis.
+    - **ir/**: The IR for all benchmarks.
+    - **polyBench/ & polyBench_trace/**: The benchmark program suite for SPS and trace analysis respectively.
+    - **ss_bin/**: The executable program for SPS.
+    - **ss_code/**: The auto-generated program by SPS that do the sampling and calculate the miss ratio for each memory reference in parallel.
+    - **ss_result/**: The SPS analysis result.
+    - **trace_bin/**: The executable program for trace analysis.
+    - **trace_result/**: The trace analysis result.
 - **test_run/**: It contains scripts for compiling and running SPS/trace analysis and python scripts that output the diagrams shown in paper.
 
 To reproduce the results in the paper, you need to install Docker. Our virtual machine will occupy 2.33GB and the building time for our docker image will last for about an hour. 
