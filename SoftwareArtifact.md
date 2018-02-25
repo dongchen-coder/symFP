@@ -1,5 +1,8 @@
 # What to expect
-Here we provide the artifact that can reproduce Figure 5-7 in the paper.(Miss ratio curve, performance and parallel execution)
+
+Here we provide the artifact that contains codes, testing shell scripts and plotting python scripts for Static Parallel Sampling (SPS). We extracted the minimal code needed from the newest version of the Static Parallel Sampling tools and provided it with a Dockerfile to regenerate the testing environment needed. 
+
+Here we provide the artifact that can support the results in Fig 5-7 in the paper. (Miss ratio curve, overhead and parallel execution). Fig 5 and 6 can be re-plotted and the difference with the original submission is explained at the end. For Fig 7, we show our generated parallel sampling code as the support.
 
 # Setup
 Our artifact contains following components:
@@ -22,13 +25,15 @@ Our artifact contains following components:
     |---parallel
     |---precision
 ```
-- **Dockerfile**: This file was used to build the docker image, this image contains ubuntu-16.04 and llvm-4.0.0.
-- **CMakeList.txt**: Configure the running environment of all benchmarks including generating the Makefile for SPS compiler passes.
-- **sps/**: All the source code for SPS compiler passes.
-- **test_facility/**: This directory contains Poly Benchmarks and necessary files to repeats our result
-- **test_run/**: All the automated scripts for compiling and running SPS/trace analysis or scripts that output the diagrams we shown in paper.
+- **Dockerfile**: This file is used to build the docker image, this image contains ubuntu-16.04 and llvm-4.0.0. Clang-4.0.0 is not included as building Dockerfile with clang tool often fails due to limited resources.
+- **CMakeList.txt**: Cmake setup for SPS which are implemented as LLVM analysis passes.
+- **sps/**: The source code for SPS. It first provides one array index analysis pass (idxAnalysis.cpp, idxAnalysis.hpp) and one loop analysis pass (loopAnalysis.cpp, loopAnalysis.hpp) to generate the tree representation of the program. Then it provides one generation pass (ssCodeGen_ref.cpp, ssCodeGen_ref.hpp) to generate static sampling code from the extracted tree representation. At last, it provides one warpper pass static sampling pass (sps.cpp) and one header file to define sampling rate and enable parallel sampling by macros.
+- **test_facility/**: It contains Poly Benchmarks, fft and makefiles to assist auto scripts in test_run to generate our results.
+- **test_run/**: It contains scripts for compiling and running SPS/trace analysis and python scripts that output the diagrams shown in paper.
 
 To reproduce the results in the paper, you need to install Docker. Our virtual machine will occupy 2.33GB and the building time for our docker image will last for about an hour. 
+
+
 # Setup
 
 ### Install Docker
@@ -65,6 +70,7 @@ $ make
 ```
 # Reproducing the result
 Running the script for each test will take only a few minites because in each script we will change the sampling ratio for each benchmakr and recompile them. Overall, the full evaluation process will take no more than 20 min. The running order is not limited. Notes that all the python script should be run out of docker container.
+
 ### Precision Test (Fig. 5)
 Here is the guide for running the precision test. This test result corresponds to Figure 5 in the paper. In this test, we compare the miss ratio curve after doing the SPS and trace analysis.
 ```bash
@@ -101,14 +107,12 @@ $ sh time_pp.sh
 
 # Explanation
 
-This provided version is adjusted from the newest version of the tool we are developping. The implementation provided is extracted according to the experiments in the paper and compromised due to docker vm environment (regix).
-
-The reason we gives the binary code(.bc) file for all benchmarks is that we doesn't install Clang in our docker container. Installing clang and llvm will consumes lots of time and space (fails a lot when building the docker file installing Clang).
-
-When running our SPS analysis, the miss ratio curve may have a bit difference than what we showed in the paper because of the following reasons:
-- We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container. This modification will XXX the overhead. Here is the function we modified later(the outer for-loop).
+This provided version is adjusted from the newest version of the tool we are developping. The implementation provided is extracted according to the experiments in the paper. 
+Some of the codes are compromised due to docker vm environment:
+- regix used in loopAnalysis.cpp are replace by matchCond(), matchInc() as using regix will generate error when using gcc.
+- We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container (running of the tests will be killed). 
     ```C++
-    for (uint64_t c = 0; c <= max_RT && c <= 100000; c++) {
+    for (uint64_t c = 0; c <= max_RT && c <= 100000; c++) { // original does not have "&& c <= 100000"
             while (sum_P < c && t <= max_RT) {
                 if (P.find(t) != P.end()) {
                     sum_P += P[t];
@@ -121,8 +125,25 @@ When running our SPS analysis, the miss ratio curve may have a bit difference th
             MR[c] = P[prev_t];
     }
     ```
-- We use random sampling as one of the sampling methods. The final output will change a little bit in each run.
 
+The reason we gives the binary code(.bc) file for all benchmarks is that we doesn't install Clang in our docker container. Installing clang and llvm will consumes lots of time and space (fails a lot when building the docker file installing Clang).
+
+The results in submitted version of the paper are performed on MacOS with clang compiler and 1.4 GHz Intel Core i5 with 4 GB 1600 MHz DDR3. The docker provides linux with g++ compiler may affect the results. Different hardware platform may affect the results.
+
+### Fig. 5 (Precision)
+When running our SPS analysis, the miss ratio curve may have a bit difference than what we showed in the paper because of the following reasons:
+
+- We limit cache size to at most 100,000 when calculating the miss ratio curve due to the memory limitation of the Docker container. 
+
+- We use random sampling as one of the sampling methods. The final output will change a little bit in different evironment.
+
+The same conclusion can be drawed from the two results.
+
+### Fig. 6 (Overhead)
+
+As we further improved the code after submission and limited the cache size by adding "c <= 100000".  
+
+### Fig. 7 (Parallel)
 The reason we didn't show the same overhead result as Figure 6 in our paper is that we run in an virtual simulator which has different environment configuration with the test evnironment we did in the paper. But from the figure we can see that the overhead for SPS is much lower than trace analysis.
 
 
