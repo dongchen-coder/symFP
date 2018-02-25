@@ -28,7 +28,15 @@ Our artifact contains following components:
 - **Dockerfile**: This file is used to build the docker image, this image contains ubuntu-16.04 and llvm-4.0.0. Clang-4.0.0 is not included as building Dockerfile with clang tool often fails due to limited resources.
 - **CMakeList.txt**: Cmake setup for SPS which are implemented as LLVM analysis passes.
 - **sps/**: The source code for SPS. It first provides one array index analysis pass (idxAnalysis.cpp, idxAnalysis.hpp) and one loop analysis pass (loopAnalysis.cpp, loopAnalysis.hpp) to generate the tree representation of the program. Then it provides one generation pass (ssCodeGen_ref.cpp, ssCodeGen_ref.hpp) to generate static sampling code from the extracted tree representation. At last, it provides one wrapper pass static sampling pass (sps.cpp) and one header file to define sampling rate and enable parallel sampling by macros.
-- **test_facility/**: It contains Poly Benchmarks, fft and makefiles to assist auto scripts in test_run to generate our results.
+- **test_facility/**: It contains Poly Benchmarks, fft and makefiles to assist auto scripts in test_run to generate our results. Here is the detail description for each directory:
+    - **bc**: The binary code(.bc) file of all benchmarks, which will be used for SPS analysis.
+    - **ir**: The IR for all benchmarks.
+    - **polyBench & polyBench_trace**: The benchmark program suite for SPS and trace analysis respectively.
+    - **ss_bin**: The executable program for SPS.
+    - **ss_code**: The auto-generated program by SPS that do the sampling and calculate the miss ratio for each memory reference in parallel.
+    - **ss_result**: The SPS analysis result.
+    - **trace_bin**: The executable program for trace analysis.
+    - **trace_result**: The trace analysis result.
 - **test_run/**: It contains scripts for compiling and running SPS/trace analysis and python scripts that output the diagrams shown in paper.
 
 To reproduce the results in the paper, you need to install Docker. Our virtual machine will occupy 2.33GB and the building time for our docker image will last for about an hour. 
@@ -68,6 +76,27 @@ $ cmake ..
 # compile the compiler passes
 $ make
 ```
+### Useful Docker command
+Here we also provide some useful command that you may use when 'play' with our artifact. For more command, please check [Docker Command Reference](https://docs.docker.com/engine/reference/run/)
+```bash
+# list all docker containers
+$ docker ps -a
+
+# list all docker images
+$ docker image ls
+
+# exit from docker container
+$ exit
+
+# start an existed docker container
+$ docker start -ai $(CONTAINER NAME)
+
+# delete the docker container
+$ docker container rm $(CONTAINER NAME)
+
+# remove the docker image
+$ docker rmi $(IMAGE NAME)
+```
 # Reproducing the result
 Running the script for each test will take only a few minutes because in each script we will change the sampling ratio for each benchmark and recompile them. Overall, the full evaluation process will take no more than 20 min. The running order is not limited. Notes that all the python script should be run out of docker container.
 
@@ -98,7 +127,7 @@ $ python plotRT_staticSampling_VS_trace_cl.py
 ```
 
 ### Parallel Test (Fig. 7)
-Here is the guide for running the overhead test. This test result corresponds to Figure 7 in the paper. In this test, we compare the running time when doing the SPS and trace analysis towards the benchmark programs.
+Here is the guide for running the overhead test. This test result corresponds to Figure 7 in the paper. In this test, we run the static parallel sampling analysis for all memory reference in parallel using C++ thread. The code can be checked in /test/facility/ss_code.
 ```bash
 # go to the sps_pldi18_aec/test_run/parallel directory 
 $ cd /sps_pldi_aec/test_run/parallel
@@ -150,7 +179,7 @@ As we further improved the code after submission and limited the cache size by a
 
 ### Fig. 7 (Parallel)
 
-As we improved the performance. We didn't show the parallel effect here but instead the gernerated static parallel sampling with c++ thread constructs can be checked in /test/facility/ss_code.
+As we improved the performance. We didn't show the parallel effect here but instead the gernerated static parallel sampling with C++ thread constructs can be checked in /test/facility/ss_code.
 
 
 
