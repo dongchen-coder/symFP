@@ -1,6 +1,14 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define N 1024
+#ifdef ORG
+	#define N 1024
+#elif defined(TX)
+	#define N 1448
+#elif defined(FX)
+	#define N 2048
+#endif
+
 
 #define A_OFFSET 0
 #define X1_OFFSET N * N 

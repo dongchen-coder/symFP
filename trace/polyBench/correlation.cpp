@@ -1,7 +1,15 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define M 1024
-#define N 1024
+
+#ifdef ORG
+	#define M 1024
+	#define N 1024
+#elif defined(TX)
+#elif defined(FX)
+#endif
+
+
 #define FLOAT_N 3214212.01
 #define EPS 0.005
 

@@ -1,7 +1,16 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define NX 1024
-#define NY 1024
+#ifdef ORG
+	#define NX 1024
+	#define NY 1024
+#elif defined(TX)
+	#define NX 1024
+	#define NY 2048
+#elif defined(FX)
+	#define NX 1024
+	#define NY 4096
+#endif
 
 #define A_OFFSET 0
 #define X_OFFSET NX * NY

@@ -1,10 +1,26 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define NI 256
-#define NJ 256
-#define NL 256
-#define NK 256
-#define NM 256
+
+#ifdef ORG
+	#define NI 256
+	#define NJ 256
+	#define NL 256
+	#define NK 256
+	#define NM 256
+#elif defined (TX)
+	#define NI 512
+    #define NJ 256
+    #define NL 512
+    #define NK 256
+    #define NM 256
+#elif defined (FX)
+	#define NI 1024
+    #define NJ 256
+    #define NL 1024
+    #define NK 256
+    #define NM 256
+#endif
 
 #define A_OFFSET 0
 #define B_OFFSET NK * NI
@@ -31,9 +47,9 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
             for (k = 0; k < NK; ++k)
             {
                 E[i * NJ + j] += A[i * NK + k] * B[k * NJ + j];
-				rtTmpAccess(E_OFFSET + i * NJ + j);
 				rtTmpAccess(A_OFFSET + i * NK + k);
 				rtTmpAccess(B_OFFSET + k * NJ + j);
+				rtTmpAccess(E_OFFSET + i * NJ + j);
 				rtTmpAccess(E_OFFSET + i * NJ + j);
             }
         }
@@ -51,9 +67,9 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
             for (k = 0; k < NM; ++k)
             {
                 F[i * NL + j] += C[i * NM + k] * D[k * NL + j];
-            	rtTmpAccess(F_OFFSET + i * NL + j);
 				rtTmpAccess(C_OFFSET + i * NM + k);
 				rtTmpAccess(D_OFFSET + k * NL + j);
+				rtTmpAccess(F_OFFSET + i * NL + j);
 				rtTmpAccess(F_OFFSET + i * NL + j);
 			}
         }
@@ -71,9 +87,9 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
             for (k = 0; k < NJ; ++k)
             {
                 G[i * NL + j] += E[i * NJ + k] * F[k * NL + j];
-            	rtTmpAccess(G_OFFSET + i * NL + j);
 				rtTmpAccess(E_OFFSET + i * NJ + k);
 				rtTmpAccess(F_OFFSET + k * NL + j);
+				rtTmpAccess(G_OFFSET + i * NL + j);
 				rtTmpAccess(G_OFFSET + i * NL + j);
 			}
         }

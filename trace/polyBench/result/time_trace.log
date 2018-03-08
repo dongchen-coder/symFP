@@ -1,0 +1,55 @@
+stencil
+
+real	0m2.912s
+user	0m2.832s
+sys	0m0.065s
+convolution_3d
+
+real	1m47.712s
+user	1m46.122s
+sys	0m0.984s
+convolution_2d
+
+real	0m3.878s
+user	0m3.756s
+sys	0m0.086s
+syrk
+
+real	1m10.717s
+user	0m56.100s
+sys	0m11.024s
+mvt
+
+real	0m9.186s
+user	0m8.684s
+sys	0m0.396s
+gesummv
+
+real	0m8.019s
+user	0m7.325s
+sys	0m0.442s
+gemver
+
+real	0m15.677s
+user	0m13.628s
+sys	0m1.121s
+gemm
+
+real	0m23.736s
+user	0m18.584s
+sys	0m0.902s
+bicg
+
+real	0m2.648s
+user	0m2.505s
+sys	0m0.075s
+atax
+
+real	0m2.807s
+user	0m2.547s
+sys	0m0.078s
+3mm
+
+real	2m58.218s
+user	2m9.749s
+sys	0m25.761s

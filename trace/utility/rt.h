@@ -2,8 +2,8 @@
 #include<map>
 using namespace std;
 
-#define CLS 1
-#define DS 1
+#define CLS 32
+#define DS 8
 
 /* first access time */
 std::map<int, int> fat;
@@ -86,6 +86,9 @@ void RTtoMR_AET() {
 	double sum_P = 0;
 	uint64_t t = 0;
 	uint64_t prev_t = 0;
+	
+	double MR_pred = -1;
+
 	for (uint64_t c = 0; c <= max_RT; c++) {
 		while (sum_P < c && t <= max_RT) {
 			if (P.find(t) != P.end()) {
@@ -96,13 +99,27 @@ void RTtoMR_AET() {
 			}
 			t++;
 		}
+
 		/*
 		if (P.find(t) != P.end()) {
 			MR[c] = P[t];
 		} else {
 			MR[c] = P[prev_t];
-		}*/
-		MR[c] = P[prev_t];
+		}*/		
+		
+		if (MR_pred != -1) {
+			MR[c] = P[prev_t];
+			MR_pred = P[prev_t];
+		} else {
+			if (MR_pred - P[prev_t] < 0.0001) {
+				MR[c] = P[prev_t];
+            	MR_pred = P[prev_t];
+			}
+		}		
+
+
+		//MR[c] = P[prev_t];
+
 	}
 
 	return;

@@ -1,8 +1,20 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define NI 256
-#define NJ 256
-#define NK 256
+#ifdef ORG
+	#define NI 256
+	#define NJ 256
+	#define NK 256
+#elif defined(TX)
+	#define NI 256
+	#define NJ 256
+	#define NK 512
+#elif defined(FX)
+	#define NI 256
+	#define NJ 512
+	#define NK 512
+#endif
+
 
 #define A_OFFSET 0
 #define B_OFFSET 

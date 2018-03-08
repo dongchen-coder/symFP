@@ -1,7 +1,16 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define NI 1024
-#define NJ 1024
+#ifdef ORG
+	#define NI 1024
+	#define NJ 1024
+#elif defined(TX)
+	#define NI 1448
+	#define NJ 1448
+#elif defined(FX)
+	#define NI 2048
+	#define NJ 2048
+#endif
 
 #define A_OFFSET 0
 #define B_OFFSET NI * NJ

@@ -1,6 +1,15 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define DIM_SIZE 1024
+
+#ifdef ORG
+	#define DIM_SIZE 1024
+#elif defined(TX)
+	#define DIM_SIZE 1448
+#elif defined(FX)
+	#define DIM_SIZE 2048
+#endif
+
 
 bool varify(int * b, int * a) {
     for (int i = 1; i < DIM_SIZE+1; i++) {

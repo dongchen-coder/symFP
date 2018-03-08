@@ -1,7 +1,16 @@
 #include "../utility/rt.h"
+#include "../utility/data_size.h"
 
-#define NI 256
-#define NJ 256
+#ifdef ORG
+	#define NI 256
+	#define NJ 256
+#elif defined(TX)
+	#define NI 362
+	#define NJ 256
+#elif defined(FX)
+	#define NI 512
+	#define NJ 256
+#endif
 
 #define A_OFFSET 0
 #define C_OFFSET NI * NJ
@@ -28,9 +37,9 @@ void syrk_trace(double alpha, double beta, double* A, double* C)
             for (k = 0; k < NJ; k++)
             {
                 C[i * NI + j] = C[i * NI + j] + alpha * A[i * NJ + k] * A[j * NJ + k];
-				rtTmpAccess(C_OFFSET + i * NI + j);
 				rtTmpAccess(A_OFFSET + i * NJ + k);
 				rtTmpAccess(A_OFFSET + j * NJ + k);
+				rtTmpAccess(C_OFFSET + i * NI + j);
 				rtTmpAccess(C_OFFSET + i * NI + j);
             }
         }

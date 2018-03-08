@@ -1,5 +1,14 @@
 #include "../utility/rt.h"
-#define N 1024
+#include "../utility/data_size.h"
+
+#ifdef ORG
+	#define N 1024
+#elif defined(TX)
+	#define N 1448
+#elif defined(FX)
+	#define N 2048
+#endif
+
 
 #define A_OFFSET 0
 #define B_OFFSET N * N
@@ -17,7 +26,7 @@ void gesummv_trace(double alpha, double beta, double* A, double* B, double* tmp,
         y[i] = 0;
 
 		rtTmpAccess(TMP_OFFSET + i);
-		rtTmpAccess(TMP_OFFSET + i);
+		rtTmpAccess(Y_OFFSET + i);
 	
         for (j = 0; j < N; j++)
         {
