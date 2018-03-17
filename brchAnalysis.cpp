@@ -6,13 +6,15 @@
 //
 //
 
-/*
+
 #include "brchAnalysis.hpp"
 
 using namespace std;
 using namespace llvm;
 
+
 namespace brchAnalysis {
+    bool isLoopCondition(Loop* L, BasicBlock* bb);
     char BranchAnalysis::ID = 0;
     static RegisterPass<BranchAnalysis> X("brchAnalysis", "branch condition analysis Pass", false, false);
     
@@ -47,71 +49,138 @@ namespace brchAnalysis {
     }
     
     bool BranchAnalysis::runOnFunction(Function &F) {
-        errs() << "\nLoop Indv: \n";
-        for (loopAnalysis::LoopIndvBoundAnalysis::LoopInfoStruct ls: getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopInfoVector) {
-            errs() << "Loop: " << ls.L->getName() << " Indv: " << ls.IDV->getName() << "\n";
-        }
         
         errs() << "\nStart analysis Branch Conditions \n";
-        LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-        if (!LI.empty()) {
-            for(LoopInfo::iterator it = LI.begin(), eit = LI.end(); it != eit; ++it){
-                //errs() << "Loop:\n";
-                FindBranch(*it);
+        
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* lrn = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
+
+//        getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().DumpLoopTree(lrn, "");
+
+        // tranverse the LoopRefNode
+        // The root of the LoopRefTree is a special node with all component except the 'next' is empty
+        if (lrn != NULL && lrn->next != NULL) {
+            for (loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node: *(lrn->next)) {
+                tranverseLoopRefTree(node);
             }
         }
         
+
         // Can not iterpret the info
-        // dumpBranchInfoStruct();
+//        dumpBranchInfoStruct();
         
         return false;
     }
-    
-    void BranchAnalysis::FindBranch(Loop *L) {
-        errs() << "\nFind branch conditions in Loop " << L->getName() << "\n";
-        vector<Value *> arrlist;
-        vector<ICmpInst *> condlist;
-        vector<BasicBlock*> body = FindIfBody(L);
-        for (BasicBlock *b: body) {
-            for(BasicBlock::iterator II = b->begin(); II != b->end(); ++II) {
-                // has array visit
-                if (isa<GetElementPtrInst>(*II)) {
-                    arrlist.push_back(II->getOperand(0));
+
+    void BranchAnalysis::tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node) {
+        if (node != NULL) {
+            if (node->L != NULL) {
+                errs() << node->L->getName();
+                FindBranch(node);
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>* subnodes = node->next;
+                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nit=subnodes->begin(), neit=subnodes->end(); nit!=neit; ++nit) {
+                    tranverseLoopRefTree(*nit);
                 }
             }
         }
-        // if there's array visit in the if-body
-        if (arrlist.size() > 0) {
-            BasicBlock *begin = body.front();
-            // find the if condition
-            // iterate each predecessor of the first BB in if-body
-            for(auto pit = pred_begin(begin), pet = pred_end(begin); pit != pet; ++pit) {
-                BasicBlock *predecessor = *pit;
-                for (BasicBlock::iterator II = predecessor->begin(); II != predecessor->end(); ++II) {
-                    if (isa<ICmpInst>(*II) && (CheckBranchValid(L, II->getOperand(0)) || CheckBranchValid(L, II->getOperand(1)))) {
-                        // condition
-                        condlist.push_back(cast<ICmpInst>(&*II));
+    }
+
+    void BranchAnalysis::FindBranch(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node) {
+        Loop* loop = node->L;
+        loopAnalysis::LoopIndvBoundAnalysis::LoopInfoStruct* lstr = node->LIS;
+//        errs() << "\nFind branch conditions in Loop " << loop->getName() << "\n";
+        for (BasicBlock* loopbb: loop->getBlocks()) {
+            for (BasicBlock::iterator it=loopbb->begin(), eit=loopbb->end(); it!=eit; ++it) {
+                if (isa<BranchInst>(*it)) {
+                    BranchInst* brinst = dyn_cast<BranchInst>(it);
+                    if (brinst->isConditional()) {
+                        if  (isLoopCondition(loop, loopbb)) {
+//                            errs() << "Is Loop Condition \n";
+                        }
+                        else {
+                            Value *cond = brinst->getCondition();
+//                            errs() << "Condition is " << *cond << " => " << dumpBranchCondition(cond) << "\n";
+                            if (isa<ICmpInst>(cond)) {
+                                ICmpInst* cmpinst = dyn_cast<ICmpInst>(cond);
+                                // Create the condition info struct
+                                ConditionInfoStruct temp = {
+                                    node,
+                                    loop,
+                                    loopbb,
+                                    cmpinst
+//                                    cmpinst->getOperand(0),
+//                                    cmpinst->getOperand(1),
+//                                    cmpinst->getPredicate()
+                                };
+                                dumpCondInfoStruch(temp);
+                            }
+                        }
                     }
                 }
             }
-            // store the branch value
-            if (condlist.size() > 0) {
-                LoopBranchStruct temp = {
-                    L,
-                    condlist,
-                    arrlist
-                };
-                LoopBranchInfo.push_back(temp);
-            }
         }
+//        vector<Value *> arrlist;
+//        vector<ICmpInst *> condlist;
+//        vector<BasicBlock*> body = FindIfBody(L);
+//        for (BasicBlock *b: body) {
+//            for(BasicBlock::iterator II = b->begin(); II != b->end(); ++II) {
+//                // has array visit
+//                if (isa<GetElementPtrInst>(*II)) {
+//                    arrlist.push_back(II->getOperand(0));
+//                }
+//            }
+//        }
+//        // if there's array visit in the if-body
+//        if (arrlist.size() > 0) {
+//            BasicBlock *begin = body.front();
+//            // find the if condition
+//            // iterate each predecessor of the first BB in if-body
+//            for(auto pit = pred_begin(begin), pet = pred_end(begin); pit != pet; ++pit) {
+//                BasicBlock *predecessor = *pit;
+//                for (BasicBlock::iterator II = predecessor->begin(); II != predecessor->end(); ++II) {
+//                    if (isa<ICmpInst>(*II) && (CheckBranchValid(L, II->getOperand(0)) || CheckBranchValid(L, II->getOperand(1)))) {
+//                        // condition
+//                        condlist.push_back(cast<ICmpInst>(&*II));
+//                    }
+//                }
+//            }
+//            // store the branch value
+//            if (condlist.size() > 0) {
+//                LoopBranchStruct temp = {
+//                    L,
+//                    condlist,
+//                    arrlist
+//                };
+//                LoopBranchInfo.push_back(temp);
+//            }
+//        }
         
     }
     
-    /
+    /*
+     * Check Whether the branch condition is the loop condition
+     * This means that this branch condition cannot be the loop condition, or its subloop condition
+     * @para *L        Loop Object
+     * @para *bb       BasicBlock that contains a condition instruction
+     */
+    bool isLoopCondition(Loop* L, BasicBlock *bb) {
+//        errs() << "BasicBlock " << bb->getName() << " in Loop " << dyn_cast<BasicBlock>(*(L->block_begin()))->getName() << "\n";
+        bool result = false;
+        if (bb->getName().str().compare(dyn_cast<BasicBlock>(*(L->block_begin()))->getName().str()) != 0) {
+            for (Loop *subloop: L->getSubLoopsVector()) {
+                result = result || isLoopCondition(subloop, bb);
+            }
+        } else {
+            result = true;
+        }
+        return result;
+    }
+  
+#warning Doesn't use
+    /*
      * Check Whether the Branch Condition contains the Loop Indv
      * @para *L     Loop Object to be analyzed
      * @para val    Variables contains in the
-     /
+     */
     bool BranchAnalysis::CheckBranchValid(Loop* L, Value* val) {
         if (isa<ConstantInt>(val)) { // constant value
             return false;
@@ -143,31 +212,24 @@ namespace brchAnalysis {
             return false;
         }
     }
-    
-    /
+
+#warning Doesn't use
+    /*
      * Check Whether the Condition Var belongs to the Loop Indv of the current Loop/its subLoop 
      * @para *L     Loop Object to be analyzed
      * @para var    Condition Variable
-     /
+     */
     bool BranchAnalysis::CheckIndvVar(Loop* L, string var) {
-        for (loopAnalysis::LoopIndvBoundAnalysis::LoopInfoStruct ls: getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopInfoVector) {
-            
-            if (ls.L->getName().equals(L->getName())) {
-                // check whether the condition var belongs to loop IDV of the current loop
-                if (ls.IDV->getName().str().compare(var) == 0) {
-                    return true;
-                }
-                else {
-                    // check whether the condition var belongs to the subLoop's IDV
-                    for (Loop *sl: ls.SL) {
-                        if (CheckIndvVar(sl, var)) {
-                            return true;
-                        }
-                    }
-                }
+        loopAnalysis::LoopIndvBoundAnalysis::LoopInfoStruct* ls = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().ExtractLoopInfo(L);
+
+        // check whether the condition var belongs to loop IDV of the current loop
+        for (vector<Value* >::iterator it=ls->IDV->begin(), eit=ls->IDV->end(); it != eit; ++it) {
+            Value* idv = dyn_cast<Value>(*it);
+            if (idv->getName().str().compare(var) == 0) {
+                return true;
             }
         }
-        return false;
+    return false;
     }
 
     
@@ -180,7 +242,8 @@ namespace brchAnalysis {
         AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
         return;
     }
-    
+
+#warning Doesn't use
     void BranchAnalysis::dumpBranchInfoStruct() {
         if (LoopBranchInfo.size() == 0) {
             errs() << "\n ====== No Satisfied Loop Branch Conditions ======\n";
@@ -224,6 +287,37 @@ namespace brchAnalysis {
         
     }
     
+    string BranchAnalysis::dumpBranchCondition(Value* cond) {
+        if (isa<ICmpInst>(cond)) {
+            ICmpInst *br = dyn_cast<ICmpInst>(cond);
+            
+            switch (br->getPredicate()) {
+                case ICmpInst::ICMP_EQ:
+                    return "(" + dumpValue(br->getOperand(0)) + " == " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                case ICmpInst::ICMP_NE:
+                    return "(" + dumpValue(br->getOperand(0)) + " != " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                case ICmpInst::ICMP_SGE:
+                    return "(" + dumpValue(br->getOperand(0)) + " >= " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                case ICmpInst::ICMP_SGT:
+                    return  "(" + dumpValue(br->getOperand(0)) + " > " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                case ICmpInst::ICMP_SLE:
+                    return "(" + dumpValue(br->getOperand(0)) + " <= " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                case ICmpInst::ICMP_SLT:
+                    return "(" + dumpValue(br->getOperand(0)) + " < " + dumpValue(br->getOperand(1)) + ")";
+                    break;
+                default:
+                    break;
+            }
+        }
+        return dumpValue(cond);
+    }
+
+    
     string BranchAnalysis::dumpValue(Value *v) {
         
         if (isa<Instruction>(v)) {
@@ -263,6 +357,7 @@ namespace brchAnalysis {
         
     }
     
+#warning Doesn't use
     string BranchAnalysis::dumpArray(Value *arr) {
         if (isa<Instruction>(arr)) {
             Instruction *arrayInst = cast<Instruction>(arr);
@@ -278,7 +373,14 @@ namespace brchAnalysis {
             }
         }
         return "";
-        
+    }
+    
+    void BranchAnalysis::dumpCondInfoStruch(ConditionInfoStruct cis) {
+        errs() << "===========================================\n";
+        errs() << "In Loop: \t" << cis.L->getName() << "\n";
+        errs() << "In BasicBlock: \t" << cis.BB->getName() << "\n";
+        errs() << "Condition: \t" << dumpBranchCondition(cis.COND) << "\n";
+        errs() << "===========================================\n";
     }
 }
-*/
+
