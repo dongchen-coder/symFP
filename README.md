@@ -19,6 +19,8 @@ By compiling and running the generated C++ static sampling code, miss ratio curv
 
 (5) Compile TARGET\_StaticSampling.cpp with C++ compiler and run
 
+
+
 ## Code structure
 
 There are 5 analysis passes, 1 code generation pass and 1 top wrapper pass. 
@@ -41,7 +43,7 @@ struct LoopRefTNode {
 };
 ```
 
-### BranchAnalysis Pass (Not finished)
+### BranchAnalysis Pass
 This pass is to extract the brach condition that associated with each reference
 
 ### GlobalVariableAnalysis Pass
@@ -54,6 +56,8 @@ This pass is to extract the argument information of a function
 This pass is to extract all the reference asscoiated with its index expression
 
 ### ssCodeGen Pass
-This pass is to generate the static sampling code to derive static miss ratio curves.
+This pass is to generate the static sampling code to derive static miss ratio curves. (Reference pair based approach)
 
+### ssCodeGen_ref Pass
+This pass is to generate the static sampling code to derive static miss ratio curves. (Reference based approach)
 
