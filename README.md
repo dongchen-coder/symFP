@@ -7,6 +7,8 @@ For each function, SPS consumes LLVM IR code as input.
 Then SPS analyzes the IR code and generates a specialized C++ static sampling code.
 By compiling and running the generated C++ static sampling code, miss ratio curve will be derived.
 
+Software artifact for PLDI 18 "Locality Analysis through Static Parallel Sampling" can be found in http://doi.org/10.5281/zenodo.1218771
+
 ## Usage
 
 (1) Install LLVM 4.0.0
@@ -18,7 +20,6 @@ By compiling and running the generated C++ static sampling code, miss ratio curv
 (4) opt -load LLVMSymFP.dylib -symFP \<TARGET.bc\> TARGET.bc.opt 2\> TARGET\_StaticSampling.cpp
 
 (5) Compile TARGET\_StaticSampling.cpp with C++ compiler and run
-
 
 
 ## Code structure
