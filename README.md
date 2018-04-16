@@ -24,7 +24,7 @@ Software artifact for PLDI 18 "Locality Analysis through Static Parallel Samplin
 
 ## Code structure
 
-There are 5 analysis passes, 1 code generation pass and 1 top wrapper pass. 
+There are 6 analysis passes, 2 code generation pass and 1 top wrapper pass.
 
 ### symFP Pass (Top)
 
