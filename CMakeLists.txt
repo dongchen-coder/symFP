@@ -16,6 +16,7 @@ add_llvm_loadable_module(LLVMSymFP
   sps/loopAnalysis.hpp
   sps/loopAnalysis.cpp
 
+  sps/samplingRate.hpp
   sps/sampleNumAnalysis.hpp
   sps/sampleNumAnalysis.cpp
 
