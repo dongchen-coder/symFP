@@ -1,7 +1,8 @@
 
 TEST_DIR=/Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/trace/polyBench
 
-polyBench: stencil convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax 3mm
+
+polyBench: convolution_3d convolution_2d syrk mvt gesummv gemver gemm bicg atax 3mm
 
 stencil:
 	g++ $(TEST_DIR)/stencil.cpp -O3 -o $(TEST_DIR)/result/stencil_trace
@@ -50,27 +51,52 @@ run_trace:
 	$(TEST_DIR)/result/3mm_trace > $(TEST_DIR)/result/3mm_trace_result.txt &
 
 time_trace:
-	echo "stencil" > $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/stencil_trace > $(TEST_DIR)/result/stencil_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "convolution_3d" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/convolution_3d_trace > $(TEST_DIR)/result/convolution_3d_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "convolution_2d" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/convolution_2d_trace > $(TEST_DIR)/result/convolution_2d_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "syrk" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/syrk_trace > $(TEST_DIR)/result/syrk_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "mvt" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/mvt_trace > $(TEST_DIR)/result/mvt_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "gesummv" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/gesummv_trace > $(TEST_DIR)/result/gesummv_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "gemver" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/gemver_trace > $(TEST_DIR)/result/gemver_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "gemm" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/gemm_trace > $(TEST_DIR)/result/gemm_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "bicg" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/bicg_trace > $(TEST_DIR)/result/bicg_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "atax" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/atax_trace > $(TEST_DIR)/result/atax_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
-	echo "3mm" >> $(TEST_DIR)/result/time_trace.log
-	{ time $(TEST_DIR)/result/3mm_trace > $(TEST_DIR)/result/3mm_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
+#	echo "stencil" > $(TEST_DIR)/result/time_trace.log
+#	{ time $(TEST_DIR)/result/stencil_trace > $(TEST_DIR)/result/stencil_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
+#	echo "convolution_3d" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/convolution_3d_trace > $(TEST_DIR)/result/convolution_3d_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/convolution_3d_trace.log
+#	echo "convolution_2d" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/convolution_2d_trace > $(TEST_DIR)/result/convolution_2d_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/convolution_2d_trace.log
+#	echo "syrk" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/syrk_trace > $(TEST_DIR)/result/syrk_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/syrk_trace.log
+#	echo "mvt" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/mvt_trace > $(TEST_DIR)/result/mvt_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/mvt_trace.log
+#	echo "gesummv" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gesummv_trace > $(TEST_DIR)/result/gesummv_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gesummv_trace.log
+#	echo "gemver" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gemver_trace > $(TEST_DIR)/result/gemver_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gemver_trace.log
+#	echo "gemm" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gemm_trace > $(TEST_DIR)/result/gemm_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gemm_trace.log
+#	echo "bicg" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/bicg_trace > $(TEST_DIR)/result/bicg_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/bicg_trace.log
+#	echo "atax" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/atax_trace > $(TEST_DIR)/result/atax_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/atax_trace.log
+#	echo "3mm" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/3mm_trace > $(TEST_DIR)/result/3mm_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/3mm_trace.log
+
+
+time_trace_org:
+#   echo "stencil" > $(TEST_DIR)/result/time_trace.log
+#   { time $(TEST_DIR)/result/stencil_trace > $(TEST_DIR)/result/stencil_trace_result.txt ; } 2>> $(TEST_DIR)/result/time_trace.log
+#   echo "convolution_3d" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/convolution_3d_trace > $(TEST_DIR)/result/convolution_3d_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/convolution_3d_trace.log
+#   echo "convolution_2d" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/convolution_2d_trace > $(TEST_DIR)/result/convolution_2d_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/convolution_2d_trace.log
+#   echo "syrk" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/syrk_trace > $(TEST_DIR)/result/syrk_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/syrk_trace.log
+#   echo "mvt" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/mvt_trace > $(TEST_DIR)/result/mvt_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/mvt_trace.log
+#   echo "gesummv" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gesummv_trace > $(TEST_DIR)/result/gesummv_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gesummv_trace.log
+#   echo "gemver" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gemver_trace > $(TEST_DIR)/result/gemver_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gemver_trace.log
+#   echo "gemm" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/gemm_trace > $(TEST_DIR)/result/gemm_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/gemm_trace.log
+#   echo "bicg" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/bicg_trace > $(TEST_DIR)/result/bicg_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/bicg_trace.log
+#   echo "atax" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/atax_trace > $(TEST_DIR)/result/atax_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/atax_trace.log
+#   echo "3mm" >> $(TEST_DIR)/result/time_trace.log
+	{ time $(TEST_DIR)/result/3mm_trace > $(TEST_DIR)/result/3mm_trace_result.txt ; } 2>> $(TEST_DIR)/time_log/3mm_trace.log
 
 

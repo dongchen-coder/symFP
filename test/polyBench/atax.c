@@ -1,7 +1,22 @@
 //void atax_cpu(int nx, int ny, DATA_TYPE POLYBENCH_2D(A,NX,NY,nx,ny), DATA_TYPE POLYBENCH_1D(x,NY,ny), DATA_TYPE POLYBENCH_1D(y,NY,ny), DATA_TYPE POLYBENCH_1D(tmp,NX,nx))
 
-#define NX 1024
-#define NY 1024
+#include "../utility/data_size.h"
+
+#ifdef ORG
+    #define NX 1024
+    #define NY 1024
+#elif defined(TX)
+    #define NX 1024
+    #define NY 2048
+#elif defined(FX)
+    #define NX 1024
+    #define NY 4096
+#elif defined(EX)
+    #define NX 1024
+    #define NY 8192
+#endif
+
+
 
 void atax_cpu(int nx, int ny, double* A, double* x, double* y, double* tmp)
 {

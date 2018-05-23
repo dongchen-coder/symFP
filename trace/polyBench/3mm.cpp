@@ -1,6 +1,6 @@
 #include "../utility/rt.h"
-#include "../utility/data_size.h"
 
+#include "../utility/data_size.h"
 
 #ifdef ORG
 	#define NI 256
@@ -20,6 +20,12 @@
     #define NL 1024
     #define NK 256
     #define NM 256
+#elif defined (EX)
+	#define NI 2048
+	#define NJ 256
+	#define NL 2048
+	#define NK 256
+	#define NM 256
 #endif
 
 #define A_OFFSET 0
@@ -126,6 +132,8 @@ int main() {
     }
 
     mm3_cpu_trace(a, b, c, d, e, f, g);
+	
+//	solve();
     dumpRtTmp();
 	RTtoMR_AET();
 	dumpMR();	

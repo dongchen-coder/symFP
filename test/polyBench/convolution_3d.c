@@ -1,8 +1,26 @@
 //void conv3D(int ni, int nj, int nk, DATA_TYPE POLYBENCH_3D(A, NI, NJ, NK, ni, nj, nk), DATA_TYPE POLYBENCH_3D(B, NI, NJ, NK, ni, nj, nk))
 
-#define NI 256
-#define NJ 256
-#define NK 256
+#include "../utility/data_size.h"
+
+#ifdef ORG
+    #define NI 256
+    #define NJ 256
+    #define NK 256
+#elif defined(TX)
+    #define NI 256
+    #define NJ 256
+    #define NK 512
+#elif defined(FX)
+    #define NI 256
+    #define NJ 512
+    #define NK 512
+#elif defined(EX)
+    #define NI 512
+    #define NJ 512
+    #define NK 512
+#endif
+
+
 
 void conv3D(int ni, int nj, int nk, double* A, double* B)
 {

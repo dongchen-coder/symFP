@@ -44,38 +44,38 @@ double* %G
 --Loop Bound: (0, 256)
 ----j
 ----Loop Bound: (0, 256)
-------array access   store double 0.000000e+00, double* %arrayidx, align 8
+------array access E.addr ((i * 256) + j)
 ------k
 ------Loop Bound: (0, 256)
---------array access   %9 = load double, double* %arrayidx10, align 8
---------array access   %13 = load double, double* %arrayidx14, align 8
---------array access   %17 = load double, double* %arrayidx19, align 8
---------array access   store double %add20, double* %arrayidx19, align 8
+--------array access A.addr ((i * 256) + k)
+--------array access B.addr ((k * 256) + j)
+--------array access E.addr ((i * 256) + j)
+--------array access E.addr ((i * 256) + j)
 --i
 --Loop Bound: (0, 256)
 ----j
 ----Loop Bound: (0, 256)
-------array access   store double 0.000000e+00, double* %arrayidx36, align 8
+------array access F.addr ((i * 256) + j)
 ------k
 ------Loop Bound: (0, 256)
---------array access   %30 = load double, double* %arrayidx43, align 8
---------array access   %34 = load double, double* %arrayidx47, align 8
---------array access   %38 = load double, double* %arrayidx52, align 8
---------array access   store double %add53, double* %arrayidx52, align 8
+--------array access C.addr ((i * 256) + k)
+--------array access D.addr ((k * 256) + j)
+--------array access F.addr ((i * 256) + j)
+--------array access F.addr ((i * 256) + j)
 --i
 --Loop Bound: (0, 256)
 ----j
 ----Loop Bound: (0, 256)
-------array access   store double 0.000000e+00, double* %arrayidx72, align 8
+------array access G.addr ((i * 256) + j)
 ------k
 ------Loop Bound: (0, 256)
---------array access   %51 = load double, double* %arrayidx79, align 8
---------array access   %55 = load double, double* %arrayidx83, align 8
---------array access   %59 = load double, double* %arrayidx88, align 8
---------array access   store double %add89, double* %arrayidx88, align 8
+--------array access E.addr ((i * 256) + k)
+--------array access F.addr ((k * 256) + j)
+--------array access G.addr ((i * 256) + j)
+--------array access G.addr ((i * 256) + j)
 
 Finish analysis loops */ 
- // Start to generating Static Sampling Code
+ // Start to generating Static Sampling Code (reference based)
 #include <map>
 #include <set>
 #include <cstdlib>
@@ -124,4199 +124,6 @@ void RTtoMR_AET() {
     }
     return;
 }
-int calAddrE_addr0( int i, int j) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrA_addr0( int i, int j, int k) {
-    int result = ((i * 256) + k);
-    return result;
-}
-int calAddrB_addr0( int i, int j, int k) {
-    int result = ((k * 256) + j);
-    return result;
-}
-int calAddrE_addr1( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrE_addr2( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrF_addr0( int i, int j) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrC_addr0( int i, int j, int k) {
-    int result = ((i * 256) + k);
-    return result;
-}
-int calAddrD_addr0( int i, int j, int k) {
-    int result = ((k * 256) + j);
-    return result;
-}
-int calAddrF_addr1( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrF_addr2( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrG_addr0( int i, int j) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrE_addr3( int i, int j, int k) {
-    int result = ((i * 256) + k);
-    return result;
-}
-int calAddrF_addr3( int i, int j, int k) {
-    int result = ((k * 256) + j);
-    return result;
-}
-int calAddrG_addr1( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int calAddrG_addr2( int i, int j, int k) {
-    int result = ((i * 256) + j);
-    return result;
-}
-int rtCalA_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 0 - 0;
-}
-int rtCalB_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 1 - 1;
-}
-int rtCalC_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 0 - 0;
-}
-int rtCalD_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 1 - 1;
-}
-int rtCalE_addr0_0(int i, int j, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + 0 - 0;
-}
-int rtCalE_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 2;
-}
-int rtCalE_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 3;
-}
-int rtCalE_addr0_3(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + 262400 + (kreuse - 0) * 4 + 0 - 0;
-}
-int rtCalE_addr1_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 2;
-}
-int rtCalE_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 2;
-}
-int rtCalE_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 2;
-}
-int rtCalE_addr1_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 262400 + 0 - 2;
-}
-int rtCalE_addr2_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 3;
-}
-int rtCalE_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 3;
-}
-int rtCalE_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 3;
-}
-int rtCalE_addr2_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 262400 + 0 - 3;
-}
-int rtCalE_addr3_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + 0 - 0;
-}
-int rtCalE_addr3_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 2 - 0;
-}
-int rtCalE_addr3_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 3 - 0;
-}
-int rtCalE_addr3_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 0 - 0;
-}
-int rtCalF_addr0_0(int i, int j, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + 0 - 0;
-}
-int rtCalF_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 2;
-}
-int rtCalF_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 3;
-}
-int rtCalF_addr0_3(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (kreuse - 0) * 4 + 1 - 0;
-}
-int rtCalF_addr1_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 2;
-}
-int rtCalF_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 2;
-}
-int rtCalF_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 2;
-}
-int rtCalF_addr1_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 1 - 2;
-}
-int rtCalF_addr2_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 3;
-}
-int rtCalF_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 3;
-}
-int rtCalF_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 3;
-}
-int rtCalF_addr2_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 1 - 3;
-}
-int rtCalF_addr3_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + 0 - 1;
-}
-int rtCalF_addr3_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 2 - 1;
-}
-int rtCalF_addr3_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (256 - i) * 262400 + (ireuse - 0) * 262400 + (256 - j) * 1025 + (jreuse - 0) * 1025 + (256 - k) * 4 + (kreuse - 0) * 4 + 3 - 1;
-}
-int rtCalF_addr3_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 1 - 1;
-}
-int rtCalG_addr0_0(int i, int j, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + 0 - 0;
-}
-int rtCalG_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 2;
-}
-int rtCalG_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 +  1 + (kreuse - 0) * 4 + 3;
-}
-int rtCalG_addr1_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 2;
-}
-int rtCalG_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 2;
-}
-int rtCalG_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 2;
-}
-int rtCalG_addr2_0(int i, int j, int k, int ireuse, int jreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (256 - k) * 4  - 3;
-}
-int rtCalG_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 2 - 3;
-}
-int rtCalG_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) {
-    return (ireuse - i) * 262400 + (jreuse - j) * 1025 + (kreuse - k) * 4 + 3 - 3;
-}
-bool checkIntervenA_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenB_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenC_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenD_addr0_0(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenE_addr0_0(int i, int j, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr0_3(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr1_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr1_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr2_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr2_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrE_addr0(iInterven, jInterven) == calAddrE_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr1(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrE_addr2(iInterven, jInterven, kInterven) == calAddrE_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenE_addr3_0(int i, int j, int k, int ireuse, int jreuse) { 
-    return false;
-}
-bool checkIntervenE_addr3_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenE_addr3_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenE_addr3_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenF_addr0_0(int i, int j, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr0_3(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr1_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr1_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr2_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr2_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrF_addr0(iInterven, jInterven) == calAddrF_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr1(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= 256; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == 256) {
-            jIntervenUB = 256;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == 256 && jInterven == 256) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrF_addr2(iInterven, jInterven, kInterven) == calAddrF_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenF_addr3_0(int i, int j, int k, int ireuse, int jreuse) { 
-    return false;
-}
-bool checkIntervenF_addr3_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenF_addr3_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenF_addr3_3(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    return false;
-}
-bool checkIntervenG_addr0_0(int i, int j, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr0_1(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr0_2(int i, int j, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j + 1 ;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr0(i, j)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = 0;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr0(i, j)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr1_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr1_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr1_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr1(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr1(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr2_0(int i, int j, int k, int ireuse, int jreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse - 1 ;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse - 1 ) {
-                kIntervenUB = 256;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr2_1(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse - 1 ;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr2(iInterven, jInterven, kInterven) == calAddrG_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-bool checkIntervenG_addr2_2(int i, int j, int k, int ireuse, int jreuse, int kreuse) { 
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            if( calAddrG_addr0(iInterven, jInterven) == calAddrG_addr2(i, j, k)) {
-                return true;
-            }
-        }
-    }
-    for(int iInterven = i; iInterven <= ireuse; iInterven++) {
-        int jInterven;
-        int jIntervenUB;
-        if (iInterven == i) {
-            jInterven = j;
-        } else {
-            jInterven = 0;
-        }
-        if (iInterven == ireuse) {
-            jIntervenUB = jreuse;
-        } else {
-            jIntervenUB = 256- 1;
-        }
-        for(; jInterven <= jIntervenUB; jInterven++) {
-            int kInterven;
-            int kIntervenUB;
-            if (iInterven == i && jInterven == j) {
-                kInterven = k + 1 ;
-            } else {
-                kInterven = 0;
-            }
-            if (iInterven == ireuse && jInterven == jreuse) {
-                kIntervenUB = kreuse;
-            } else {
-                kIntervenUB = 256- 1;
-            }
-            for(; kInterven <= kIntervenUB; kInterven++) {
-                if( calAddrG_addr1(iInterven, jInterven, kInterven) == calAddrG_addr2(i, j, k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-void pairA_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrA_addr0(i, j, k) == calAddrA_addr0(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenA_addr0_0(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalA_addr0_0(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairB_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrB_addr0(i, j, k) == calAddrB_addr0(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenB_addr0_0(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalB_addr0_0(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairC_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrC_addr0(i, j, k) == calAddrC_addr0(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenC_addr0_0(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalC_addr0_0(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairD_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrD_addr0(i, j, k) == calAddrD_addr0(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenD_addr0_0(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalD_addr0_0(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                    if ( calAddrE_addr0(i, j) == calAddrE_addr0(ireuse, jreuse) ) {
-                        if ( checkIntervenE_addr0_0(i, j, ireuse, jreuse) == false) {
-                          rtHistoCal(  rtCalE_addr0_0(i, j, ireuse, jreuse) );
-                        }
-                        findReuseFlag = true;
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairE_addr0_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrE_addr0(i, j) == calAddrE_addr1(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenE_addr0_1(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalE_addr0_1(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairE_addr0_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrE_addr0(i, j) == calAddrE_addr2(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenE_addr0_2(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalE_addr0_2(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairE_addr0_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrE_addr0(i, j) == calAddrE_addr3(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenE_addr0_3(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalE_addr0_3(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairE_addr1_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrE_addr1(i, j, k) == calAddrE_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenE_addr1_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalE_addr1_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr1_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr1(i, j, k) == calAddrE_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr1_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr1_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr1_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr1(i, j, k) == calAddrE_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr1_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr1_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr1_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr1(i, j, k) == calAddrE_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr1_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr1_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr2_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrE_addr2(i, j, k) == calAddrE_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenE_addr2_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalE_addr2_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr2_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr2(i, j, k) == calAddrE_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr2_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr2_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr2_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr2(i, j, k) == calAddrE_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr2_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr2_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr2_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr2(i, j, k) == calAddrE_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr2_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr2_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairE_addr3_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairE_addr3_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairE_addr3_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairE_addr3_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrE_addr3(i, j, k) == calAddrE_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenE_addr3_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalE_addr3_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                    if ( calAddrF_addr0(i, j) == calAddrF_addr0(ireuse, jreuse) ) {
-                        if ( checkIntervenF_addr0_0(i, j, ireuse, jreuse) == false) {
-                          rtHistoCal(  rtCalF_addr0_0(i, j, ireuse, jreuse) );
-                        }
-                        findReuseFlag = true;
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairF_addr0_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrF_addr0(i, j) == calAddrF_addr1(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenF_addr0_1(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalF_addr0_1(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairF_addr0_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrF_addr0(i, j) == calAddrF_addr2(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenF_addr0_2(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalF_addr0_2(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairF_addr0_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrF_addr0(i, j) == calAddrF_addr3(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenF_addr0_3(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalF_addr0_3(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairF_addr1_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrF_addr1(i, j, k) == calAddrF_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenF_addr1_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalF_addr1_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr1_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr1(i, j, k) == calAddrF_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr1_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr1_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr1_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr1(i, j, k) == calAddrF_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr1_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr1_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr1_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr1(i, j, k) == calAddrF_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr1_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr1_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr2_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrF_addr2(i, j, k) == calAddrF_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenF_addr2_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalF_addr2_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr2_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr2(i, j, k) == calAddrF_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr2_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr2_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr2_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr2(i, j, k) == calAddrF_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr2_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr2_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr2_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = 0; ireuse < 256; ireuse++) {
-            for ( int jreuse = 0; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr2(i, j, k) == calAddrF_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr2_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr2_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairF_addr3_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairF_addr3_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairF_addr3_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-    break;
-}
-}
-void pairF_addr3_3() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrF_addr3(i, j, k) == calAddrF_addr3(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenF_addr3_3(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalF_addr3_3(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr0_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                    if ( calAddrG_addr0(i, j) == calAddrG_addr0(ireuse, jreuse) ) {
-                        if ( checkIntervenG_addr0_0(i, j, ireuse, jreuse) == false) {
-                          rtHistoCal(  rtCalG_addr0_0(i, j, ireuse, jreuse) );
-                        }
-                        findReuseFlag = true;
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairG_addr0_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrG_addr0(i, j) == calAddrG_addr1(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenG_addr0_1(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalG_addr0_1(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairG_addr0_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                for ( int kreuse = 0; kreuse < 256; kreuse++) {
-                        if ( calAddrG_addr0(i, j) == calAddrG_addr2(ireuse, jreuse, kreuse) ) {
-                            if ( checkIntervenG_addr0_2(i, j, ireuse, jreuse, kreuse) == false) {
-                              rtHistoCal(  rtCalG_addr0_2(i, j, ireuse, jreuse, kreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-                if (findReuseFlag == true) {
-                    break;
-                }
-            }
-        }
-}
-void pairG_addr1_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrG_addr1(i, j, k) == calAddrG_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenG_addr1_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalG_addr1_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr1_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrG_addr1(i, j, k) == calAddrG_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenG_addr1_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalG_addr1_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr1_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrG_addr1(i, j, k) == calAddrG_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenG_addr1_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalG_addr1_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr2_0() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j + 1;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                        if ( calAddrG_addr2(i, j, k) == calAddrG_addr0(ireuse, jreuse) ) {
-                            if ( checkIntervenG_addr2_0(i, j, k, ireuse, jreuse) == false) {
-                              rtHistoCal(  rtCalG_addr2_0(i, j, k, ireuse, jreuse) );
-                            }
-                            findReuseFlag = true;
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr2_1() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrG_addr2(i, j, k) == calAddrG_addr1(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenG_addr2_1(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalG_addr2_1(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
-void pairG_addr2_2() {
-    set<string> record;
-    for ( int s = 0; s < 1000; s++) {
-        int i = rand() % (256 - 0) + 0;
-        int j = rand() % (256 - 0) + 0;
-        int k = rand() % (256 - 0) + 0;
-        string idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        while ( record.find(idx_string) != record.end() ) {
-            i = rand() % (256 - 0) + 0;
-            j = rand() % (256 - 0) + 0;
-            k = rand() % (256 - 0) + 0;
-            idx_string = std::to_string(i) + "_" + std::to_string(j) + "_" + std::to_string(k) + "_" ;
-        }
-        record.insert( idx_string );
-        bool findReuseFlag = false;
-        for ( int ireuse = i; ireuse < 256; ireuse++) {
-            int jreuse;
-            if (ireuse == i) {
-                jreuse = j;
-            } else {
-                jreuse = 0;
-            }
-            for ( ; jreuse < 256; jreuse++) {
-                int kreuse;
-                if (ireuse == i && jreuse == j) {
-                    kreuse = k + 1;
-                } else {
-                    kreuse = 0;
-                }
-                for ( ; kreuse < 256; kreuse++) {
-                            if ( calAddrG_addr2(i, j, k) == calAddrG_addr2(ireuse, jreuse, kreuse) ) {
-                                if ( checkIntervenG_addr2_2(i, j, k, ireuse, jreuse, kreuse) == false) {
-                                  rtHistoCal(  rtCalG_addr2_2(i, j, k, ireuse, jreuse, kreuse) );
-                                }
-                                findReuseFlag = true;
-                            }
-                            if (findReuseFlag == true) {
-                                break;
-                            }
-                        }
-                        if (findReuseFlag == true) {
-                            break;
-                        }
-                    }
-                    if (findReuseFlag == true) {
-                        break;
-                    }
-                }
-            }
-}
 void rtDump() {
     cout << "Start to dump reuse time histogram\n";
     for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {
@@ -4350,54 +157,884 @@ void dumpMR() {
     }
     return;
 }
+int calAddrE_addr0( int i, int j) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrA_addr0( int i, int j, int k) {
+    int result = (((i * 256) + k)) * 8 / 32;
+    return result;
+}
+int calAddrB_addr0( int i, int j, int k) {
+    int result = (((k * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrE_addr1( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrE_addr2( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrF_addr0( int i, int j) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrC_addr0( int i, int j, int k) {
+    int result = (((i * 256) + k)) * 8 / 32;
+    return result;
+}
+int calAddrD_addr0( int i, int j, int k) {
+    int result = (((k * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrF_addr1( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrF_addr2( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrG_addr0( int i, int j) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrE_addr3( int i, int j, int k) {
+    int result = (((i * 256) + k)) * 8 / 32;
+    return result;
+}
+int calAddrF_addr3( int i, int j, int k) {
+    int result = (((k * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrG_addr1( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+int calAddrG_addr2( int i, int j, int k) {
+    int result = (((i * 256) + j)) * 8 / 32;
+    return result;
+}
+void ref_A_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 256; i++) {
+            int jLB1 = 0;
+            if ( i == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB2 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB2 = k_Start;
+                }
+                for ( int k = kLB2; k < 256; k++) {
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrA_addr0( i, j, k) == calAddrA_addr0(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_B_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 256; i++) {
+            int jLB1 = 0;
+            if ( i == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB2 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB2 = k_Start;
+                }
+                for ( int k = kLB2; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrB_addr0( i, j, k) == calAddrB_addr0(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_C_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB3 = i_Start;
+        for ( int i = iLB3; i < 256; i++) {
+            int jLB4 = 0;
+            if ( i == i_Start ) {
+                jLB4 = j_Start;
+            }
+            for ( int j = jLB4; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB5 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB5 = k_Start;
+                }
+                for ( int k = kLB5; k < 256; k++) {
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrC_addr0( i, j, k) == calAddrC_addr0(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_D_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB3 = i_Start;
+        for ( int i = iLB3; i < 256; i++) {
+            int jLB4 = 0;
+            if ( i == i_Start ) {
+                jLB4 = j_Start;
+            }
+            for ( int j = jLB4; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB5 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB5 = k_Start;
+                }
+                for ( int k = kLB5; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrD_addr0( i, j, k) == calAddrD_addr0(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_E_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 25;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 256; i++) {
+            int jLB1 = 0;
+            if ( i == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrE_addr0( i, j) == calAddrE_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                cntStart = true;
+                int kLB2 = 0;
+                for ( int k = kLB2; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr1( i, j, k) == calAddrE_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr2( i, j, k) == calAddrE_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_E_addr1() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 256; i++) {
+            int jLB1 = 0;
+            if ( i == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrE_addr0( i, j) == calAddrE_addr1(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB2 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB2 = k_Start;
+                }
+                for ( int k = kLB2; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr1( i, j, k) == calAddrE_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr2( i, j, k) == calAddrE_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_E_addr2() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 256; i++) {
+            int jLB1 = 0;
+            if ( i == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrE_addr0( i, j) == calAddrE_addr2(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB2 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB2 = k_Start;
+                }
+                for ( int k = kLB2; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr1( i, j, k) == calAddrE_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr2( i, j, k) == calAddrE_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_E_addr3() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB6 = i_Start;
+        for ( int i = iLB6; i < 256; i++) {
+            int jLB7 = 0;
+            if ( i == i_Start ) {
+                jLB7 = j_Start;
+            }
+            for ( int j = jLB7; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB8 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB8 = k_Start;
+                }
+                for ( int k = kLB8; k < 256; k++) {
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrE_addr3( i, j, k) == calAddrE_addr3(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_F_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 25;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB3 = i_Start;
+        for ( int i = iLB3; i < 256; i++) {
+            int jLB4 = 0;
+            if ( i == i_Start ) {
+                jLB4 = j_Start;
+            }
+            for ( int j = jLB4; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrF_addr0( i, j) == calAddrF_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                cntStart = true;
+                int kLB5 = 0;
+                for ( int k = kLB5; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr1( i, j, k) == calAddrF_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr2( i, j, k) == calAddrF_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_F_addr1() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB3 = i_Start;
+        for ( int i = iLB3; i < 256; i++) {
+            int jLB4 = 0;
+            if ( i == i_Start ) {
+                jLB4 = j_Start;
+            }
+            for ( int j = jLB4; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrF_addr0( i, j) == calAddrF_addr1(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB5 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB5 = k_Start;
+                }
+                for ( int k = kLB5; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr1( i, j, k) == calAddrF_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr2( i, j, k) == calAddrF_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_F_addr2() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB3 = i_Start;
+        for ( int i = iLB3; i < 256; i++) {
+            int jLB4 = 0;
+            if ( i == i_Start ) {
+                jLB4 = j_Start;
+            }
+            for ( int j = jLB4; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrF_addr0( i, j) == calAddrF_addr2(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB5 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB5 = k_Start;
+                }
+                for ( int k = kLB5; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr1( i, j, k) == calAddrF_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr2( i, j, k) == calAddrF_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_F_addr3() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB6 = i_Start;
+        for ( int i = iLB6; i < 256; i++) {
+            int jLB7 = 0;
+            if ( i == i_Start ) {
+                jLB7 = j_Start;
+            }
+            for ( int j = jLB7; j < 256; j++) {
+                if (cntStart == true) cnt++;
+                int kLB8 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB8 = k_Start;
+                }
+                for ( int k = kLB8; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrF_addr3( i, j, k) == calAddrF_addr3(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_G_addr0() {
+    set<string> record;
+    for ( int s = 0; s < 25;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB6 = i_Start;
+        for ( int i = iLB6; i < 256; i++) {
+            int jLB7 = 0;
+            if ( i == i_Start ) {
+                jLB7 = j_Start;
+            }
+            for ( int j = jLB7; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrG_addr0( i, j) == calAddrG_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                cntStart = true;
+                int kLB8 = 0;
+                for ( int k = kLB8; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr1( i, j, k) == calAddrG_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr2( i, j, k) == calAddrG_addr0(i_Start, j_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_G_addr1() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB6 = i_Start;
+        for ( int i = iLB6; i < 256; i++) {
+            int jLB7 = 0;
+            if ( i == i_Start ) {
+                jLB7 = j_Start;
+            }
+            for ( int j = jLB7; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrG_addr0( i, j) == calAddrG_addr1(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB8 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB8 = k_Start;
+                }
+                for ( int k = kLB8; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr1( i, j, k) == calAddrG_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr2( i, j, k) == calAddrG_addr1(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
+void ref_G_addr2() {
+    set<string> record;
+    for ( int s = 0; s < 125;) {
+        int i_Start = rand() % (256 - 0) + 0;
+        int j_Start = rand() % (256 - 0) + 0;
+        int k_Start = rand() % (256 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        while ( record.find(idx_string) != record.end() ) {
+            i_Start = rand() % (256 - 0) + 0;
+            j_Start = rand() % (256 - 0) + 0;
+            k_Start = rand() % (256 - 0) + 0;
+            idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" + std::to_string(k_Start) + "_" ;
+        }
+        record.insert( idx_string );
+        uint64_t cnt = 0;
+        bool cntStart = false;
+        int iLB6 = i_Start;
+        for ( int i = iLB6; i < 256; i++) {
+            int jLB7 = 0;
+            if ( i == i_Start ) {
+                jLB7 = j_Start;
+            }
+            for ( int j = jLB7; j < 256; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddrG_addr0( i, j) == calAddrG_addr2(i_Start, j_Start, k_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                int kLB8 = 0;
+                if ( i == i_Start && j == j_Start ) {
+                    kLB8 = k_Start;
+                }
+                for ( int k = kLB8; k < 256; k++) {
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) cnt++;
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr1( i, j, k) == calAddrG_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrG_addr2( i, j, k) == calAddrG_addr2(i_Start, j_Start, k_Start)) {
+                            rtHistoCal(cnt);
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                }
+            }
+        }
+EndSample:
+        s++;
+        }
+}
 int main() {
-    pairA_addr0_0();
-    pairB_addr0_0();
-    pairC_addr0_0();
-    pairD_addr0_0();
-    pairE_addr0_0();
-    pairE_addr0_1();
-    pairE_addr0_2();
-    pairE_addr0_3();
-    pairE_addr1_0();
-    pairE_addr1_1();
-    pairE_addr1_2();
-    pairE_addr1_3();
-    pairE_addr2_0();
-    pairE_addr2_1();
-    pairE_addr2_2();
-    pairE_addr2_3();
-    pairE_addr3_0();
-    pairE_addr3_1();
-    pairE_addr3_2();
-    pairE_addr3_3();
-    pairF_addr0_0();
-    pairF_addr0_1();
-    pairF_addr0_2();
-    pairF_addr0_3();
-    pairF_addr1_0();
-    pairF_addr1_1();
-    pairF_addr1_2();
-    pairF_addr1_3();
-    pairF_addr2_0();
-    pairF_addr2_1();
-    pairF_addr2_2();
-    pairF_addr2_3();
-    pairF_addr3_0();
-    pairF_addr3_1();
-    pairF_addr3_2();
-    pairF_addr3_3();
-    pairG_addr0_0();
-    pairG_addr0_1();
-    pairG_addr0_2();
-    pairG_addr1_0();
-    pairG_addr1_1();
-    pairG_addr1_2();
-    pairG_addr2_0();
-    pairG_addr2_1();
-    pairG_addr2_2();
+    ref_A_addr0();
+    ref_B_addr0();
+    ref_C_addr0();
+    ref_D_addr0();
+    ref_E_addr0();
+    ref_E_addr1();
+    ref_E_addr2();
+    ref_E_addr3();
+    ref_F_addr0();
+    ref_F_addr1();
+    ref_F_addr2();
+    ref_F_addr3();
+    ref_G_addr0();
+    ref_G_addr1();
+    ref_G_addr2();
     rtDump();
-    RTtoMR_AET();    dumpMR();    return 0;
+    RTtoMR_AET();
+    dumpMR();
+    return 0;
 }
  /* Start to analyze function:  
 mm3_cpu */ 

@@ -1,6 +1,20 @@
 //void conv2D(int ni, int nj, DATA_TYPE POLYBENCH_2D(A, NI, NJ, ni, nj), DATA_TYPE POLYBENCH_2D(B, NI, NJ, ni, nj))
-#define NI 1024
-#define NJ 1024
+
+#include "../utility/data_size.h"
+
+#ifdef ORG
+    #define NI 1024
+    #define NJ 1024
+#elif defined(TX)
+    #define NI 1448
+    #define NJ 1448
+#elif defined(FX)
+    #define NI 2048
+    #define NJ 2048
+#elif defined(EX)
+    #define NI 2896
+    #define NJ 2896
+#endif
 
 void conv2D(int ni, int nj, double* A, double* B)
 {

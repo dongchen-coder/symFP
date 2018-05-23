@@ -1,29 +1,29 @@
 
 add_llvm_loadable_module(LLVMSymFP
-  symFP.cpp
-  argAnalysis.hpp
-  argAnalysis.cpp
+  sps/symFP.cpp
+  sps/argAnalysis.hpp
+  sps/argAnalysis.cpp
 
-  brchAnalysis.hpp
-  brchAnalysis.cpp
+  sps/brchAnalysis.hpp
+  sps/brchAnalysis.cpp
 
-  gVarAnalysis.hpp
-  gVarAnalysis.cpp
+  sps/gVarAnalysis.hpp
+  sps/gVarAnalysis.cpp
 
-  idxAnalysis.hpp
-  idxAnalysis.cpp
+  sps/idxAnalysis.hpp
+  sps/idxAnalysis.cpp
 
-  loopAnalysis.hpp
-  loopAnalysis.cpp
+  sps/loopAnalysis.hpp
+  sps/loopAnalysis.cpp
 
-  sampleNumAnalysis.hpp
-  sampleNumAnalysis.cpp
+  sps/sampleNumAnalysis.hpp
+  sps/sampleNumAnalysis.cpp
 
-  ssCodeGen.hpp
-  ssCodeGen.cpp
+  sps/ssCodeGen.hpp
+  sps/ssCodeGen.cpp
 
-  ssCodeGen_ref.hpp
-  ssCodeGen_ref.cpp
+  sps/ssCodeGen_ref.hpp
+  sps/ssCodeGen_ref.cpp
 
   DEPENDS
   intrinsics_gen

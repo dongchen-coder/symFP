@@ -6,6 +6,7 @@
 	#define N 1024
 #elif defined(TX)
 #elif defined(FX)
+#elif defined(EX)
 #endif
 
 

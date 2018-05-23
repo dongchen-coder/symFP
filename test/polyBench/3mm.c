@@ -1,18 +1,31 @@
-/*void mm3_cpu(int ni, int nj, int nk, int nl, int nm,
-             DATA_TYPE POLYBENCH_2D(E,NI,NJ,ni,nj),
-             DATA_TYPE POLYBENCH_2D(A,NI,NK,ni,nk),
-             DATA_TYPE POLYBENCH_2D(B,NK,NJ,nk,nj),
-             DATA_TYPE POLYBENCH_2D(F,NJ,NL,nj,nl),
-             DATA_TYPE POLYBENCH_2D(C,NJ,NM,nj,nm),
-             DATA_TYPE POLYBENCH_2D(D,NM,NL,nm,nl),
-             DATA_TYPE POLYBENCH_2D(G,NI,NL,ni,nl))
-*/
+#include "../utility/data_size.h"
 
-#define NI 256
-#define NJ 256
-#define NL 256
-#define NK 256
-#define NM 256
+#ifdef ORG
+    #define NI 256
+    #define NJ 256
+    #define NL 256
+    #define NK 256
+    #define NM 256
+#elif defined (TX)
+    #define NI 512
+    #define NJ 256
+    #define NL 512
+    #define NK 256
+    #define NM 256
+#elif defined (FX)
+    #define NI 1024
+    #define NJ 256
+    #define NL 1024
+    #define NK 256
+    #define NM 256
+#elif defined (EX)
+    #define NI 2048
+    #define NJ 256
+    #define NL 2048
+    #define NK 256
+    #define NM 256
+#endif
+
 
 void mm3_cpu(int ni, int nj, int nk, int nl, int nm,
              double * E, double* A, double* B, double* F, double* C, double* D, double* G)

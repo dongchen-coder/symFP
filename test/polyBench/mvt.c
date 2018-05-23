@@ -1,6 +1,16 @@
 //void runMvt(int n, DATA_TYPE POLYBENCH_2D(a, N, N, n, n), DATA_TYPE POLYBENCH_1D(x1, N, n), DATA_TYPE POLYBENCH_1D(x2, N, n), DATA_TYPE POLYBENCH_1D(y1, N, n), DATA_TYPE POLYBENCH_1D(y2, N, n))
 
-#define N 1024
+#include "../utility/data_size.h"
+
+#ifdef ORG
+    #define N 1024
+#elif defined(TX)
+    #define N 1448
+#elif defined(FX)
+    #define N 2048
+#elif defined(EX)
+    #define N 2896
+#endif
 
 void runMvt(int n, double* a, double* x1, double* x2, double* y1, double* y2)
 {

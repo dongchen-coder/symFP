@@ -53,3 +53,24 @@ sys	0m0.078s
 real	2m58.218s
 user	2m9.749s
 sys	0m25.761s
+convolution_3d
+
+real	7m11.213s
+user	7m1.693s
+sys	0m7.312s
+convolution_2d
+
+real	0m16.164s
+user	0m15.821s
+sys	0m0.271s
+syrk
+/bin/sh: line 1: 29982 Segmentation fault: 11  /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/trace/polyBench/result/syrk_trace > /Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/trace/polyBench/result/syrk_trace_result.txt
+
+real	0m0.092s
+user	0m0.076s
+sys	0m0.007s
+Segmentation fault: 11
+
+real	0m0.095s
+user	0m0.081s
+sys	0m0.006s

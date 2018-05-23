@@ -1,8 +1,26 @@
 //void gemm(int ni, int nj, int nk, DATA_TYPE alpha, DATA_TYPE beta, DATA_TYPE POLYBENCH_2D(A,NI,NK,ni,nk), DATA_TYPE POLYBENCH_2D(B,NK,NJ,nk,nj), DATA_TYPE POLYBENCH_2D(C,NI,NJ,ni,nj))
 
-#define NI 256
-#define NJ 256
-#define NK 256
+#include "../utility/data_size.h"
+
+
+#ifdef ORG
+    #define NI 256
+    #define NJ 256
+    #define NK 256
+#elif defined(TX)
+    #define NI 256
+    #define NJ 256
+    #define NK 512
+#elif defined(FX)
+    #define NI 256
+    #define NJ 512
+    #define NK 512
+#elif defined(EX)
+    #define NI 512
+    #define NJ 512
+    #define NK 512
+#endif
+
 
 void gemm(int ni, int nj, int nk, double alpha, double beta, double* A, double* B, double* C)
 {

@@ -2,7 +2,7 @@
 #include<map>
 using namespace std;
 
-#define CLS 32
+#define CLS 64
 #define DS 8
 
 /* first access time */
@@ -89,6 +89,11 @@ void RTtoMR_AET() {
 	
 	double MR_pred = -1;
 
+
+//	std::cout << "here " << std::endl;
+
+	// 20MB
+//	for (uint64_t c = 0; c <= max_RT && c <= 327680; c++) {
 	for (uint64_t c = 0; c <= max_RT; c++) {
 		while (sum_P < c && t <= max_RT) {
 			if (P.find(t) != P.end()) {
@@ -100,12 +105,6 @@ void RTtoMR_AET() {
 			t++;
 		}
 
-		/*
-		if (P.find(t) != P.end()) {
-			MR[c] = P[t];
-		} else {
-			MR[c] = P[prev_t];
-		}*/		
 		
 		if (MR_pred != -1) {
 			MR[c] = P[prev_t];
@@ -121,15 +120,15 @@ void RTtoMR_AET() {
 		//MR[c] = P[prev_t];
 
 	}
-
+	
 	return;
 }
 
 
 void dumpMR() {
 	
-	cout << "miss ratio" << endl;
-	
+
+	cout << "miss ratio" << endl;	
 	std::map<uint64_t, double>::iterator it1 = MR.begin();
 	std::map<uint64_t, double>::iterator it2 = MR.begin();
 

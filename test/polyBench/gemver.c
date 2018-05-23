@@ -1,6 +1,16 @@
 //void gemver(int n, DATA_TYPE alpha, DATA_TYPE beta, DATA_TYPE POLYBENCH_2D(A, N, N, n, n), DATA_TYPE POLYBENCH_1D(u1, N, n), DATA_TYPE POLYBENCH_1D(v1, N, n), DATA_TYPE POLYBENCH_1D(u2, N, n), DATA_TYPE POLYBENCH_1D(v2, N, n), DATA_TYPE POLYBENCH_1D(w, N, n), DATA_TYPE POLYBENCH_1D(x, N, n), DATA_TYPE POLYBENCH_1D(y, N, n), DATA_TYPE POLYBENCH_1D(z, N, n))
 
-#define N 1024
+#include "../utility/data_size.h"
+
+#ifdef ORG
+    #define N 1024
+#elif defined(TX)
+    #define N 1448
+#elif defined(FX)
+    #define N 2048
+#elif defined(EX)
+    #define N 2896
+#endif
 
 void gemver(int n, double alpha, double beta, double* A, double* u1, double* v1, double* u2, double* v2, double* w, double* x, double* y, double* z)
 {
