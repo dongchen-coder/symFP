@@ -21,9 +21,15 @@
 //#include "ssCodeGen.hpp"
 #include "ssCodeGen_ref.hpp"
 
+#include "llvm/Support/CommandLine.h"
+
 //#define REF_PAIR
 
 using namespace llvm;
+
+static cl::opt<double>
+samplingRateEachLoop("sampling rate", cl::Hidden,
+                cl::desc("The sampling rate for each loop"));
 
 namespace symFP {
     struct symFP : public FunctionPass {
@@ -32,6 +38,11 @@ namespace symFP {
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override {
+            
+            if (samplingRateEachLoop.getNumOccurrences() > 0) {
+                errs() << "sampling rate " << samplingRateEachLoop << "\n";
+            }
+            
             errs() << " /* Start to analyze function:  \n";
             errs().write_escaped(F.getName()) << " */ \n";
             
