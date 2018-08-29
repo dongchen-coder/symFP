@@ -1,6 +1,6 @@
+add_library(LLVMsps MODULE
+  sps.cpp
 
-add_llvm_loadable_module(LLVMsps
-  symFP.cpp
   argAnalysis.hpp
   argAnalysis.cpp
 
@@ -25,9 +25,17 @@ add_llvm_loadable_module(LLVMsps
 
   ssCodeGen_ref.hpp
   ssCodeGen_ref.cpp
-
-  DEPENDS
-  intrinsics_gen
-  PLUGIN_TOOL
-  opt
   )
+
+target_compile_features(LLVMsps PRIVATE cxx_range_for cxx_auto_type)
+
+set_target_properties(LLVMsps PROPERTIES
+	COMPILE_FLAGS "-fno-rtti"
+)
+
+if(APPLE)
+	set_target_properties(LLVMsps PROPERTIES
+		LINK_FLAGS "-undefined dynamic_loopup"
+	)
+endif(APPLE)
+
