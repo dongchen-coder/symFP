@@ -1,31 +1,19 @@
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
-
 #include "idxAnalysis.hpp"
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
-
-//#define RANDOM_REF_SAMPLING_RATE 0.02
-//#define RANDOM_REF_SAMPLING_RATE 0.01587
-//#define RANDOM_REF_SAMPLING_RATE 0.0125992
-#define RANDOM_REF_SAMPLING_RATE 0.01
-
-//#define RANDOM_REF_SAMPLING_RATE 0.02
-//#define RANDOM_REF_SAMPLING_RATE 0.01414
-//#define RANDOM_REF_SAMPLING_RATE 0.01
-//#define RANDOM_REF_SAMPLING_RATE 0.00707
-
-//#define RANDOM_REF_SAMPLING_RATE 0.005
-//#define RANDOM_REF_SAMPLING_RATE 0.002
-//#define RANDOM_REF_SAMPLING_RATE 0.001
 
 namespace sampleNumAnalysis {
     struct SampleNumberAnalysis : public FunctionPass {
         static char ID;
         SampleNumberAnalysis();
+        
+        double samplingRate;
         
         std::map<Instruction*, int> refNumber;
         std::map<Loop*, int> loopNumber;

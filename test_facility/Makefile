@@ -5,10 +5,13 @@
 LEVEL=..
 
 #LLVM_BIN_DIR=/u/cs255/build-llvm-38/bin
-CLANG_BIN_DIR=/Users/dongchen/tools/llvm_xcode/Debug/bin
-LLVM_BIN_DIR=/Users/dongchen/tools/llvm_xcode/Debug/bin
+CLANG_BIN_DIR=/Users/dongchen/tools/llvm-6.0.0.build-xcode/Debug/bin
+LLVM_BIN_DIR=/Users/dongchen/tools/llvm-6.0.0.build-xcode/Debug/bin
+TEST_DIR=/Users/dongchen/tools/llvm-6.0.0.src/lib/Transforms/StaticSampling/test_facility
+LIB_DIR=/Users/dongchen/tools/llvm-6.0.0.build-xcode/Debug/lib
 
-TEST_DIR=/Users/dongchen/tools/llvm-4.0.0.src/lib/Transforms/SymFP/test_facility
+SPSRATE?=0.01
+
 SRC_DIR=$(TEST_DIR)/ss_src
 BC_DIR=$(TEST_DIR)/ss_bc
 IR_DIR=$(TEST_DIR)/ss_ir
@@ -29,6 +32,8 @@ all_bench = 2mm 3mm adi atax bicg cholesky correlation covariance deriche doitge
 constant_bound_bench = 2mm 3mm adi atax bicg deriche doitgen fdtd_2d floyd_warshall gemm gemver gesummv heat_3d jacobi_1d jacobi_2d mvt seidel_2d
 
 sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm syr2d syrk trisolv trmm
+
+cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
 check_bench = stencil
 #check_bench = atax
@@ -51,7 +56,7 @@ check_bench = stencil
 all_gen:
 	$(foreach name, $(all_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(all_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(all_bench), $(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
+	$(foreach name, $(all_bench), $(OPT) -load $(LIB_DIR)/LLVMStaticSampling.dylib -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(all_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 all_run:
@@ -60,7 +65,7 @@ all_run:
 constant_gen:
 	$(foreach name, $(constant_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(constant_bound_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(constant_bound_bench), $(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
+	$(foreach name, $(constant_bound_bench), $(OPT) -load $(LIB_DIR)/LLVMStaticSampling.dylib -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(constant_bound_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 constant_run:
@@ -69,16 +74,22 @@ constant_run:
 sym_gen:
 	$(foreach name, $(sym_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(sym_bound_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(sym_bound_bench), $(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
+	$(foreach name, $(sym_bound_bench), $(OPT) -load $(LIB_DIR)/LLVMStaticSampling.dylib -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(sym_bound_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 sym_run:
 	$(foreach name, $(sym_bound_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_resut.txt &)
 
+cl_gen:
+	$(foreach name, $(cl_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).cl -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(cl_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(cl_bench), $(OPT) -load $(LIB_DIR)/LLVMStaticSampling.dylib -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
+	$(foreach name, $(cl_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
+
 check_gen:
 	$(foreach name, $(check_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(check_bench), $(OPT) -load /Users/dongchen/tools/llvm_xcode/Debug/lib/LLVMSymFP.dylib -symFP <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
+	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/LLVMStaticSampling.dylib -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(check_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 check_run:

@@ -89,8 +89,10 @@ namespace ssCodeGen_ref {
             for (std::vector<string>::iterator it = indvs.begin(), eit = indvs.end(); it != eit; ++it) {
                 arguments += "int " + (*it) + ", ";
             }
-            arguments.pop_back();
-            arguments.pop_back();
+            if (arguments.size() != 0) {
+                arguments.pop_back();
+                arguments.pop_back();
+            }
             errs() << arguments;
             errs() << ") {\n";
 #if defined (CLS) && defined (DS)
@@ -1173,8 +1175,6 @@ namespace ssCodeGen_ref {
         arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
-
-
 
         /* init */
         initArrayName();

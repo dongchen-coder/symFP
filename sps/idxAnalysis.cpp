@@ -11,6 +11,8 @@
 
 using namespace llvm;
 
+//#define IDX_DEBUG
+
 namespace idxAnalysis {
     
     char IndexAnalysis::ID = 0;
@@ -20,7 +22,6 @@ namespace idxAnalysis {
     
     /* Pushing all instructions that related to the index expression of a load/store instruction into a stack (vector).
        This function will be called by function computeExpression() */
-    
     std::vector<Instruction*> IndexAnalysis::instStackInit(Instruction* inst) {
         std::vector<Instruction*> instStack;
         instStack.push_back(inst);
@@ -277,6 +278,12 @@ namespace idxAnalysis {
         
         while (expr.size() > 1) {
             long i;
+#ifdef IDX_DEBUG
+            for (i = 0; i < (long) expr.size(); i++) {
+                errs() << "    " << expr[i];
+            }
+            errs() << "\n";
+#endif
             for (i = expr.size() - 1; i >= 0; i--) {
                 if (expr[i] == "add" || expr[i] == "sub" || expr[i] == "mul" || expr[i] == "div") {
                     break;

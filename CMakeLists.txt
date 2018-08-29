@@ -1,6 +1,6 @@
 
-add_llvm_loadable_module(LLVMSymFP
-  sps/symFP.cpp
+add_llvm_loadable_module(LLVMStaticSampling
+  sps/sps.cpp
   sps/argAnalysis.hpp
   sps/argAnalysis.cpp
 

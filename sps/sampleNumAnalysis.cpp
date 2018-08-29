@@ -2,6 +2,10 @@
 
 using namespace llvm;
 
+static cl::opt<double>
+samplingRateEachLoop("spsrate", cl::Hidden, cl::init(0.0),
+                     cl::desc("The sampling rate for each loop"));
+
 namespace sampleNumAnalysis {
     
     char SampleNumberAnalysis::ID = 0;
@@ -183,7 +187,7 @@ namespace sampleNumAnalysis {
                 
                 
                 for (int i = 0; i < loops_New.size(); i++) {
-                    sampling_num = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                    sampling_num = sampling_num * samplingRate;
                 }
                 
                 sampleNum[LoopRefTree] = sampling_num;
@@ -422,7 +426,7 @@ namespace sampleNumAnalysis {
 //                exit(0);
 
                 for (int i = 0; i < loops_New.size(); i++) {
-                    sampling_num = sampling_num * RANDOM_REF_SAMPLING_RATE;
+                    sampling_num = sampling_num * samplingRate;
                 }
                 
                 sampleNum[LoopRefTree] = sampling_num;
@@ -465,6 +469,11 @@ namespace sampleNumAnalysis {
     bool SampleNumberAnalysis::runOnFunction(Function &F) {
         
         errs() << " /* Start to analysis the number of samples\n";
+        
+        samplingRate = samplingRateEachLoop.getValue();
+        if (samplingRate == 0.0) {
+            samplingRate = 0.01;
+        }
         
         /* reading info from previous passes */
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
