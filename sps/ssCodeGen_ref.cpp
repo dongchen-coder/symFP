@@ -963,13 +963,25 @@ namespace ssCodeGen_ref {
         
         
         errs() << space + "for ( int s = 0; s < ";
-        if (sampleNum.find(loops.back()) != sampleNum.end()) {
-            errs() << std::to_string(sampleNum[loops.back()]);
-        } else {
-            errs() << "ERROR in finding bounds\n";
-        }
+		if (loops.size() == 0) {
+			errs() << "1";
+		} else {
+        	if (sampleNum.find(loops.back()) != sampleNum.end()) {
+            	errs() << std::to_string(sampleNum[loops.back()]);
+        	} else {
+            	errs() << "ERROR in finding bounds\n";
+        	}
+		}
         errs() << ";) {\n";
         
+        if (loops.size() == 0) {
+            errs() << space + "/* Generating reuse search code */\n";
+            errs() << "\n";
+            refRTSearchGen(LoopRefTree, false, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
+            errs() << space + "s++;\n";
+            errs() << space + "}\n";
+            return;
+        }
 
         errs() << "SAMPLE:\n";
         

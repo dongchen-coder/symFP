@@ -34,7 +34,7 @@ namespace idxAnalysis {
                 if (isa<Instruction>(instStack[start]->getOperand(0))) {
                     Instruction* pinst = dyn_cast<Instruction>(instStack[start]->getOperand(0));
                     if (std::find(instStack.begin(), instStack.end(), pinst) == instStack.end())     {
-                        if (!isa<PHINode>(pinst)) {
+                        if (!isa<PHINode>(pinst) && !isa<AllocaInst>(pinst)) {
                             instStack.push_back(pinst);
                         }
                     }
@@ -45,7 +45,7 @@ namespace idxAnalysis {
                 if (isa<Instruction>(instStack[start]->getOperand(0))) {
                     Instruction* pinst = dyn_cast<Instruction>(instStack[start]->getOperand(0));
                     if (std::find(instStack.begin(), instStack.end(), pinst) == instStack.end()) {
-                        if (!isa<PHINode>(pinst)) {
+                        if (!isa<PHINode>(pinst) && !isa<AllocaInst>(pinst)) {
                             instStack.push_back(pinst);
                         }
                     }
@@ -53,7 +53,7 @@ namespace idxAnalysis {
                 if (isa<Instruction>(instStack[start]->getOperand(1))) {
                     Instruction* pinst = dyn_cast<Instruction>(instStack[start]->getOperand(1));
                     if (std::find(instStack.begin(), instStack.end(), pinst) == instStack.end()) {
-                        if (!isa<PHINode>(pinst)) {
+                        if (!isa<PHINode>(pinst) && !isa<AllocaInst>(pinst)) {
                             instStack.push_back(pinst);
                         }
                     }
@@ -84,231 +84,124 @@ namespace idxAnalysis {
             return "Warning: No expression";
         }
         
-        /* iterate over the instructions stacked to get the prefix expression */
-        std::vector<std::string> expr;
-        
-        for (std::vector<Instruction*>::iterator it = instStack.begin(), eit = instStack.end(); it != eit; ++it) {
-            
-            Instruction* pInst = *it;
-            
 #ifdef IDX_DEBUG
-            pInst->dump();
-            errs() << expr.size() << "\n";
+        errs() << "============================\n";
+        for (std::vector<Instruction*>::iterator it = instStack.begin(), eit = instStack.end(); it != eit; ++it) {
+            (*it)->dump();
+        }
+        errs() << "============================\n";
 #endif
+        
+        /* reverse iterating stack to get expression */
+        std::map<Instruction*, std::string> instExprs;
+        std::vector<std::string> opExprs;
+        for (std::vector<Instruction*>::reverse_iterator it = instStack.rbegin(), eit = instStack.rend(); it != eit; ++it) {
+            Instruction* instStackEntry = *it;
             
-            if (pInst->isCast()) {
-                //stack[i]->getOperand(0)->dump();
-                if (isa<PHINode>(pInst->getOperand(0))) {
-                    if (pInst->getOperand(0)->hasName()) {
-                        expr.push_back(pInst->getOperand(0)->getName());
+            if (isa<AllocaInst>(instStackEntry) || isa<LoadInst>(instStackEntry)) {
+                continue;
+            }
+            
+            /* Extract expressions for operands */
+            opExprs.clear();
+            for (unsigned int i = 0; i < instStackEntry->getNumOperands(); i++) {
+                if (isa<Argument>(instStackEntry->getOperand(i))) {
+                    opExprs.push_back(instStackEntry->getOperand(i)->getName());
+                } else if (isa<Constant>(instStackEntry->getOperand(i))) {
+                    Constant* cons = dyn_cast<Constant>(instStackEntry->getOperand(i));
+                    opExprs.push_back(cons->getUniqueInteger().toString(10, true));
+                } else if (isa<LoadInst>(instStackEntry->getOperand(i))) {
+                    LoadInst* ld = dyn_cast<LoadInst>(instStackEntry->getOperand(i));
+                    opExprs.push_back(ld->getOperand(0)->getName());
+                } else if (isa<PHINode>(instStackEntry->getOperand(i))) {
+                    if (instStackEntry->getOperand(i)->hasName()) {
+                        opExprs.push_back(instStackEntry->getOperand(i)->getName());
                     } else {
 #ifdef IDX_DEBUG
-                        errs() << "Warning: PHI node without a name";
+                        errs() << "Error: no name for PHInode\n";
 #endif
                     }
-                } else if (isa<Instruction>(pInst->getOperand(0))) {
-                    Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
-                    if (tmp->isBinaryOp()) {
-                        expr.push_back(tmp->getOpcodeName());
-                    } else if (isa<LoadInst>(tmp)) {
-                        LoadInst* ld = dyn_cast<LoadInst>(tmp);
-                        expr.push_back(ld->getOperand(0)->getName());
+                } else if (isa<Instruction>(instStackEntry->getOperand(i))) {
+                    Instruction* instTmp = dyn_cast<Instruction>(instStackEntry->getOperand(i));
+                    if (instExprs.find(instTmp) != instExprs.end()) {
+                        opExprs.push_back(instExprs[instTmp]);
+                    } else {
+                        opExprs.push_back("");
+#ifdef IDX_DEBUG
+                        errs() << "Error: unsolved previous instructions\n";
+#endif
                     }
-                }
-            } else if (pInst->isBinaryOp()) {
-                
-                std::string op(pInst->getOpcodeName());
-                //expr.push_back(op);
-                
-                if (pInst->getNumOperands() == 2) {
-                    if (!isa<Instruction>(pInst->getOperand(0))) {
-                        if(isa<Argument>(pInst->getOperand(0))) {
-                            expr.push_back(pInst->getOperand(0)->getName().str());
-                        } else if (isa<Constant>(pInst->getOperand(0))) {
-                            Constant* cons = dyn_cast<Constant>(pInst->getOperand(0));
-                            expr.push_back(cons->getUniqueInteger().toString(10, true));
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: Other operands\n";
-#endif
-                        }
-                    } else if (isa<PHINode>(pInst->getOperand(0))) {
-                        if (pInst->getOperand(0)->hasName()) {
-                            expr.push_back(pInst->getOperand(0)->getName());
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: PHI node without a name";
-#endif
-                        }
-                    } else if (isa<LoadInst>(pInst->getOperand(0))) {
-                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(0));
-                        expr.push_back(ld->getOperand(0)->getName());
-                    } else if (isa<Instruction>(pInst->getOperand(0))) {
-                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
-                        if (tmp->isBinaryOp()) {
-                            expr.push_back(tmp->getOpcodeName());
-                        }
-                    }
-                    if (!isa<Instruction>(pInst->getOperand(1))) {
-                        if(isa<Argument>(pInst->getOperand(1))) {
-                            expr.push_back(pInst->getOperand(1)->getName().str());
-                        } else if (isa<Constant>(pInst->getOperand(1))) {
-                            Constant* cons = dyn_cast<Constant>(pInst->getOperand(1));
-                            expr.push_back(cons->getUniqueInteger().toString(10, true));
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: Other operands\n";
-#endif
-                        }
-                    } else if (isa<PHINode>(pInst->getOperand(1))) {
-                        if (pInst->getOperand(1)->hasName()) {
-                            expr.push_back(pInst->getOperand(1)->getName());
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: PHI node without a name";
-#endif
-                        }
-                    } else if (isa<LoadInst>(pInst->getOperand(1))) {
-                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(1));
-                        expr.push_back(ld->getOperand(0)->getName());
-                    } else if (isa<Instruction>(pInst->getOperand(1))) {
-                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(1));
-                        if (tmp->isBinaryOp()) {
-                            expr.push_back(tmp->getOpcodeName());
-                        }
-                    }
-                    
-                } else if (pInst->getNumOperands() == 1) {
-                    if (!isa<Instruction>(pInst->getOperand(0))) {
-                        if(isa<Argument>(pInst->getOperand(0))) {
-                            expr.push_back(pInst->getOperand(0)->getName().str());
-                        } else if (isa<Constant>(pInst->getOperand(0))) {
-                            Constant* cons = dyn_cast<Constant>(pInst->getOperand(0));
-                            expr.push_back(cons->getUniqueInteger().toString(10, true));
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: Other operands\n";
-#endif
-                        }
-                    }   else if (isa<PHINode>(pInst->getOperand(0))) {
-                        if (pInst->getOperand(0)->hasName()) {
-                            expr.push_back(pInst->getOperand(0)->getName());
-                        } else {
-#ifdef IDX_DEBUG
-                            errs() << "Warning: PHI node without a name";
-#endif
-                        }
-                    } else if (isa<LoadInst>(pInst->getOperand(0))) {
-                        LoadInst* ld = dyn_cast<LoadInst>(pInst->getOperand(0));
-                        expr.push_back(ld->getOperand(0)->getName());
-                    } else if (isa<Instruction>(pInst->getOperand(0))) {
-                        Instruction* tmp = dyn_cast<Instruction>(pInst->getOperand(0));
-                        if (tmp->isBinaryOp()) {
-                            expr.push_back(tmp->getOpcodeName());
-                        }
-                    }
-                }
-            } else if (pInst->isShift()) {
-#ifdef IDX_DEBUG
-                errs() << "Error: shift instruction\n";
-#endif
-            } else if (isa<CallInst>(pInst)) {
-                CallInst* callInst = dyn_cast<CallInst>(pInst);
-                Value* valueCalled = callInst->getCalledValue();
-                if (valueCalled == NULL) {
-#ifdef IDX_DEBUG
-                    errs() << "NULL value here\n";
-#endif
                 } else {
-                    if (valueCalled->stripPointerCasts() != NULL) {
-                        if (valueCalled->stripPointerCasts()->hasName()) {
-                            
-                            std::string dimension = "";
-                            if (callInst->getNumArgOperands() == 1) {
-                                if (isa<Constant>(callInst->getArgOperand(0))) {
-                                    Constant* cons = dyn_cast<Constant>(callInst->getArgOperand(0));
-                                    dimension = cons->getUniqueInteger().toString(10, true);
-                                }
-                            }
-                            
-                            if (valueCalled->stripPointerCasts()->getName() == "get_global_id") {
-                                expr.push_back("gbid" + dimension);
-                            }
-                            if (valueCalled->stripPointerCasts()->getName() == "get_global_size") {
-                                expr.push_back("gbs" + dimension);
-                            }
-                            if (valueCalled->stripPointerCasts()->getName() == "get_local_id") {
-                                expr.push_back("lid" + dimension);
-                            }
-                            if (valueCalled->stripPointerCasts()->getName() == "get_local_size") {
-                                expr.push_back("ls" + dimension);
-                            }
-                            if (valueCalled->stripPointerCasts()->getName() == "get_group_id") {
-                                expr.push_back("gid" + dimension);
-                            }
-                        }
-                    }
-                }
-            //} else if (isa<LoadInst>(pInst)) {
-            //    expr.push_back(pInst->getOperand(0)->getName());
-            //} else if (isa<AllocaInst>(pInst)) {
-            //    expr.push_back(pInst->getName());
-            } else {
 #ifdef IDX_DEBUG
-                errs() << "Warning: Other instructions\n";
+                    instStackEntry->getType()->dump();
+                    errs() << "Warning: unknown operand type for instruction in InstStack\n";
 #endif
-            }
-        }
-        
-        if (expr.size() == 0) {
-#ifdef IDX_DEBUG
-            return "No expression";
-#endif
-        }
-        
-#ifdef IDX_DEBUG
-        for (unsigned long i = 0; i < expr.size(); i++) {
-            errs() << "Prefix expr: " << expr[i] << "\n";
-        }
-        errs() << "\n";
-#endif
-        
-        /* Prefix expression to infix expression */
-        std::string expr_infix;
-        
-        while (expr.size() > 1) {
-            long i;
-#ifdef IDX_DEBUG
-            for (i = 0; i < (long) expr.size(); i++) {
-                errs() << "    " << expr[i];
-            }
-            errs() << "\n";
-#endif
-            for (i = expr.size() - 1; i >= 0; i--) {
-                if (expr[i] == "add" || expr[i] == "sub" || expr[i] == "mul" || expr[i] == "div") {
-                    break;
                 }
             }
             
-            if (expr[i] == "add") {
-                expr[i] = "(" + expr[expr.size() - 2] + " + " + expr[expr.size() - 1] + ")";
+            /* Assamble current instruction */
+            std::string exprForCurrentInst = "";
+            if (instStackEntry->isCast()) {
+                exprForCurrentInst = opExprs[0];
+            } else if (instStackEntry->isBinaryOp()) {
+#ifdef IDX_DEBUG
+                errs() << instStackEntry->getNumOperands() << " " << opExprs.size() << "\n";
+#endif
+                BinaryOperator* BinaryOpTmp = dyn_cast<BinaryOperator>(instStackEntry);
+                exprForCurrentInst += "(";
+                exprForCurrentInst += opExprs[0];
+                switch (BinaryOpTmp->getOpcode()) {
+                    case llvm::Instruction::Add:
+                        exprForCurrentInst += " + ";
+                        break;
+                    case llvm::Instruction::FAdd:
+                        exprForCurrentInst += " + ";
+                        break;
+                    case llvm::Instruction::Sub:
+                        exprForCurrentInst += " - ";
+                        break;
+                    case llvm::Instruction::FSub:
+                        exprForCurrentInst += " - ";
+                        break;
+                    case llvm::Instruction::Mul:
+                        exprForCurrentInst += " * ";
+                        break;
+                    case llvm::Instruction::FMul:
+                        exprForCurrentInst += " * ";
+                        break;
+                    case llvm::Instruction::FDiv:
+                        exprForCurrentInst += " / ";
+                        break;
+                    case llvm::Instruction::UDiv:
+                        exprForCurrentInst += " / ";
+                        break;
+                    case llvm::Instruction::SDiv:
+                        exprForCurrentInst += " / ";
+                        break;
+                    default:
+                        break;
+                }
+                exprForCurrentInst += opExprs[1];
+                exprForCurrentInst += ")";
+            } else if (instStackEntry->isShift()) {
+                //TODO
+            } else if (isa<CallInst>(instStackEntry)) {
+                //TODO
+            } else {
+#ifdef IDX_DEBUG
+                errs() << "Error: unregconized instruction in InstStack\n";
+#endif
             }
-            if (expr[i] == "sub") {
-                expr[i] = "(" + expr[expr.size() - 2] + " - " + expr[expr.size() - 1] + ")";
-            }
-            if (expr[i] == "mul") {
-                expr[i] = "(" + expr[expr.size() - 2] + " * " + expr[expr.size() - 1] + ")";
-            }
-            if (expr[i] == "div") {
-                expr[i] = "(" + expr[expr.size() - 2] + " / " + expr[expr.size() - 1] + ")";
-            }
-            expr.pop_back();
-            expr.pop_back();
+#ifdef IDX_DEBUG
+            instStackEntry->dump();
+            errs() << exprForCurrentInst << "\n";
+#endif
+            
+            /* Push the assambled instruction to map */
+            instExprs[instStackEntry] = exprForCurrentInst;
         }
         
-        expr_infix = expr[0];
-        
-        return expr_infix;
+        return instExprs[inst];
     }
     
     /* Extracting array name from load/store instruction */

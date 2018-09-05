@@ -35,12 +35,12 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-check_bench = stencil
+#check_bench = stencil
 #check_bench = atax
 #check_bench = 2mm
 #check_bench = heat_3d
 #check_bench = cholesky
-#check_bench = correlation
+check_bench = correlation
 #check_bench = covariance
 #check_bench = durbin
 #check_bench = lu
@@ -51,6 +51,7 @@ check_bench = stencil
 #check_bench = syrk
 #check_bench = trisolv
 #check_bench = trmm
+#check_bench = 3mm
 
 
 all_gen:
@@ -60,7 +61,7 @@ all_gen:
 	$(foreach name, $(all_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 all_run:
-	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_resut.txt &)
+	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt ;)
 
 constant_gen:
 	$(foreach name, $(constant_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
@@ -69,7 +70,7 @@ constant_gen:
 	$(foreach name, $(constant_bound_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 constant_run:
-	$(foreach name, $(constant_bound_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_resut.txt &)
+	$(foreach name, $(constant_bound_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt &)
 
 sym_gen:
 	$(foreach name, $(sym_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
@@ -78,7 +79,7 @@ sym_gen:
 	$(foreach name, $(sym_bound_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 sym_run:
-	$(foreach name, $(sym_bound_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_resut.txt &)
+	$(foreach name, $(sym_bound_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt &)
 
 cl_gen:
 	$(foreach name, $(cl_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).cl -o $(BC_DIR)/$(name).bc ;)
@@ -93,7 +94,7 @@ check_gen:
 	$(foreach name, $(check_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 check_run:
-	$(foreach name, $(check_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_resut.txt ;)
+	$(foreach name, $(check_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt ;)
 
 trace_run:
 	$(foreach name, $(all_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -o $(BIN_DIR)/$(name)_trace ;)
