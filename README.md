@@ -19,7 +19,7 @@ Software artifact for PLDI 18 "Locality Analysis through Static Parallel Samplin
 
 (3) compile source to generate LLVMSymFP.dylib
 
-(4) opt -load LLVMSymFP.dylib -symFP \<TARGET.bc\> TARGET.bc.opt 2\> TARGET\_StaticSampling.cpp
+(4) opt -load LLVMSymFP.dylib -sps -spsrate=0.01 \<TARGET.bc\> TARGET.bc.opt 2\> TARGET\_StaticSampling.cpp
 
 (5) Compile TARGET\_StaticSampling.cpp with C++ compiler and run
 
