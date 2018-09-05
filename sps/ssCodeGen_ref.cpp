@@ -961,7 +961,6 @@ namespace ssCodeGen_ref {
         string space = "    ";
         errs() << space + "set<string> record;\n";
         
-        
         errs() << space + "for ( int s = 0; s < ";
 		if (loops.size() == 0) {
 			errs() << "1";

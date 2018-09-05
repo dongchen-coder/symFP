@@ -62,21 +62,9 @@ namespace loopAnalysis {
         vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
         
         for (BasicBlock *b : L->getBlocks()) {
-             if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
+            if ((b->getName().str().compare(0, 8, "for.cond") == 0) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
                 
                 for(BasicBlock::iterator it = b->begin(), eit = b->end(); it != eit; ++it) {
-                    /*if (isa<ICmpInst>(*it)) {
-                        
-                        
-                        
-                        Value *v = it->getOperand(1);
-                        if (isa<ConstantInt>(v)) {
-                            ub = v;
-                        } else if (isa<LoadInst>(v)) {
-                            LoadInst* ldTmp = dyn_cast<LoadInst>(v);
-                            ub = ldTmp->getOperand(0);
-                        }
-                    } else*/
                     if (isa<CmpInst>(*it)) {
                         
                         Value *v = it->getOperand(1);
@@ -92,7 +80,7 @@ namespace loopAnalysis {
                 // iterate all its current predecessors
                 for(auto pit = pred_begin(b), pet = pred_end(b); pit != pet; ++pit) {
                     BasicBlock *pred = *pit;
-                    if (!std::regex_match(pred->getName().str(), std::regex("^for.inc\\d*$|^for.inc$"))) {
+                    if (!(pred->getName().str().compare(0, 7, "for.inc") == 0)) {
                         // iterate all store instructions, find the first operand when the second operand is a idv
                         for (BasicBlock::iterator it = pred->begin(), eit = pred->end(); it != eit; ++it) {
                             if (isa<StoreInst>(*it)) {
@@ -156,7 +144,8 @@ namespace loopAnalysis {
         vector<BasicBlock *> temp;
         for (Loop *SL : L->getSubLoops()) {
             for (BasicBlock *BB: SL->getBlocks()) {
-                if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
+                //if (std::regex_match (BB->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)"))) {
+                if (BB->getName().str().compare(0, 8, "for.cond") == 0) {
                     temp.push_back(BB);
                 }
             }
@@ -169,7 +158,7 @@ namespace loopAnalysis {
         vector<BasicBlock *> temp;
         for (Loop *SL : L->getSubLoops()) {
             for (BasicBlock *BB: SL->getBlocks()) {
-                if (std::regex_match (BB->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)"))) {
+                if (BB->getName().str().compare(0, 7, "for.inc") == 0) {
                     temp.push_back(BB);
                 }
             }
@@ -316,7 +305,7 @@ namespace loopAnalysis {
         /* Extracting loop bounds (LB) / induction variable (IDV) / stride (INC) */
         vector<BasicBlock *> subLoopIncBlocks = getSubLoopIncBlock(L);
         for (BasicBlock *b : L->getBlocks()) {
-            if (std::regex_match (b->getName().str(), std::regex("^for.inc$|^for.inc\\d*$)")) && find(subLoopIncBlocks.begin(), subLoopIncBlocks.end(), b) == subLoopIncBlocks.end()) {
+            if ((b->getName().str().compare(0, 7, "for.inc") == 0) && find(subLoopIncBlocks.begin(), subLoopIncBlocks.end(), b) == subLoopIncBlocks.end()) {
                 for (Instruction &II : *b) {
                     if (isa<LoadInst>(II)) {
                         IDV->push_back(II.getOperand(0));
@@ -333,7 +322,7 @@ namespace loopAnalysis {
         /* Extracting loop condition predicate */
         vector<BasicBlock *> subLoopCondBlocks = getSubLoopCondBlock(L);
         for (BasicBlock *b : L->getBlocks()) {
-            if (std::regex_match (b->getName().str(), std::regex("^for.cond$|^for.cond\\d*$)")) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
+            if ((b->getName().str().compare(0, 8, "for.cond") == 0) && find(subLoopCondBlocks.begin(), subLoopCondBlocks.end(), b) == subLoopCondBlocks.end()) {
                 
                 PREDICATE->push_back(llvm::CmpInst::BAD_ICMP_PREDICATE);
                 

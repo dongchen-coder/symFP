@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include <set>
-#include <regex>
 #include <map>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"

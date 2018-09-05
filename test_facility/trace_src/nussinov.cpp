@@ -23,19 +23,66 @@ void nussinov_trace(double* table, double* seq) {
 
 	for (i = N - 1; i >= 0; i--) {
 		for (j=i+1; j < N; j++) {
-			if (j-1>=0)
+			if (j-1>=0) {
 				table[i * N + j] = max_score(table[i * N + j], table[i * N + j-1]);
-			if (i+1 < N)
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
+				rtTmpAccess(TABLE_OFFSET + i * N + j-1);
+				if (table[i * N + j] > table[i * N + j-1])
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				else
+					rtTmpAccess(TABLE_OFFSET + i * N + j-1);
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
+			}
+			if (i+1 < N) {
 				table[i * N +j] = max_score(table[i * N + j], table[(i+1) * N + j]);
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
+				rtTmpAccess(TABLE_OFFSET + (i+1) * N + j);
+				if (table[i * N + j] >= table[(i+1) * N + j])
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				else
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
+			}
 			if (j-1>=0 && i+1 < N) {
 				/* don't allow adjacent elements to bond */
-				if (i<j-1)
+				if (i<j-1) {
 					table[i * N + j] = max_score(table[i * N + j], table[(i+1) * N + j-1]+match(seq[i], seq[j]));
-				else
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+					rtTmpAccess(TABLE_OFFSET + (i+1) * N + j-1);
+					rtTmpAccess(SEQ_OFFSET + i);
+					rtTmpAccess(SEQ_OFFSET + j);
+					if (table[i * N + j] >= table[(i+1) * N + j-1]+match(seq[i], seq[j])) {
+						rtTmpAccess(TABLE_OFFSET + i * N + j);
+					} else {
+						rtTmpAccess(TABLE_OFFSET + (i+1) * N + j-1);
+                    	rtTmpAccess(SEQ_OFFSET + i);
+                    	rtTmpAccess(SEQ_OFFSET + j);
+					}
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				} else {
 					table[i * N + j] = max_score(table[i * N + j], table[(i+1) * N + j-1]);
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+					rtTmpAccess(TABLE_OFFSET + (i+1) * N + j-1);
+					if (table[i * N + j] >= table[(i+1) * N + j-1]) {
+						rtTmpAccess(TABLE_OFFSET + i * N + j);
+					} else {
+						rtTmpAccess(TABLE_OFFSET + i * N + j);
+					}
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				}
 			}
 			for (k=i+1; k<j; k++) {
 				table[i * N + j] = max_score(table[i * N + j], table[i * N + k] + table[(k+1) * N + j]);
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
+				rtTmpAccess(TABLE_OFFSET + i * N + k);
+				rtTmpAccess(TABLE_OFFSET + (k+1) * N + j);
+				if (table[i * N + j] >= table[i * N + k] + table[(k+1) * N + j]) {
+					rtTmpAccess(TABLE_OFFSET + i * N + j);
+				} else {
+					rtTmpAccess(TABLE_OFFSET + i * N + k);
+                	rtTmpAccess(TABLE_OFFSET + (k+1) * N + j);
+				}
+				rtTmpAccess(TABLE_OFFSET + i * N + j);
 			}
 		}
 	}
@@ -45,6 +92,13 @@ int main() {
 
 	double* table = (double *)malloc(N * N * sizeof(double));
 	double* seq = (double *)malloc(N * sizeof(double));
+
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++) {
+			table[i * N + j] = (i * N + j) % 128;
+		}
+		seq[i] = i % 64;
+	}
 
 	nussinov_trace(table, seq);
 
