@@ -53,7 +53,9 @@ namespace ssCodeGen_ref {
         if (LoopRefTree->L != NULL) {
             for (std::vector<Value *>::iterator it = LoopRefTree->LIS->IDV->begin(), eit = LoopRefTree->LIS->IDV->end(); it != eit; ++it) {
                 indvName[*it] = (*it)->getName();
-                indvName[*it].erase(std::find(indvName[*it].begin(), indvName[*it].end(), '.'));
+                if (std::find(indvName[*it].begin(), indvName[*it].end(), '.') != indvName[*it].end()) {
+                    indvName[*it].erase(std::find(indvName[*it].begin(), indvName[*it].end(), '.'));
+                }
             }
         }
         
@@ -1228,13 +1230,12 @@ namespace ssCodeGen_ref {
     
     void StaticSamplingCodeGen_ref::getAnalysisUsage(AnalysisUsage &AU) const {
         AU.setPreservesAll();
-        AU.addRequired<LoopInfoWrapperPass>();
         AU.addRequired<idxAnalysis::IndexAnalysis>();
         AU.addRequired<argAnalysis::ArgumentAnalysis>();
         AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
+        AU.addRequired<LoopInfoWrapperPass>();
         AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
         AU.addRequired<sampleNumAnalysis::SampleNumberAnalysis>();
-        
         return;
     }
     

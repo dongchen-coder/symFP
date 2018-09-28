@@ -509,10 +509,10 @@ namespace loopAnalysis {
     /* Dependence relation of the analysis paths */
     void LoopIndvBoundAnalysis::getAnalysisUsage(AnalysisUsage &AU) const {
         AU.setPreservesAll();
-        AU.addRequired<LoopInfoWrapperPass>();
         AU.addRequired<idxAnalysis::IndexAnalysis>();
         AU.addRequired<argAnalysis::ArgumentAnalysis>();
         AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
+        AU.addRequired<LoopInfoWrapperPass>();
         return;
     }
     
