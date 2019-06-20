@@ -1,24 +1,18 @@
 
  /* Start to analysis array index
 Array index info
-a.addr ((i * 1024) + j)
-x1.addr i
-y1.addr j
-x1.addr i
-x2.addr i
-a.addr ((j * 1024) + i)
-y2.addr j
-x2.addr i
+a.addr (((1026 * i) + j) + 1)
+a.addr ((1026 * i) + j)
+a.addr (((1026 * i) + j) - 1)
+a.addr ((1026 * (i - 1)) + j)
+a.addr ((1026 * (i + 1)) + j)
+b.addr ((1026 * i) + j)
 
  Finish to analysis array index */ 
 
  /* Start to analyze argument
-i32 %n
 double* %a
-double* %x1
-double* %x2
-double* %y1
-double* %y2
+double* %b
 
  Start to analysis argument */ 
 
@@ -28,36 +22,24 @@ double* %y2
 
  /* Start analysis loops
 --i
---Loop Bound: (0, 1024)
+--Loop Bound: (1, 1025)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----j
-----Loop Bound: (0, 1024)
+----Loop Bound: (1, 1025)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
-------array access x1.addr i
-------array access a.addr ((i * 1024) + j)
-------array access y1.addr j
-------array access x1.addr i
---i
---Loop Bound: (0, 1024)
---Loop inc: (i + 1)
---Loop predicate: <
-----j
-----Loop Bound: (0, 1024)
-----Loop inc: (j + 1)
-----Loop predicate: <
-------array access x2.addr i
-------array access a.addr ((j * 1024) + i)
-------array access y2.addr j
-------array access x2.addr i
+------array access a.addr ((1026 * i) + j)
+------array access a.addr (((1026 * i) + j) + 1)
+------array access a.addr (((1026 * i) + j) - 1)
+------array access a.addr ((1026 * (i - 1)) + j)
+------array access a.addr ((1026 * (i + 1)) + j)
+------array access b.addr ((1026 * i) + j)
 
 Finish analysis loops */ 
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 10
-------Sample number: 104
 ----Sample number: 10
 ------Sample number: 104
  End of sample analysis */
@@ -144,36 +126,28 @@ void dumpMR() {
     }
     return;
 }
-int calAddrx1_addr0( int i, int j) {
-    int result = (i) * 8 / 64;
-    return result;
-}
 int calAddra_addr0( int i, int j) {
-    int result = (((i * 1024) + j)) * 8 / 64;
-    return result;
-}
-int calAddry1_addr0( int i, int j) {
-    int result = (j) * 8 / 64;
-    return result;
-}
-int calAddrx1_addr1( int i, int j) {
-    int result = (i) * 8 / 64;
-    return result;
-}
-int calAddrx2_addr0( int i, int j) {
-    int result = (i) * 8 / 64;
+    int result = (((1026 * i) + j)) * 8 / 64;
     return result;
 }
 int calAddra_addr1( int i, int j) {
-    int result = (((j * 1024) + i)) * 8 / 64;
+    int result = ((((1026 * i) + j) + 1)) * 8 / 64;
     return result;
 }
-int calAddry2_addr0( int i, int j) {
-    int result = (j) * 8 / 64;
+int calAddra_addr2( int i, int j) {
+    int result = ((((1026 * i) + j) - 1)) * 8 / 64;
     return result;
 }
-int calAddrx2_addr1( int i, int j) {
-    int result = (i) * 8 / 64;
+int calAddra_addr3( int i, int j) {
+    int result = (((1026 * (i - 1)) + j)) * 8 / 64;
+    return result;
+}
+int calAddra_addr4( int i, int j) {
+    int result = (((1026 * (i + 1)) + j)) * 8 / 64;
+    return result;
+}
+int calAddrb_addr0( int i, int j) {
+    int result = (((1026 * i) + j)) * 8 / 64;
     return result;
 }
 void ref_a_addr0() {
@@ -181,9 +155,9 @@ void ref_a_addr0() {
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -194,14 +168,13 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 1024; i++) {
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB1 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 1024; j++) {
-                if (cntStart == true) cnt++;
+            for ( int j = jLB1; j < 1025; j++) {
                 if (cntStart == true) {
                     cnt++;
                     if ( calAddra_addr0( i, j) == calAddra_addr0(i_Start, j_Start)) {
@@ -210,19 +183,6 @@ SAMPLE:
                     }
                 }
                 cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-        {
-        int iLB2 = 0;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
                     if ( calAddra_addr1( i, j) == calAddra_addr0(i_Start, j_Start)) {
@@ -230,7 +190,27 @@ SAMPLE:
                         goto EndSample;
                     }
                 }
-                if (cntStart == true) cnt++;
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr2( i, j) == calAddra_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr3( i, j) == calAddra_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr4( i, j) == calAddra_addr0(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
                 if (cntStart == true) cnt++;
             }
             }
@@ -245,9 +225,9 @@ void ref_a_addr1() {
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -257,15 +237,21 @@ SAMPLE:
         /* Generating reuse search code */
 
         {
-        int iLB2 = i_Start;
-        for ( int i = iLB2; i < 1024; i++) {
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB3 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
-                jLB3 = j_Start;
+                jLB1 = j_Start;
             }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
+            for ( int j = jLB1; j < 1025; j++) {
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr0( i, j) == calAddra_addr1(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
                 if (cntStart == true) {
                     cnt++;
                     if ( calAddra_addr1( i, j) == calAddra_addr1(i_Start, j_Start)) {
@@ -274,7 +260,27 @@ SAMPLE:
                     }
                 }
                 cntStart = true;
-                if (cntStart == true) cnt++;
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr2( i, j) == calAddra_addr1(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr3( i, j) == calAddra_addr1(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr4( i, j) == calAddra_addr1(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
                 if (cntStart == true) cnt++;
             }
             }
@@ -284,14 +290,14 @@ EndSample:
         s++;
         }
 }
-void ref_x1_addr0() {
+void ref_a_addr2() {
     /* Generating sampling loop */
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -302,43 +308,49 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 1024; i++) {
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB1 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 1024; j++) {
+            for ( int j = jLB1; j < 1025; j++) {
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddrx1_addr0( i, j) == calAddrx1_addr0(i_Start, j_Start)) {
+                    if ( calAddra_addr0( i, j) == calAddra_addr2(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr1( i, j) == calAddra_addr2(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr2( i, j) == calAddra_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
                 cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddrx1_addr1( i, j) == calAddrx1_addr0(i_Start, j_Start)) {
+                    if ( calAddra_addr3( i, j) == calAddra_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
-            }
-            }
-        }
-        }
-        {
-        int iLB2 = 0;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr4( i, j) == calAddra_addr2(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
                 if (cntStart == true) cnt++;
             }
             }
@@ -348,14 +360,14 @@ EndSample:
         s++;
         }
 }
-void ref_x1_addr1() {
+void ref_a_addr3() {
     /* Generating sampling loop */
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -366,43 +378,49 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 1024; i++) {
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB1 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 1024; j++) {
+            for ( int j = jLB1; j < 1025; j++) {
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddrx1_addr0( i, j) == calAddrx1_addr1(i_Start, j_Start)) {
+                    if ( calAddra_addr0( i, j) == calAddra_addr3(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddrx1_addr1( i, j) == calAddrx1_addr1(i_Start, j_Start)) {
+                    if ( calAddra_addr1( i, j) == calAddra_addr3(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr2( i, j) == calAddra_addr3(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr3( i, j) == calAddra_addr3(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
                 cntStart = true;
-            }
-            }
-        }
-        }
-        {
-        int iLB2 = 0;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr4( i, j) == calAddra_addr3(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
                 if (cntStart == true) cnt++;
             }
             }
@@ -412,114 +430,14 @@ EndSample:
         s++;
         }
 }
-void ref_x2_addr0() {
+void ref_a_addr4() {
     /* Generating sampling loop */
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB2 = i_Start;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrx2_addr0( i, j) == calAddrx2_addr0(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrx2_addr1( i, j) == calAddrx2_addr0(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_x2_addr1() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB2 = i_Start;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrx2_addr0( i, j) == calAddrx2_addr1(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrx2_addr1( i, j) == calAddrx2_addr1(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_y1_addr0() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -530,37 +448,49 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 1024; i++) {
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB1 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
+            for ( int j = jLB1; j < 1025; j++) {
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddry1_addr0( i, j) == calAddry1_addr0(i_Start, j_Start)) {
+                    if ( calAddra_addr0( i, j) == calAddra_addr4(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr1( i, j) == calAddra_addr4(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr2( i, j) == calAddra_addr4(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr3( i, j) == calAddra_addr4(i_Start, j_Start)) {
+                        rtHistoCal(cnt);
+                        goto EndSample;
+                    }
+                }
+                if (cntStart == true) {
+                    cnt++;
+                    if ( calAddra_addr4( i, j) == calAddra_addr4(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
                 cntStart = true;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-        {
-        int iLB2 = 0;
-        for ( int i = iLB2; i < 1024; i++) {
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
             }
             }
@@ -570,14 +500,14 @@ EndSample:
         s++;
         }
 }
-void ref_y2_addr0() {
+void ref_b_addr0() {
     /* Generating sampling loop */
     set<string> record;
     for ( int s = 0; s < 104;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (1025 - 1) + 1;
+        if ( (1025 - 1) == 0) goto SAMPLE;
+        int j_Start = rand() % (1025 - 1) + 1;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -587,25 +517,27 @@ SAMPLE:
         /* Generating reuse search code */
 
         {
-        int iLB2 = i_Start;
-        for ( int i = iLB2; i < 1024; i++) {
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 1025; i++) {
             {
-            int jLB3 = 0;
+            int jLB1 = 1;
             if ( i == i_Start ) {
-                jLB3 = j_Start;
+                jLB1 = j_Start;
             }
-            for ( int j = jLB3; j < 1024; j++) {
+            for ( int j = jLB1; j < 1025; j++) {
+                if (cntStart == true) cnt++;
+                if (cntStart == true) cnt++;
+                if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddry2_addr0( i, j) == calAddry2_addr0(i_Start, j_Start)) {
+                    if ( calAddrb_addr0( i, j) == calAddrb_addr0(i_Start, j_Start)) {
                         rtHistoCal(cnt);
                         goto EndSample;
                     }
                 }
                 cntStart = true;
-                if (cntStart == true) cnt++;
             }
             }
         }
@@ -617,15 +549,13 @@ EndSample:
 int main() {
     ref_a_addr0();
     ref_a_addr1();
-    ref_x1_addr0();
-    ref_x1_addr1();
-    ref_x2_addr0();
-    ref_x2_addr1();
-    ref_y1_addr0();
-    ref_y2_addr0();
+    ref_a_addr2();
+    ref_a_addr3();
+    ref_a_addr4();
+    ref_b_addr0();
     rtDump();
     RTtoMR_AET();
     dumpMR();
     return 0;
 }
- /* Analyze function: mvt */ 
+ /* Analyze function: stencil */ 
