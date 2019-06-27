@@ -1,5 +1,14 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
+
+
 #include<math.h>
 
 #ifdef ORG
@@ -131,11 +140,22 @@ int main() {
         data[i] = i % 256;
     }
 
+#ifdef RD
+    InitRD();
+#endif
+    
     correlation_trace(data, mean, stddev, symmat);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
 
+#ifdef RD
+    FiniRD();
+#endif
+    
     return 0;
 }
 

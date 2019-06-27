@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 
 #ifdef ORG
@@ -67,10 +74,21 @@ int main()
     double alpha = 1.0;
     double beta = 1.5;
 
+#ifdef RD
+    InitRD();
+#endif
+    
     gemm_trace(alpha, beta, A, B, C);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
     return 0;
 }

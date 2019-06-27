@@ -1,7 +1,6 @@
 #include "../utility/data_size.h"
-#define RD
 
-#ifdef RT
+#ifdef PROFILE_RT
 #include "../utility/rt.h"
 #endif
 
@@ -32,18 +31,33 @@ void symm_trace(double* A, double* B, double* C, double alpha, double beta) {
 			for (k = 0; k < i; k++) {
 				C[k * N + j] += alpha*B[i * N + j] * A[i * M + k];
 				temp2 += B[k * N + j] * A[i * M + k];
+				
 				rtTmpAccess(B_OFFSET + i * N + j);
 				rtTmpAccess(A_OFFSET + i * M + k);
 				rtTmpAccess(C_OFFSET + k * N + j);
 				rtTmpAccess(C_OFFSET + k * N + j);
 				rtTmpAccess(B_OFFSET + k * N + j);
 				rtTmpAccess(A_OFFSET + i * M + k);
+				/*
+				rtTmpAccess(C_OFFSET + k * N + j);
+                rtTmpAccess(B_OFFSET + i * N + j);
+                rtTmpAccess(A_OFFSET + i * M + k);
+                rtTmpAccess(B_OFFSET + k * N + j);
+                rtTmpAccess(A_OFFSET + i * M + k);
+				*/
 			}
 			C[i * N + j] = beta * C[i * N + j] + alpha*B[i * N + j] * A[i * M + i] + alpha * temp2;
+			
 			rtTmpAccess(C_OFFSET + i * N + j);
 			rtTmpAccess(B_OFFSET + i * N + j);
 			rtTmpAccess(A_OFFSET + i * M + i);
 			rtTmpAccess(C_OFFSET + i * N + j);
+			/*
+			rtTmpAccess(C_OFFSET + i * N + j);
+            rtTmpAccess(B_OFFSET + i * N + j);
+            rtTmpAccess(A_OFFSET + i * M + i);
+            rtTmpAccess(C_OFFSET + i * N + j);
+			*/
 		}
 	}
 	return;
@@ -63,7 +77,7 @@ int main() {
     
 	symm_trace(A, B, C, alpha, beta);
 
-#ifdef RT
+#ifdef PROFILE_RT
     dumpRtTmp();
     RTtoMR_AET();
     dumpMR();

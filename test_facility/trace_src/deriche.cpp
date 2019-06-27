@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #include<math.h>
 
@@ -133,11 +140,21 @@ int main() {
 	double* imgOut = (double *)malloc(W * H * sizeof(double));
 	double alpha = 0.5;
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	deriche_trace(y1, imgIn, y2, imgOut, alpha);
 
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
 
+#ifdef RD
+    FiniRD();
+#endif
+    
 	return 0;
 }

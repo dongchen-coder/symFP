@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define TSTEPS 10
@@ -47,11 +54,21 @@ int main() {
 	double* A = (double *)malloc(N * N * sizeof(double));
 	double* B = (double *)malloc(N * N * sizeof(double));
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	jacobi_2d_trace(A, B);
 
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
 	return 0;
 }

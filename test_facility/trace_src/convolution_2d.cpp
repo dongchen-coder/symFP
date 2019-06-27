@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define NI 1024
@@ -66,10 +73,21 @@ int main()
             A[i] = i % 256;
     }
 
+#ifdef RD
+    InitRD();
+#endif
+    
     conv2D_trace(A, B);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
     return 0;
 }

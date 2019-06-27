@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define NX 1024
@@ -75,11 +82,22 @@ int main() {
     for (int i = 0; i< NY*NX; i++) {
         A[i] = i % 128;
     }
+    
+#ifdef RD
+    InitRD();
+#endif
 
     bicg_cpu_trace(A, r, s, p ,q, NX, NY);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
-    dumpMR();	
+    RTtoMR_AET();
+    dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
     return 0;
 }

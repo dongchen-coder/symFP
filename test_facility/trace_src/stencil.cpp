@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 
 #ifdef ORG
@@ -48,10 +55,21 @@ int main() {
             a[i] = i % 256;
     }
 
+#ifdef RD
+    InitRD();
+#endif
+    
     stencil_trace(a, b, DIM_SIZE);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
     if (varify(b, a)) {
         cout << "Success" << endl;

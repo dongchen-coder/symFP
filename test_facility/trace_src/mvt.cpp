@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define N 1024
@@ -74,10 +81,21 @@ int main(int argc, char const *argv[])
         a[i] = i / 10;
     }
 
+#ifdef RD
+    InitRD();
+#endif
+    
     runMvt_trace( a, x1, x2, y1, y2);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
 
+#ifdef RD
+    FiniRD();
+#endif
+    
     return 0;
 }

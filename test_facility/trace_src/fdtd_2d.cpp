@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define _PB_TMAX 10
@@ -66,11 +73,21 @@ int main() {
 	double* ex = (double *)malloc(_PB_NX * _PB_NY * sizeof(double));
 	double* hz = (double *)malloc(_PB_NX * _PB_NY * sizeof(double));	
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	fdtd_2d_trace(_fict_, ey, ex, hz);
 
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
 	return 0;
 }

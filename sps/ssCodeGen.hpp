@@ -40,6 +40,9 @@ using namespace llvm;
 //#define PARALLEL_OMP
 //#define PARALLEL_CXX_THREAD
 
+#define SEARCH_REUSE_SAME_LOOP
+#define SEARCH_REUSE_DIFFERENT_LOOPS
+
 //#define SHORT_CUT
 
 //#define SHORT_CUT_SIM

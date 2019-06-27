@@ -57,9 +57,9 @@ calculating:
 init counter: 0 0 0 
 Dump stride: 1 1 1 
 Dump tree:
-----Sample number: 10
-------Sample number: 104
---------Sample number: 536
+----Sample number: 1
+------Sample number: 1
+--------Sample number: 0
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
 #include <map>
@@ -185,9 +185,24 @@ int calAddrC_addr3( int i, int j) {
     return result;
 }
 void ref_A_addr0() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_A_addr0 = -1;
+    uint64_t prev_i_Start_A_addr0 = -1;
+    uint64_t prev_i_End_A_addr0 = -1;
+    uint64_t prev_j_Start_A_addr0 = -1;
+    uint64_t prev_j_End_A_addr0 = -1;
+    uint64_t prev_k_Start_A_addr0 = -1;
+    uint64_t prev_k_End_A_addr0 = -1;
+    uint64_t prev_cnt_A_addr1 = -1;
+    uint64_t prev_i_Start_A_addr1 = -1;
+    uint64_t prev_i_End_A_addr1 = -1;
+    uint64_t prev_j_Start_A_addr1 = -1;
+    uint64_t prev_j_End_A_addr1 = -1;
+    uint64_t prev_k_Start_A_addr1 = -1;
+    uint64_t prev_k_End_A_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -200,6 +215,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_A_addr0 != -1) {
+            if ( calAddrA_addr0( i_Start - prev_i_Start_A_addr0 + prev_i_End_A_addr0, j_Start - prev_j_Start_A_addr0 + prev_j_End_A_addr0, k_Start - prev_k_Start_A_addr0 + prev_k_End_A_addr0) == calAddrA_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_A_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_A_addr1 != -1) {
+            if ( calAddrA_addr1( i_Start - prev_i_Start_A_addr1 + prev_i_End_A_addr1, j_Start - prev_j_Start_A_addr1 + prev_j_End_A_addr1, k_Start - prev_k_Start_A_addr1 + prev_k_End_A_addr1) == calAddrA_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_A_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -222,6 +250,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrA_addr0( i, j, k) == calAddrA_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_A_addr0 = cnt;
+                            prev_i_Start_A_addr0 = i_Start;
+                            prev_i_End_A_addr0 = i;
+                            prev_j_Start_A_addr0 = j_Start;
+                            prev_j_End_A_addr0 = j;
+                            prev_k_Start_A_addr0 = k_Start;
+                            prev_k_End_A_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -233,6 +268,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrA_addr1( i, j, k) == calAddrA_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_A_addr1 = cnt;
+                            prev_i_Start_A_addr1 = i_Start;
+                            prev_i_End_A_addr1 = i;
+                            prev_j_Start_A_addr1 = j_Start;
+                            prev_j_End_A_addr1 = j;
+                            prev_k_Start_A_addr1 = k_Start;
+                            prev_k_End_A_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -257,9 +299,24 @@ EndSample:
         }
 }
 void ref_A_addr1() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_A_addr0 = -1;
+    uint64_t prev_i_Start_A_addr0 = -1;
+    uint64_t prev_i_End_A_addr0 = -1;
+    uint64_t prev_j_Start_A_addr0 = -1;
+    uint64_t prev_j_End_A_addr0 = -1;
+    uint64_t prev_k_Start_A_addr0 = -1;
+    uint64_t prev_k_End_A_addr0 = -1;
+    uint64_t prev_cnt_A_addr1 = -1;
+    uint64_t prev_i_Start_A_addr1 = -1;
+    uint64_t prev_i_End_A_addr1 = -1;
+    uint64_t prev_j_Start_A_addr1 = -1;
+    uint64_t prev_j_End_A_addr1 = -1;
+    uint64_t prev_k_Start_A_addr1 = -1;
+    uint64_t prev_k_End_A_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -272,6 +329,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_A_addr0 != -1) {
+            if ( calAddrA_addr0( i_Start - prev_i_Start_A_addr0 + prev_i_End_A_addr0, j_Start - prev_j_Start_A_addr0 + prev_j_End_A_addr0, k_Start - prev_k_Start_A_addr0 + prev_k_End_A_addr0) == calAddrA_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_A_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_A_addr1 != -1) {
+            if ( calAddrA_addr1( i_Start - prev_i_Start_A_addr1 + prev_i_End_A_addr1, j_Start - prev_j_Start_A_addr1 + prev_j_End_A_addr1, k_Start - prev_k_Start_A_addr1 + prev_k_End_A_addr1) == calAddrA_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_A_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -294,6 +364,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrA_addr0( i, j, k) == calAddrA_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_A_addr0 = cnt;
+                            prev_i_Start_A_addr0 = i_Start;
+                            prev_i_End_A_addr0 = i;
+                            prev_j_Start_A_addr0 = j_Start;
+                            prev_j_End_A_addr0 = j;
+                            prev_k_Start_A_addr0 = k_Start;
+                            prev_k_End_A_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -304,6 +381,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrA_addr1( i, j, k) == calAddrA_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_A_addr1 = cnt;
+                            prev_i_Start_A_addr1 = i_Start;
+                            prev_i_End_A_addr1 = i;
+                            prev_j_Start_A_addr1 = j_Start;
+                            prev_j_End_A_addr1 = j;
+                            prev_k_Start_A_addr1 = k_Start;
+                            prev_k_End_A_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -329,9 +413,15 @@ EndSample:
         }
 }
 void ref_A_addr2() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_A_addr2 = -1;
+    uint64_t prev_i_Start_A_addr2 = -1;
+    uint64_t prev_i_End_A_addr2 = -1;
+    uint64_t prev_j_Start_A_addr2 = -1;
+    uint64_t prev_j_End_A_addr2 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 1;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -342,6 +432,13 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_A_addr2 != -1) {
+            if ( calAddrA_addr2( i_Start - prev_i_Start_A_addr2 + prev_i_End_A_addr2, j_Start - prev_j_Start_A_addr2 + prev_j_End_A_addr2) == calAddrA_addr2(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_A_addr2);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -382,6 +479,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrA_addr2( i, j) == calAddrA_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_A_addr2 = cnt;
+                        prev_i_Start_A_addr2 = i_Start;
+                        prev_i_End_A_addr2 = i;
+                        prev_j_Start_A_addr2 = j_Start;
+                        prev_j_End_A_addr2 = j;
                         goto EndSample;
                     }
                 }
@@ -396,9 +498,24 @@ EndSample:
         }
 }
 void ref_B_addr0() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_B_addr0 = -1;
+    uint64_t prev_i_Start_B_addr0 = -1;
+    uint64_t prev_i_End_B_addr0 = -1;
+    uint64_t prev_j_Start_B_addr0 = -1;
+    uint64_t prev_j_End_B_addr0 = -1;
+    uint64_t prev_k_Start_B_addr0 = -1;
+    uint64_t prev_k_End_B_addr0 = -1;
+    uint64_t prev_cnt_B_addr1 = -1;
+    uint64_t prev_i_Start_B_addr1 = -1;
+    uint64_t prev_i_End_B_addr1 = -1;
+    uint64_t prev_j_Start_B_addr1 = -1;
+    uint64_t prev_j_End_B_addr1 = -1;
+    uint64_t prev_k_Start_B_addr1 = -1;
+    uint64_t prev_k_End_B_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -411,6 +528,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_B_addr0 != -1) {
+            if ( calAddrB_addr0( i_Start - prev_i_Start_B_addr0 + prev_i_End_B_addr0, j_Start - prev_j_Start_B_addr0 + prev_j_End_B_addr0, k_Start - prev_k_Start_B_addr0 + prev_k_End_B_addr0) == calAddrB_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_B_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_B_addr1 != -1) {
+            if ( calAddrB_addr1( i_Start - prev_i_Start_B_addr1 + prev_i_End_B_addr1, j_Start - prev_j_Start_B_addr1 + prev_j_End_B_addr1, k_Start - prev_k_Start_B_addr1 + prev_k_End_B_addr1) == calAddrB_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_B_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -432,6 +562,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrB_addr0( i, j, k) == calAddrB_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_B_addr0 = cnt;
+                            prev_i_Start_B_addr0 = i_Start;
+                            prev_i_End_B_addr0 = i;
+                            prev_j_Start_B_addr0 = j_Start;
+                            prev_j_End_B_addr0 = j;
+                            prev_k_Start_B_addr0 = k_Start;
+                            prev_k_End_B_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -443,6 +580,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrB_addr1( i, j, k) == calAddrB_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_B_addr1 = cnt;
+                            prev_i_Start_B_addr1 = i_Start;
+                            prev_i_End_B_addr1 = i;
+                            prev_j_Start_B_addr1 = j_Start;
+                            prev_j_End_B_addr1 = j;
+                            prev_k_Start_B_addr1 = k_Start;
+                            prev_k_End_B_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -468,9 +612,24 @@ EndSample:
         }
 }
 void ref_B_addr1() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_B_addr0 = -1;
+    uint64_t prev_i_Start_B_addr0 = -1;
+    uint64_t prev_i_End_B_addr0 = -1;
+    uint64_t prev_j_Start_B_addr0 = -1;
+    uint64_t prev_j_End_B_addr0 = -1;
+    uint64_t prev_k_Start_B_addr0 = -1;
+    uint64_t prev_k_End_B_addr0 = -1;
+    uint64_t prev_cnt_B_addr1 = -1;
+    uint64_t prev_i_Start_B_addr1 = -1;
+    uint64_t prev_i_End_B_addr1 = -1;
+    uint64_t prev_j_Start_B_addr1 = -1;
+    uint64_t prev_j_End_B_addr1 = -1;
+    uint64_t prev_k_Start_B_addr1 = -1;
+    uint64_t prev_k_End_B_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -483,6 +642,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_B_addr0 != -1) {
+            if ( calAddrB_addr0( i_Start - prev_i_Start_B_addr0 + prev_i_End_B_addr0, j_Start - prev_j_Start_B_addr0 + prev_j_End_B_addr0, k_Start - prev_k_Start_B_addr0 + prev_k_End_B_addr0) == calAddrB_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_B_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_B_addr1 != -1) {
+            if ( calAddrB_addr1( i_Start - prev_i_Start_B_addr1 + prev_i_End_B_addr1, j_Start - prev_j_Start_B_addr1 + prev_j_End_B_addr1, k_Start - prev_k_Start_B_addr1 + prev_k_End_B_addr1) == calAddrB_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_B_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -504,6 +676,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrB_addr0( i, j, k) == calAddrB_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_B_addr0 = cnt;
+                            prev_i_Start_B_addr0 = i_Start;
+                            prev_i_End_B_addr0 = i;
+                            prev_j_Start_B_addr0 = j_Start;
+                            prev_j_End_B_addr0 = j;
+                            prev_k_Start_B_addr0 = k_Start;
+                            prev_k_End_B_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -514,6 +693,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrB_addr1( i, j, k) == calAddrB_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_B_addr1 = cnt;
+                            prev_i_Start_B_addr1 = i_Start;
+                            prev_i_End_B_addr1 = i;
+                            prev_j_Start_B_addr1 = j_Start;
+                            prev_j_End_B_addr1 = j;
+                            prev_k_Start_B_addr1 = k_Start;
+                            prev_k_End_B_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -540,9 +726,15 @@ EndSample:
         }
 }
 void ref_B_addr2() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_B_addr2 = -1;
+    uint64_t prev_i_Start_B_addr2 = -1;
+    uint64_t prev_i_End_B_addr2 = -1;
+    uint64_t prev_j_Start_B_addr2 = -1;
+    uint64_t prev_j_End_B_addr2 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 1;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -553,6 +745,13 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_B_addr2 != -1) {
+            if ( calAddrB_addr2( i_Start - prev_i_Start_B_addr2 + prev_i_End_B_addr2, j_Start - prev_j_Start_B_addr2 + prev_j_End_B_addr2) == calAddrB_addr2(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_B_addr2);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -592,6 +791,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrB_addr2( i, j) == calAddrB_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_B_addr2 = cnt;
+                        prev_i_Start_B_addr2 = i_Start;
+                        prev_i_End_B_addr2 = i;
+                        prev_j_Start_B_addr2 = j_Start;
+                        prev_j_End_B_addr2 = j;
                         goto EndSample;
                     }
                 }
@@ -607,9 +811,24 @@ EndSample:
         }
 }
 void ref_C_addr0() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_C_addr0 = -1;
+    uint64_t prev_i_Start_C_addr0 = -1;
+    uint64_t prev_i_End_C_addr0 = -1;
+    uint64_t prev_j_Start_C_addr0 = -1;
+    uint64_t prev_j_End_C_addr0 = -1;
+    uint64_t prev_k_Start_C_addr0 = -1;
+    uint64_t prev_k_End_C_addr0 = -1;
+    uint64_t prev_cnt_C_addr1 = -1;
+    uint64_t prev_i_Start_C_addr1 = -1;
+    uint64_t prev_i_End_C_addr1 = -1;
+    uint64_t prev_j_Start_C_addr1 = -1;
+    uint64_t prev_j_End_C_addr1 = -1;
+    uint64_t prev_k_Start_C_addr1 = -1;
+    uint64_t prev_k_End_C_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -622,6 +841,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_C_addr0 != -1) {
+            if ( calAddrC_addr0( i_Start - prev_i_Start_C_addr0 + prev_i_End_C_addr0, j_Start - prev_j_Start_C_addr0 + prev_j_End_C_addr0, k_Start - prev_k_Start_C_addr0 + prev_k_End_C_addr0) == calAddrC_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_C_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_C_addr1 != -1) {
+            if ( calAddrC_addr1( i_Start - prev_i_Start_C_addr1 + prev_i_End_C_addr1, j_Start - prev_j_Start_C_addr1 + prev_j_End_C_addr1, k_Start - prev_k_Start_C_addr1 + prev_k_End_C_addr1) == calAddrC_addr0(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_C_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -645,6 +877,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrC_addr0( i, j, k) == calAddrC_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_C_addr0 = cnt;
+                            prev_i_Start_C_addr0 = i_Start;
+                            prev_i_End_C_addr0 = i;
+                            prev_j_Start_C_addr0 = j_Start;
+                            prev_j_End_C_addr0 = j;
+                            prev_k_Start_C_addr0 = k_Start;
+                            prev_k_End_C_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -653,6 +892,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrC_addr1( i, j, k) == calAddrC_addr0(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_C_addr1 = cnt;
+                            prev_i_Start_C_addr1 = i_Start;
+                            prev_i_End_C_addr1 = i;
+                            prev_j_Start_C_addr1 = j_Start;
+                            prev_j_End_C_addr1 = j;
+                            prev_k_Start_C_addr1 = k_Start;
+                            prev_k_End_C_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -685,9 +931,24 @@ EndSample:
         }
 }
 void ref_C_addr1() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_C_addr0 = -1;
+    uint64_t prev_i_Start_C_addr0 = -1;
+    uint64_t prev_i_End_C_addr0 = -1;
+    uint64_t prev_j_Start_C_addr0 = -1;
+    uint64_t prev_j_End_C_addr0 = -1;
+    uint64_t prev_k_Start_C_addr0 = -1;
+    uint64_t prev_k_End_C_addr0 = -1;
+    uint64_t prev_cnt_C_addr1 = -1;
+    uint64_t prev_i_Start_C_addr1 = -1;
+    uint64_t prev_i_End_C_addr1 = -1;
+    uint64_t prev_j_Start_C_addr1 = -1;
+    uint64_t prev_j_End_C_addr1 = -1;
+    uint64_t prev_k_Start_C_addr1 = -1;
+    uint64_t prev_k_End_C_addr1 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 536;) {
+    for ( int s = 0; s < 0;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -700,6 +961,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_C_addr0 != -1) {
+            if ( calAddrC_addr0( i_Start - prev_i_Start_C_addr0 + prev_i_End_C_addr0, j_Start - prev_j_Start_C_addr0 + prev_j_End_C_addr0, k_Start - prev_k_Start_C_addr0 + prev_k_End_C_addr0) == calAddrC_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_C_addr0);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_C_addr1 != -1) {
+            if ( calAddrC_addr1( i_Start - prev_i_Start_C_addr1 + prev_i_End_C_addr1, j_Start - prev_j_Start_C_addr1 + prev_j_End_C_addr1, k_Start - prev_k_Start_C_addr1 + prev_k_End_C_addr1) == calAddrC_addr1(i_Start, j_Start, k_Start)) {
+                rtHistoCal(prev_cnt_C_addr1);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -723,6 +997,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrC_addr0( i, j, k) == calAddrC_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_C_addr0 = cnt;
+                            prev_i_Start_C_addr0 = i_Start;
+                            prev_i_End_C_addr0 = i;
+                            prev_j_Start_C_addr0 = j_Start;
+                            prev_j_End_C_addr0 = j;
+                            prev_k_Start_C_addr0 = k_Start;
+                            prev_k_End_C_addr0 = k;
                             goto EndSample;
                         }
                     }
@@ -730,6 +1011,13 @@ SAMPLE:
                         cnt++;
                         if ( calAddrC_addr1( i, j, k) == calAddrC_addr1(i_Start, j_Start, k_Start)) {
                             rtHistoCal(cnt);
+                            prev_cnt_C_addr1 = cnt;
+                            prev_i_Start_C_addr1 = i_Start;
+                            prev_i_End_C_addr1 = i;
+                            prev_j_Start_C_addr1 = j_Start;
+                            prev_j_End_C_addr1 = j;
+                            prev_k_Start_C_addr1 = k_Start;
+                            prev_k_End_C_addr1 = k;
                             goto EndSample;
                         }
                     }
@@ -763,9 +1051,20 @@ EndSample:
         }
 }
 void ref_C_addr2() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_C_addr2 = -1;
+    uint64_t prev_i_Start_C_addr2 = -1;
+    uint64_t prev_i_End_C_addr2 = -1;
+    uint64_t prev_j_Start_C_addr2 = -1;
+    uint64_t prev_j_End_C_addr2 = -1;
+    uint64_t prev_cnt_C_addr3 = -1;
+    uint64_t prev_i_Start_C_addr3 = -1;
+    uint64_t prev_i_End_C_addr3 = -1;
+    uint64_t prev_j_Start_C_addr3 = -1;
+    uint64_t prev_j_End_C_addr3 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 1;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -776,6 +1075,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_C_addr2 != -1) {
+            if ( calAddrC_addr2( i_Start - prev_i_Start_C_addr2 + prev_i_End_C_addr2, j_Start - prev_j_Start_C_addr2 + prev_j_End_C_addr2) == calAddrC_addr2(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_C_addr2);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_C_addr3 != -1) {
+            if ( calAddrC_addr3( i_Start - prev_i_Start_C_addr3 + prev_i_End_C_addr3, j_Start - prev_j_Start_C_addr3 + prev_j_End_C_addr3) == calAddrC_addr2(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_C_addr3);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -814,6 +1126,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrC_addr2( i, j) == calAddrC_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_C_addr2 = cnt;
+                        prev_i_Start_C_addr2 = i_Start;
+                        prev_i_End_C_addr2 = i;
+                        prev_j_Start_C_addr2 = j_Start;
+                        prev_j_End_C_addr2 = j;
                         goto EndSample;
                     }
                 }
@@ -824,6 +1141,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrC_addr3( i, j) == calAddrC_addr2(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_C_addr3 = cnt;
+                        prev_i_Start_C_addr3 = i_Start;
+                        prev_i_End_C_addr3 = i;
+                        prev_j_Start_C_addr3 = j_Start;
+                        prev_j_End_C_addr3 = j;
                         goto EndSample;
                     }
                 }
@@ -836,9 +1158,20 @@ EndSample:
         }
 }
 void ref_C_addr3() {
+    /* Generating search reuse init code (same loop) */
+    uint64_t prev_cnt_C_addr2 = -1;
+    uint64_t prev_i_Start_C_addr2 = -1;
+    uint64_t prev_i_End_C_addr2 = -1;
+    uint64_t prev_j_Start_C_addr2 = -1;
+    uint64_t prev_j_End_C_addr2 = -1;
+    uint64_t prev_cnt_C_addr3 = -1;
+    uint64_t prev_i_Start_C_addr3 = -1;
+    uint64_t prev_i_End_C_addr3 = -1;
+    uint64_t prev_j_Start_C_addr3 = -1;
+    uint64_t prev_j_End_C_addr3 = -1;
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 1;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if ( (1024 - 0) == 0) goto SAMPLE;
@@ -849,6 +1182,19 @@ SAMPLE:
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Generating search reuse body code (use reuse are in the same loop) */
+        if ( prev_cnt_C_addr2 != -1) {
+            if ( calAddrC_addr2( i_Start - prev_i_Start_C_addr2 + prev_i_End_C_addr2, j_Start - prev_j_Start_C_addr2 + prev_j_End_C_addr2) == calAddrC_addr3(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_C_addr2);
+                goto EndSample;
+            }
+        }
+        if ( prev_cnt_C_addr3 != -1) {
+            if ( calAddrC_addr3( i_Start - prev_i_Start_C_addr3 + prev_i_End_C_addr3, j_Start - prev_j_Start_C_addr3 + prev_j_End_C_addr3) == calAddrC_addr3(i_Start, j_Start)) {
+                rtHistoCal(prev_cnt_C_addr3);
+                goto EndSample;
+            }
+        }
         /* Generating reuse search code */
 
         {
@@ -887,6 +1233,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrC_addr2( i, j) == calAddrC_addr3(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_C_addr2 = cnt;
+                        prev_i_Start_C_addr2 = i_Start;
+                        prev_i_End_C_addr2 = i;
+                        prev_j_Start_C_addr2 = j_Start;
+                        prev_j_End_C_addr2 = j;
                         goto EndSample;
                     }
                 }
@@ -896,6 +1247,11 @@ SAMPLE:
                     cnt++;
                     if ( calAddrC_addr3( i, j) == calAddrC_addr3(i_Start, j_Start)) {
                         rtHistoCal(cnt);
+                        prev_cnt_C_addr3 = cnt;
+                        prev_i_Start_C_addr3 = i_Start;
+                        prev_i_End_C_addr3 = i;
+                        prev_j_Start_C_addr3 = j_Start;
+                        prev_j_End_C_addr3 = j;
                         goto EndSample;
                     }
                 }

@@ -1,0 +1,8 @@
+Start to dump reuse time histogram
+1 1
+1137781 1
+miss ratio
+0 1
+1 1
+2 0.5
+327680 0.5

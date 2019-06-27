@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define M 1024
@@ -38,11 +45,22 @@ int main() {
 	double* B = (double *)malloc(M * N * sizeof(double));
 	double alpha = 0.2;
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	trmm_trace(A, B, alpha);
 
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
 
+    
+#ifdef RD
+    FiniRD();
+#endif
+    
 	return 0;
 }

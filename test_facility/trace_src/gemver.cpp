@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define N 1024
@@ -104,10 +111,21 @@ int main(int argc, char const *argv[])
     double alpha = 1.0;
     double beta = 1.5;
 
+#ifdef RD
+    InitRD();
+#endif
+    
     gemver_trace(alpha, beta, A, u1, v1, u2, v2, w, x, y, z);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
-	RTtoMR_AET();
+    RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 	
     return 0;
 }

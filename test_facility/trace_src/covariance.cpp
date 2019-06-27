@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #ifdef ORG
 	#define M 1024
@@ -170,8 +177,21 @@ int main() {
         data[i] = i % 256;
     }
 
+#ifdef RD
+    InitRD();
+#endif
+    
     covariance_trace(data, mean, symmat, M, N);
+    
+#ifdef PROFILE_RT
     dumpRtTmp();
+    RTtoMR_AET();
+    dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
     if (varify(data, mean, symmat)) {
         cout << "Success" << endl;

@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #include <math.h>
 
@@ -100,11 +107,21 @@ int main() {
 		seq[i] = i % 64;
 	}
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	nussinov_trace(table, seq);
 
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
 	return 0;
 }

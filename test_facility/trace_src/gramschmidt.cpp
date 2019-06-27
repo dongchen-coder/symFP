@@ -1,5 +1,12 @@
-#include "../utility/rt.h"
 #include "../utility/data_size.h"
+
+#ifdef PROFILE_RT
+#include "../utility/rt.h"
+#endif
+
+#ifdef RD
+#include "../utility/reda-spatial.h"
+#endif
 
 #include <math.h>
 
@@ -61,11 +68,21 @@ int main() {
 	double * R = (double *)malloc(N * N * sizeof(double));
 	double * Q = (double *)malloc(M * N * sizeof(double));
 
+#ifdef RD
+    InitRD();
+#endif
+    
 	gramschmidt_trace(A, R, Q);
 	
-	dumpRtTmp();
+#ifdef PROFILE_RT
+    dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+#endif
+    
+#ifdef RD
+    FiniRD();
+#endif
 
 	return 0;
 }
