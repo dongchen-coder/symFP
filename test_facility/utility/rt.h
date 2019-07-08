@@ -1,5 +1,6 @@
 #include<iostream>
 #include<map>
+#include<set>
 using namespace std;
 
 #define CLS 64
@@ -17,6 +18,30 @@ std::map<uint64_t, double> RT;
 
 std::map<uint64_t, double> MR;
 
+std::map<uint64_t, std::set<uint64_t> > rtRefSet;
+std::map<uint64_t, std::set<uint64_t> > rtArrSet;
+
+void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t array_id) {
+	addr = addr * DS / CLS;
+
+	refT++;
+	if (lat.find(addr) == lat.end()) {
+        //fat[addr] = refT;
+        lat[addr] = refT;
+    } else {
+		/*
+        if (rtTmp.find(refT - lat[addr]) == rtTmp.end()) {
+            rtTmp[refT - lat[addr]] = 1;
+		} else {
+            rtTmp[refT - lat[addr]] ++;
+		}
+		*/
+		rtRefSet[ref_id].insert(refT - lat[addr]);
+		rtArrSet[array_id].insert(refT - lat[addr]);
+        lat[addr] = refT;
+    }
+	return;	
+}
 
 void rtTmpAccess(int addr) {
 
@@ -157,4 +182,25 @@ void dumpMR() {
 	return;
 }
 
+void dumpSetSize() {
+	cout << "#different RT value Per reference:" << endl;
+	uint64_t cnt = 0;
+	double size = 0;
+	for (std::map<uint64_t, std::set<uint64_t> >::iterator it = rtRefSet.begin(), eit = rtRefSet.end(); it != eit; ++it) {
+		cout << it->second.size() << endl;
+		size += it->second.size();
+		cnt ++;
+	}
+	cout << "Average " << size / cnt << endl << endl;
+	
+	cout << "#different RT value Per array:" << endl;
+	cnt = 0;
+	size = 0;
+	for (std::map<uint64_t, std::set<uint64_t> >::iterator it = rtArrSet.begin(), eit = rtArrSet.end(); it != eit; ++it) {
+		cout << it->second.size() << endl;
+        size += it->second.size();
+        cnt ++;
+	}
+	cout << "Average " << size / cnt << endl << endl;
+}
 

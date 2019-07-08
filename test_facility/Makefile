@@ -27,6 +27,9 @@ BIN_DIR=$(TEST_DIR)/bin
 TRACE_SRC_DIR=$(TEST_DIR)/trace_src
 TRACE_RESULT_DIR=$(TEST_DIR)/trace_result
 
+TRACE_REF_SRC_DIR=$(TEST_DIR)/ref_trace_src
+TRACE_REF_RESULT_DIR=$(TEST_DIR)/ref_trace_result
+
 OPT= $(LLVM_BIN_DIR)/opt
 LLC= $(LLVM_BIN_DIR)/llc
 CC= $(CLANG_BIN_DIR)/clang
@@ -105,6 +108,9 @@ trace_run:
 	$(foreach name, $(all_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -o $(BIN_DIR)/$(name)_trace ;)
 	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_trace > $(TRACE_RESULT_DIR)/$(name)_trace_result.txt ;)
 
+trace_ref_run:
+	$(foreach name, $(all_bench), g++ -std=c++11 $(TRACE_REF_SRC_DIR)/$(name)_ref_arr.cpp -O3 -o $(BIN_DIR)/$(name)_ref_arr_trace ;)
+	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_arr_trace > $(TRACE_REF_RESULT_DIR)/$(name)_ref_arr_trace_result.txt ;)
 
 clean:
 	rm $(BC_DIR)/*.bc
