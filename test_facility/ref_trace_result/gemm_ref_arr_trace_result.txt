@@ -1,0 +1,15 @@
+#different RT value Per reference:
+1
+1
+1
+2
+2
+1
+Average 1.33333
+
+#different RT value Per array:
+2
+2
+2
+Average 2
+

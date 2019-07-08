@@ -1,0 +1,22 @@
+#different RT value Per reference:
+132096
+2
+2048
+4
+2048
+2
+2050
+1042432
+2
+2048
+2048
+4
+2
+Average 91137.4
+
+#different RT value Per array:
+1175431
+6
+4098
+Average 393178
+
