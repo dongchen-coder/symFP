@@ -49,7 +49,7 @@ int main() {
 	
 	cholesky_trace(A);
 	
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

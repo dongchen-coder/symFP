@@ -79,7 +79,7 @@ int main(int argc, char const *argv[])
 
     gesummv_trace(alpha, beta, A, B, tmp, x, y);
     
-    dumpSetSize();
+    dumpRI();
 
     return 0;
 }

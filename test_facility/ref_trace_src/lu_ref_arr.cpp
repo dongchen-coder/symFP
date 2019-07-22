@@ -47,7 +47,7 @@ int main() {
 
 	lu_trace(A);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

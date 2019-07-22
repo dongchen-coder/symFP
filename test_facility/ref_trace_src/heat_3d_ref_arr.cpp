@@ -71,7 +71,7 @@ int main() {
 
 	heat_3d_trace(B, A);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

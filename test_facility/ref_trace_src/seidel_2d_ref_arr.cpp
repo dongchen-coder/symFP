@@ -39,7 +39,7 @@ int main() {
 
 	seidel_2d_trace(A);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

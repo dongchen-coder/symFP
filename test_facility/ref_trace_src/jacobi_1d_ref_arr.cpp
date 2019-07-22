@@ -42,7 +42,7 @@ int main() {
 
 	jacobi_1d_trace(A, B);
 
-	dumpSetSize();
+	dumpRI();
 	
 	return 0;
 }

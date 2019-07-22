@@ -136,7 +136,7 @@ int main() {
 
 	deriche_trace(y1, imgIn, y2, imgOut, alpha);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

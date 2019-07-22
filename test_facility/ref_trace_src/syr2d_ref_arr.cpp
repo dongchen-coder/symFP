@@ -48,7 +48,7 @@ int main() {
 
 	syr2k_trace(A, B, C, alpha, beta);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

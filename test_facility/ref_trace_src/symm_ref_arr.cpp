@@ -26,17 +26,18 @@ void symm_trace(double* A, double* B, double* C, double alpha, double beta) {
 			for (k = 0; k < i; k++) {
 				C[k * N + j] += alpha*B[i * N + j] * A[i * M + k];
 				temp2 += B[k * N + j] * A[i * M + k];
-                rtTmpAccess(C_OFFSET + k * N + j, 0, 0);
-                rtTmpAccess(B_OFFSET + i * N + j, 1, 1);
-                rtTmpAccess(A_OFFSET + i * M + k, 2, 2);
-                rtTmpAccess(B_OFFSET + k * N + j, 3, 1);
-                rtTmpAccess(A_OFFSET + i * M + k, 4, 2);
+                rtTmpAccess(B_OFFSET + i * N + j, 0, 1);
+                rtTmpAccess(A_OFFSET + i * M + k, 1, 2);
+                rtTmpAccess(C_OFFSET + k * N + j, 2, 0);
+                rtTmpAccess(C_OFFSET + k * N + j, 3, 0);
+                rtTmpAccess(B_OFFSET + k * N + j, 4, 1);
+                rtTmpAccess(A_OFFSET + i * M + k, 5, 2);
 			}
 			C[i * N + j] = beta * C[i * N + j] + alpha*B[i * N + j] * A[i * M + i] + alpha * temp2;
-            rtTmpAccess(C_OFFSET + i * N + j, 5, 0);
-            rtTmpAccess(B_OFFSET + i * N + j, 6, 1);
-            rtTmpAccess(A_OFFSET + i * M + i, 7, 2);
-            rtTmpAccess(C_OFFSET + i * N + j, 8, 0);
+            rtTmpAccess(C_OFFSET + i * N + j, 6, 0);
+            rtTmpAccess(B_OFFSET + i * N + j, 7, 1);
+            rtTmpAccess(A_OFFSET + i * M + i, 8, 2);
+            rtTmpAccess(C_OFFSET + i * N + j, 9, 0);
 		}
 	}
 	return;
@@ -52,7 +53,7 @@ int main() {
 
 	symm_trace(A, B, C, alpha, beta);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

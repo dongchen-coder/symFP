@@ -25,12 +25,11 @@ void floyd_warshall_trace(double* path) {
 				if (path[i * N + j] < path[i * N + k] + path[k * N + j]) {
 					path[i * N + j] = path[i * N + j];
 					rtTmpAccess(PATH_OFFSET + i * N + j, 3, 0);
-					rtTmpAccess(PATH_OFFSET + i * N + j, 4, 0);
 				} else {
 					path[i * N + j] = path[i * N + k] + path[k * N + j];
-					rtTmpAccess(PATH_OFFSET + i * N + k, 5, 0);
-					rtTmpAccess(PATH_OFFSET + k * N + j, 6, 0);
-					rtTmpAccess(PATH_OFFSET + i * N + j, 7, 0);
+					rtTmpAccess(PATH_OFFSET + i * N + k, 4, 0);
+					rtTmpAccess(PATH_OFFSET + k * N + j, 5, 0);
+					rtTmpAccess(PATH_OFFSET + i * N + j, 6, 0);
 				}
 			}
 }
@@ -41,7 +40,7 @@ int main() {
 
 	floyd_warshall_trace(path);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

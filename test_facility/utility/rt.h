@@ -18,28 +18,41 @@ std::map<uint64_t, double> RT;
 
 std::map<uint64_t, double> MR;
 
-std::map<uint64_t, std::set<uint64_t> > rtRefSet;
-std::map<uint64_t, std::set<uint64_t> > rtArrSet;
+map<uint64_t, map<uint64_t, uint64_t>* > RI;
+
+map<uint64_t, uint64_t> refAccessCnt;
+map<uint64_t, uint64_t> srcRef;
+
+//std::map<uint64_t, std::set<uint64_t> > rtRefSet;
+//std::map<uint64_t, std::set<uint64_t> > rtArrSet;
 
 void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t array_id) {
 	addr = addr * DS / CLS;
-
 	refT++;
-	if (lat.find(addr) == lat.end()) {
-        //fat[addr] = refT;
-        lat[addr] = refT;
-    } else {
-		/*
-        if (rtTmp.find(refT - lat[addr]) == rtTmp.end()) {
-            rtTmp[refT - lat[addr]] = 1;
-		} else {
-            rtTmp[refT - lat[addr]] ++;
-		}
-		*/
-		rtRefSet[ref_id].insert(refT - lat[addr]);
-		rtArrSet[array_id].insert(refT - lat[addr]);
-        lat[addr] = refT;
+
+	if (lat.find(addr) != lat.end()) {
+        uint64_t ri = refT - lat[addr];
+        uint64_t sourceRef = srcRef[addr];
+        if (RI.find(sourceRef) != RI.end()) {
+            if ((*RI[sourceRef]).find(ri) != (*RI[sourceRef]).end()) {
+                (*RI[sourceRef])[ri] ++;
+            } else {
+                (*RI[sourceRef])[ri] = 1;
+            }
+        } else {
+            RI[sourceRef] = new map<uint64_t, uint64_t>;
+            (*RI[sourceRef])[ri] = 1;
+        }
     }
+    lat[addr] = refT;
+    srcRef[addr] = ref_id;
+
+	if (refAccessCnt.find(ref_id) != refAccessCnt.end()) {
+		refAccessCnt[ref_id] ++;
+	} else {
+		refAccessCnt[ref_id] = 1;
+	}
+
 	return;	
 }
 
@@ -74,9 +87,6 @@ void dumpRtTmp() {
     }
 
 	cout << rtTmp.size() << endl;
-    //rtTmp.clear();
-    //fat.clear();
-    //lat.clear();
 
     return;
 }
@@ -182,25 +192,30 @@ void dumpMR() {
 	return;
 }
 
-void dumpSetSize() {
-	cout << "#different RT value Per reference:" << endl;
-	uint64_t cnt = 0;
-	double size = 0;
-	for (std::map<uint64_t, std::set<uint64_t> >::iterator it = rtRefSet.begin(), eit = rtRefSet.end(); it != eit; ++it) {
-		cout << it->second.size() << endl;
-		size += it->second.size();
-		cnt ++;
+void dumpRI() {
+	uint64_t total_number_of_ri = 0;
+	uint64_t total_number_of_ri_cnt = 0;
+	for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
+		std::set<uint64_t> riset;
+		for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+			cout << "Ref " << ref_it->first << " RI " << ri_it->first << " CNT " << ri_it->second << endl;
+			riset.insert(ri_it->first);
+			total_number_of_ri_cnt += ri_it->second;
+		}
+		cout << "Ref " << ref_it->first << " RISETSIZE " << riset.size() << endl;
+		total_number_of_ri += riset.size();
 	}
-	cout << "Average " << size / cnt << endl << endl;
+	cout << "Average RISETSIZE for each reference " << double(total_number_of_ri) / RI.size() << endl;
 	
-	cout << "#different RT value Per array:" << endl;
-	cnt = 0;
-	size = 0;
-	for (std::map<uint64_t, std::set<uint64_t> >::iterator it = rtArrSet.begin(), eit = rtArrSet.end(); it != eit; ++it) {
-		cout << it->second.size() << endl;
-        size += it->second.size();
-        cnt ++;
+    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
+        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+            cout << "Ref " << ref_it->first << " RI " << ri_it->first << " DIST " << double(ri_it->second) / total_number_of_ri_cnt << endl;
+        }
+    }
+
+	cout << "Total number of accesses " << refT << endl;
+	for (map<uint64_t, uint64_t>::iterator it = refAccessCnt.begin(), eit = refAccessCnt.end(); it != eit; ++it) {
+		cout << "Ref " << it->first << " ACCESSCNT " << it->second << endl;
 	}
-	cout << "Average " << size / cnt << endl << endl;
 }
 

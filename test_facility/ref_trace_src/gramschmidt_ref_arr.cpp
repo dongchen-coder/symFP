@@ -44,13 +44,14 @@ void gramschmidt_trace(double* A, double* R, double* Q) {
 				rtTmpAccess(Q_OFFSET + i * N + k, 7, 2);
 				rtTmpAccess(A_OFFSET + i * N + j, 8, 0);
 				rtTmpAccess(R_OFFSET + k * N + j, 9, 1);
+                rtTmpAccess(R_OFFSET + k * N + j, 10, 1);
 			}
 			for (i = 0; i < M; i++) {
         		A[i * N + j] = A[i * N + j] - Q[i * N + k] * R[k * N + j];
-				rtTmpAccess(A_OFFSET + i * N + j, 10, 0);
-				rtTmpAccess(Q_OFFSET + i * N + k, 11, 2);
-				rtTmpAccess(R_OFFSET + k * N + j, 12, 1);
-				rtTmpAccess(A_OFFSET + i * N + j, 13, 0);
+				rtTmpAccess(A_OFFSET + i * N + j, 11, 0);
+				rtTmpAccess(Q_OFFSET + i * N + k, 12, 2);
+				rtTmpAccess(R_OFFSET + k * N + j, 13, 1);
+				rtTmpAccess(A_OFFSET + i * N + j, 14, 0);
 			}
 		}
     }
@@ -64,7 +65,7 @@ int main() {
 
 	gramschmidt_trace(A, R, Q);
 	
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

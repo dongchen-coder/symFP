@@ -50,7 +50,7 @@ int main() {
 	
 	doitgen_trace(sum, A, C4);
 
-	dumpSetSize();
+    dumpRI();
 
 	return 0;
 }

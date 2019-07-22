@@ -10,13 +10,17 @@ namespace ssCodeGen_ref {
     void StaticSamplingCodeGen_ref::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->AA != NULL) {
+            /*
             if (refToSameArrayCnt.find(arrayName[LoopRefTree->AA]) == refToSameArrayCnt.end()) {
                 refNumber[LoopRefTree->AA] = 0;
                 refToSameArrayCnt[arrayName[LoopRefTree->AA]] = 1;
             } else {
                 refNumber[LoopRefTree->AA] = refToSameArrayCnt[arrayName[LoopRefTree->AA]];
-                refToSameArrayCnt[arrayName[LoopRefTree->AA]] += 1;
+                refToSameArrayCnt[arrayName[LoopRefTree->AA]] += 1；
             }
+            */
+            refNumber[LoopRefTree->AA] = refGlobalNumber;
+            refGlobalNumber++;
         }
         
         if (LoopRefTree->next != NULL) {
@@ -86,6 +90,7 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->AA != NULL) {
+			errs() << "/* " + arrayName[LoopRefTree->AA] + " " + arrayExpression[LoopRefTree->AA] + " " + std::to_string(refNumber[LoopRefTree->AA])  + " */\n";
             errs() << "int calAddr" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
             string arguments = "";
             for (std::vector<string>::iterator it = indvs.begin(), eit = indvs.end(); it != eit; ++it) {
@@ -143,13 +148,14 @@ namespace ssCodeGen_ref {
         
         return;
     }
-    
+
+#ifdef DumpRTMR
     void StaticSamplingCodeGen_ref::rtHistoGen() {
         
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
         errs() << "void rtHistoCal( int rt) {\n";
-#ifdef PARALLEL_OMP
+    #ifdef PARALLEL_OMP
         errs() << "    #pragma omp critical\n";
         errs() << "    {";
         errs() << "        if (RT.find(rt) == RT.end()) { \n";
@@ -158,7 +164,7 @@ namespace ssCodeGen_ref {
         errs() << "            RT[rt] += 1;\n";
         errs() << "        }\n";
         errs() << "    }";
-#elif defined(PARALLEL_CXX_THREAD)
+    #elif defined(PARALLEL_CXX_THREAD)
         errs() << "    std::unique_lock<std::mutex> lck (mtx,std::defer_lock);\n";
         errs() << "    lck.lock();\n";
         errs() << "    if (RT.find(rt) == RT.end()) { \n";
@@ -167,19 +173,48 @@ namespace ssCodeGen_ref {
         errs() << "        RT[rt] += 1;\n";
         errs() << "    }\n";
         errs() << "    lck.unlock();\n";
-#else
+    #else
         errs() << "    if (RT.find(rt) == RT.end()) { \n";
         errs() << "        RT[rt] = 1;\n";
         errs() << "    } else {\n";
         errs() << "        RT[rt] += 1;\n";
         errs() << "    }\n";
-#endif
+    #endif
         errs() << "    return;\n";
         errs() << "}\n";
-        
-        return;
     }
+#elif defined(DumpRefLease)
+    void StaticSamplingCodeGen_ref::rtHistoGen() {
+        errs() << "map<uint64_t, map<uint64_t, uint64_t>* > RI;\n";
+        errs() << "map<uint64_t, map<uint64_t, double>* > hits;\n";
+        errs() << "map<uint64_t, map<uint64_t, double>* > costs;\n";
+        errs() << "map<uint64_t, double> sampledCnt;\n";
+        errs() << "map<uint64_t, double> accessRatio;\n";
+        errs() << "map<uint64_t, uint64_t> Lease;\n";
+
+        errs() << "void rtHistoCal(uint64_t ri, uint64_t ref_id) {\n";
+        errs() << "    if (RI.find(ref_id) != RI.end()) {\n";
+        errs() << "        if ((*RI[ref_id]).find(ri) != (*RI[ref_id]).end()) {\n";
+        errs() << "            (*RI[ref_id])[ri] ++;\n";
+        errs() << "        } else {\n";
+        errs() << "            (*RI[ref_id])[ri] = 1;\n";
+        errs() << "        }\n";
+        errs() << "    } else {\n";
+        errs() << "        RI[ref_id] = new map<uint64_t, uint64_t>;\n";
+        errs() << "        (*RI[ref_id])[ri] = 1;\n";
+        errs() << "    }\n";
+        errs() << "\n";
+        errs() << "    // Init leases to all references to be 0\n";
+        errs() << "    if (Lease.find(ref_id) == Lease.end()) {\n";
+        errs() << "        Lease[ref_id] = 0;\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+    }
+#endif
     
+    
+#ifdef DumpRTMR
     void StaticSamplingCodeGen_ref::rtDumpGen() {
         
         errs() << "void rtDump() {\n";
@@ -280,7 +315,157 @@ namespace ssCodeGen_ref {
         
         return;
     }
+#elif defined(DumpRefLease)
+    void StaticSamplingCodeGen_ref::accessRatioCalGen() {
+        errs() << "void accessRatioCal() {\n";
+        errs() << "    double total_access_cnt = 0;\n";
+        errs() << "\n";
+        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
+        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "            total_access_cnt += ri_it->second;\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+            
+        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
+        errs() << "        double ref_access_cnt = 0;\n";
+        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "           ref_access_cnt += ri_it->second;\n";
+        errs() << "       }\n";
+        errs() << "        sampledCnt[ref_it->first] = ref_access_cnt;\n";
+        errs() << "        accessRatio[ref_it->first] = ref_access_cnt / total_access_cnt;\n";
+        errs() << "    }\n";
+        errs() << "}\n";
+    }
     
+    void StaticSamplingCodeGen_ref::initHitsCostsGen() {
+        errs() << "void initHitsCosts() {\n";
+            
+        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
+        errs() << "        hits[ref_it->first] = new map<uint64_t, double>;\n";
+        errs() << "        costs[ref_it->first] = new map<uint64_t, double>;\n";
+        errs() << "        (*hits[ref_it->first])[0] = 0;\n";
+        errs() << "        uint64_t total_hits = 0;\n";
+        errs() << "        (*costs[ref_it->first])[0] = 0;\n";
+        errs() << "        uint64_t total_cnt = 0;\n";
+        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "            total_cnt += ri_it->second;\n";
+        errs() << "        }\n";
+        errs() << "        uint64_t pre_lease = 0;\n";
+        errs() << "        uint64_t pre_cost = 0;\n";
+        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "            total_hits += ri_it->second;\n";
+        errs() << "            (*hits[ref_it->first])[ri_it->first] = total_hits;\n";
+        
+        errs() << "            (*costs[ref_it->first])[ri_it->first] =  pre_cost + (ri_it->first - pre_lease) * total_cnt;\n";
+        errs() << "            total_cnt -= ri_it->second;\n";
+        errs() << "            pre_cost = (*costs[ref_it->first])[ri_it->first];\n";
+        errs() << "            pre_lease = ri_it->first;\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+            
+        errs() << "}\n";
+    }
+    void StaticSamplingCodeGen_ref::getPPUCGen() {
+        errs() << "double getPPUC(uint64_t ref_id, uint64_t oldLease, uint64_t newLease) {\n";
+            
+        errs() << "    if (hits.find(ref_id) == hits.end() || costs.find(ref_id) == costs.end()) {\n";
+        errs() << "        cout << \"No such ref for hits/costs\" << endl;\n";
+        errs() << "        return -1;\n";
+        errs() << "    }\n";
+        errs() << "    if (hits[ref_id]->find(newLease) == hits[ref_id]->end() || costs[ref_id]->find(newLease) == costs[ref_id]->end()) {\n";
+        errs() << "        cout << \"No RI/Newlease \" << newLease << \" for ref \" << ref_id << endl;\n";
+        errs() << "        return -1;\n";
+        errs() << "    }\n";
+            
+        errs() << "    if (hits[ref_id]->find(oldLease) == hits[ref_id]->end() || costs[ref_id]->find(oldLease) == costs[ref_id]->end()) {\n";
+        errs() << "        if (hits[ref_id]->find(oldLease) == hits[ref_id]->end()) {\n";
+        errs() << "            cout << \"No hits for Oldlease \" << oldLease << \" for ref \" << ref_id << endl;\n";
+        errs() << "        }\n";
+        errs() << "        if (costs[ref_id]->find(oldLease) == costs[ref_id]->end()) {\n";
+        errs() << "            cout << \"No costs for Oldlease \" << oldLease << \" for ref \" << ref_id << endl;\n";
+        errs() << "        }\n";
+        errs() << "        return -1;\n";
+        errs() << "    }\n";
+            
+        errs() << "    return double((*hits[ref_id])[newLease] - (*hits[ref_id])[oldLease]) / ((*costs[ref_id])[newLease] - (*costs[ref_id])[oldLease]);\n";
+        errs() << "}\n";
+    }
+    void StaticSamplingCodeGen_ref::getMaxPPUCGen() {
+        errs() << "void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {\n";
+            
+        errs() << "    double maxPPUC = -1;\n";
+        errs() << "    uint64_t bestRef = -1;\n";
+        errs() << "    uint64_t bestLease = -1;\n";
+            
+        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
+        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "            if (ri_it->first > Lease[ref_it->first]) {\n";
+        errs() << "                double ppuc = getPPUC(ref_it->first, Lease[ref_it->first], ri_it->first);\n";
+        errs() << "                if (ppuc > maxPPUC) {\n";
+        errs() << "                    maxPPUC = ppuc;\n";
+        errs() << "                    bestRef = ref_it->first;\n";
+        errs() << "                    bestLease = ri_it->first;\n";
+        errs() << "                }\n";
+        errs() << "            }\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+            
+        errs() << "    if (maxPPUC != -1) {\n";
+        errs() << "        *finished = false;\n";
+        errs() << "        *ref_to_assign = bestRef;\n";
+        errs() << "        *newLease = bestLease;\n";
+        errs() << "    } else {\n";
+        errs() << "        *finished = true;\n";
+        errs() << "    }\n";
+            
+        errs() << "    return;\n";
+        errs() << "}\n";
+    }
+	void StaticSamplingCodeGen_ref::DumpRIGen() {
+        errs() << "void dumpRI() {\n";
+        errs() << "    uint64_t total_number_of_ri = 0;\n";
+        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
+        errs() << "        std::set<uint64_t> riset;\n";
+        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
+        errs() << "            cout << \"Ref \" << ref_it->first << \" RI \" << ri_it->first << \" CNT \" << ri_it->second << endl;\n";
+        errs() << "            riset.insert(ri_it->first);\n";
+        errs() << "        }\n";
+        errs() << "        cout << \"Ref \" << ref_it->first << \" RISETSIZE \" << riset.size() << endl;\n";
+        errs() << "        total_number_of_ri += riset.size();\n";
+        errs() << "    }\n";
+        errs() << "    cout << \"Average RISETSIZE for each reference \" << double(total_number_of_ri) / RI.size() << endl;\n";
+        errs() << "}\n";
+	}
+    void StaticSamplingCodeGen_ref::RLGen() {
+        errs() << "void RL_main(uint64_t CacheSize) {\n";
+        errs() << "    initHitsCosts();\n";
+        errs() << "    accessRatioCal();\n";
+        errs() << "    double totalCost = 0;\n";
+        errs() << "    double totalHitRatio = 0;\n";
+        errs() << "    double targetCost = CacheSize;\n";
+        errs() << "    dumpRI();\n";
+        errs() << "    while(true) {\n";
+        errs() << "        bool finished = false;\n";
+        errs() << "        uint64_t ref_to_assign;\n";
+        errs() << "        uint64_t newLease;\n";
+        errs() << "        getMaxPPUC(&finished, &ref_to_assign, &newLease);\n";
+        errs() << "        if (finished == false) {\n";
+        errs() << "            totalCost += ((*costs[ref_to_assign])[newLease] - (*costs[ref_to_assign])[Lease[ref_to_assign]]) / sampledCnt[ref_to_assign] * accessRatio[ref_to_assign];\n";
+        errs() << "            totalHitRatio += ((*hits[ref_to_assign])[newLease] - (*hits[ref_to_assign])[Lease[ref_to_assign]]) / sampledCnt[ref_to_assign] * accessRatio[ref_to_assign];\n";
+        errs() << "            Lease[ref_to_assign] = newLease;\n";
+        errs() << "            cout << \"Assign lease \" << newLease << \" to ref \" << ref_to_assign << \" avg cache size \" << totalCost  << \" miss ratio \" << 1 - totalHitRatio << endl;\n";
+        errs() << "        } else {\n";
+        errs() << "            break;\n";
+        errs() << "        }\n";
+        errs() << "        if (totalCost < targetCost && targetCost != 0) {\n";
+        errs() << "            break;\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+    }
+#endif
+
     string StaticSamplingCodeGen_ref::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
@@ -589,6 +774,9 @@ namespace ssCodeGen_ref {
                     errs() << " , ";
                     errs() << std::to_string(loops.size());
                     errs() << ")";
+#ifdef DumpRefLease
+                    errs() << ", " + std::to_string(refNumber[LoopRefTree->AA]);
+#endif
                     errs() << " );\n";
 
 #ifdef PROFILE_SEARCH_REUSE
@@ -688,8 +876,13 @@ namespace ssCodeGen_ref {
                     errs() << space + "        pred = " + "prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + ";\n";
 #endif
                     
-                    errs() << space + "        rtHistoCal(prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + ");\n";
-//                    errs() << space + "        cout << \"Find match\\n\";\n";
+                    errs() << space + "        rtHistoCal(prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]);
+#ifdef DumpRefLease
+                    errs() << ", " + std::to_string(refNumber[(*ait)->AA]);
+#endif
+                    errs() << ");\n";
+
+
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        goto PROFILE;\n";
 #else
@@ -829,7 +1022,11 @@ namespace ssCodeGen_ref {
                     }
                     errs() << tmp + ")) {\n";
                     
-                    errs() << space + "        rtHistoCal(cnt);\n";
+                    errs() << space + "        rtHistoCal(cnt";
+#ifdef DumpRefLease
+                    errs() << ", " + std::to_string(useID);
+#endif
+                    errs() << ");\n";
                     
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        actural = cnt;\n";
@@ -1122,7 +1319,7 @@ namespace ssCodeGen_ref {
     }
     
     void StaticSamplingCodeGen_ref::refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
-        
+        /*
         for (std::map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < it->second; i++) {
                 errs() << "void ref_" + it->first + std::to_string(i) + "() {\n";
@@ -1136,6 +1333,12 @@ namespace ssCodeGen_ref {
                 errs() << "}\n";
             }
         }
+         */
+        for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
+            errs() << "void ref_" + arrayName[it->first] + std::to_string(it->second) + "() {\n";
+            refRTBodyGen(LoopRefTree, arrayName[it->first], it->second);
+            errs() << "}\n";
+        }
         
         return;
     }
@@ -1145,24 +1348,39 @@ namespace ssCodeGen_ref {
         errs() << "int main() {\n";
         
         string space = "    ";
-        
+        /*
         for (std::map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
+         */
+        for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 
 #ifdef PARALLEL_CXX_THREAD
+            /*
                 errs() << space + "std::thread t_"+ (*it).first + "_" +std::to_string(i)+ "(";
                 errs() << "ref_" + (*it).first + std::to_string(i) + ");\n";
+             */
+            errs() << space + "std::thread t_"+ arrayName[it->first] + "_" + std::to_string(it->second) + "(";
+            errs() << "ref_" + arrayName[it->first] + std::to_string(it->second) + ");\n";
 #else
+            /*
                 errs() << space + "ref_" + (*it).first + std::to_string(i) + "();\n";
+             */
+            errs() << space + "ref_" + arrayName[it->first] + std::to_string(it->second) + "();\n";
 #endif
+        /*
             }
+         */
         }
         
 #ifdef PARALLEL_CXX_THREAD
+        /*
         for (std::map<std::string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
                     errs() << space + "t_" + (*it).first + "_" + std::to_string(i) + ".join();\n";
             }
+        }*/
+        for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
+            errs() << space + "t_" + arrayName[it->first] + "_" + std::to_string(it->second) + ".join();\n";
         }
 #endif
         
@@ -1171,6 +1389,8 @@ namespace ssCodeGen_ref {
         errs() << "    rtDump();\n";
         errs() << "    RTtoMR_AET();\n";
         errs() << "    dumpMR();\n";
+#elif defined(DumpRefLease)
+        errs() << "    RL_main(0);\n";
 #endif
         
         errs() << "    return 0;\n";
@@ -1202,6 +1422,7 @@ namespace ssCodeGen_ref {
         /* generate rtHistoCal function */
         rtHistoGen();
         
+#ifdef DumpRTMR
         /* generate rtToMR function */
         rtToMRGen();
         
@@ -1210,6 +1431,25 @@ namespace ssCodeGen_ref {
         
         /* generate mrDump function */
         mrDumpGen();
+#elif defined(DumpRefLease)
+        /* genearte accessRatioCal function */
+        accessRatioCalGen();
+        
+        /* generate initHitsCosts function */
+        initHitsCostsGen();
+        
+        /* generate getPPUC function */
+        getPPUCGen();
+        
+        /* generate getMaxPPUC function */
+        getMaxPPUCGen();
+        
+        /* generate DumpRI function */
+        DumpRIGen();
+        
+        /* generate RLGen function */
+        RLGen();
+#endif
         
         /* generate addr cal function*/
         addrCalFuncGenTop(LoopRefTree);

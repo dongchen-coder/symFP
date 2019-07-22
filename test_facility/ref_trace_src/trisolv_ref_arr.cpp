@@ -19,8 +19,9 @@ void trisolv_trace(double* x, double* b, double* L) {
 
 	for (i = 0; i < N; i++) {
 		x[i] = b[i];
-		rtTmpAccess(X_OFFSET + i, 0, 0);
-		rtTmpAccess(B_OFFSET + i, 1, 1);
+        rtTmpAccess(B_OFFSET + i, 0, 1);
+		rtTmpAccess(X_OFFSET + i, 1, 0);
+        
 		for (j = 0; j <i; j++) {
 			x[i] -= L[i * N + j] * x[j];
 			rtTmpAccess(L_OFFSET + i * N + j, 2, 2);
@@ -32,7 +33,6 @@ void trisolv_trace(double* x, double* b, double* L) {
 		rtTmpAccess(X_OFFSET + i, 6, 0);
 		rtTmpAccess(L_OFFSET + i * N + i, 7, 2);
 		rtTmpAccess(X_OFFSET + i, 8, 0);
-		rtTmpAccess(X_OFFSET + i, 9, 0);
 	}
 
 }
@@ -45,7 +45,7 @@ int main() {
 
 	trisolv_trace(x, b, L);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

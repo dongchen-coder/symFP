@@ -79,7 +79,7 @@ int main() {
 
     atax_cpu_trace(A, x, y, tmp, NX, NY);
     
-    dumpSetSize();
+    dumpRI();
 
     return 0;
 }

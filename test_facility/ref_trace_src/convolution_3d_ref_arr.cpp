@@ -98,7 +98,7 @@ int main()
 
     conv3D_trace(A, B);
     
-    dumpSetSize();
+    dumpRI();
 
     return 0;
 }

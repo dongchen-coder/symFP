@@ -59,7 +59,7 @@ int main() {
 
 	durbin_trace(y, r, z);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

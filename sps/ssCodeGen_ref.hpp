@@ -23,10 +23,11 @@ using namespace llvm;
 
 //#define PROFILE_SEARCH_REUSE
 
-#define SEARCH_REUSE_SAME_LOOP
+//#define SEARCH_REUSE_SAME_LOOP
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
-#define DumpRTMR
+//#define DumpRTMR
+#define DumpRefLease
 
 namespace ssCodeGen_ref {
     struct StaticSamplingCodeGen_ref : public FunctionPass {
@@ -35,9 +36,12 @@ namespace ssCodeGen_ref {
         
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
+        
+        uint64_t refGlobalNumber = 0;
         std::map<Instruction*, int> refNumber;
+        
         std::map<Loop*, int> loopNumber;
-        std::map<std::string, int> refToSameArrayCnt;
+        //std::map<std::string, int> refToSameArrayCnt;
         std::map<Value*, std::string> indvName;
         
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
@@ -51,10 +55,20 @@ namespace ssCodeGen_ref {
         void addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         
         void rtHistoGen();
+#ifdef DumpRTMR
         void rtDumpGen();
         void rtToMRGen();
         void mrDumpGen();
+#elif defined(DumpRefLease)
+        void accessRatioCalGen();
+        void initHitsCostsGen();
+        void getPPUCGen();
+        void getMaxPPUCGen();
+        void DumpRIGen();
+        void RLGen();
+#endif
         void headerGen();
+
         
         string getBound(Value* bound);
         string getBound_Start(Value* bound);

@@ -69,7 +69,7 @@ int main() {
 
 	fdtd_2d_trace(_fict_, ey, ex, hz);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

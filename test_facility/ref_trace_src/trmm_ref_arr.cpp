@@ -41,7 +41,7 @@ int main() {
 
 	trmm_trace(A, B, alpha);
     
-    dumpSetSize();
+    dumpRI();
 
 	return 0;
 }

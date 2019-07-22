@@ -41,12 +41,13 @@ void mm2_trace(double* tmp, double* A, double* B, double* C, double* D, double a
         for (j = 0; j < NL; j++) {
             D[i * NL + j] *= beta;
 			rtTmpAccess(D_OFFSET + i * NL + j, 5, 3);
+            rtTmpAccess(D_OFFSET + i * NL + j, 6, 3);
             for (k = 0; k < NJ; ++k) {
                 D[i * NL + j] += tmp[i * NJ + k] * C[k * NL + j];
-            	rtTmpAccess(TMP_OFFSET + i * NJ + k, 6, 0);
-				rtTmpAccess(C_OFFSET + k * NL + j, 7, 4);
-				rtTmpAccess(D_OFFSET + i * NL + j, 8, 3);
+            	rtTmpAccess(TMP_OFFSET + i * NJ + k, 7, 0);
+				rtTmpAccess(C_OFFSET + k * NL + j, 8, 4);
 				rtTmpAccess(D_OFFSET + i * NL + j, 9, 3);
+				rtTmpAccess(D_OFFSET + i * NL + j, 10, 3);
 			}
         }
     }
@@ -65,7 +66,7 @@ int main() {
 	
 	mm2_trace(tmp, A, B, C, D, alpha, beta);
 
-	dumpSetSize();
+    dumpRI();
 
 	return 0;
 }

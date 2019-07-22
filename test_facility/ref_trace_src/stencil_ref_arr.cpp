@@ -51,7 +51,7 @@ int main() {
 
     stencil_trace(a, b, DIM_SIZE);
     
-    dumpSetSize();
+    dumpRI();
     /*
     if (varify(b, a)) {
         cout << "Success" << endl;

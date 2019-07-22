@@ -80,7 +80,7 @@ int main() {
 
 	ludcmp_trace(A, b, y, x);
 
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

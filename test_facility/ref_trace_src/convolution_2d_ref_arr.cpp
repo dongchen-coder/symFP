@@ -69,7 +69,7 @@ int main()
 
     conv2D_trace(A, B);
     
-    dumpSetSize();
+    dumpRI();
 
     return 0;
 }

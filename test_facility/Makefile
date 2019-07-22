@@ -30,6 +30,9 @@ TRACE_RESULT_DIR=$(TEST_DIR)/trace_result
 TRACE_REF_SRC_DIR=$(TEST_DIR)/ref_trace_src
 TRACE_REF_RESULT_DIR=$(TEST_DIR)/ref_trace_result
 
+TRACE_REF_OSL_SRC_DIR=$(TEST_DIR)/ref_trace_osl_src
+TRACE_REF_OSL_RESULT_DIR=$(TEST_DIR)/ref_trace_osl_result
+
 OPT= $(LLVM_BIN_DIR)/opt
 LLC= $(LLVM_BIN_DIR)/llc
 CC= $(CLANG_BIN_DIR)/clang
@@ -111,6 +114,10 @@ trace_run:
 trace_ref_run:
 	$(foreach name, $(all_bench), g++ -std=c++11 $(TRACE_REF_SRC_DIR)/$(name)_ref_arr.cpp -O3 -o $(BIN_DIR)/$(name)_ref_arr_trace ;)
 	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_arr_trace > $(TRACE_REF_RESULT_DIR)/$(name)_ref_arr_trace_result.txt ;)
+
+trace_ref_osl_run:
+	$(foreach name, $(all_bench), g++ -std=c++11 $(TRACE_REF_OSL_SRC_DIR)/$(name)_ref_arr.cpp -O3 -o $(BIN_DIR)/$(name)_ref_osl_trace ;)
+	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_osl_trace > $(TRACE_REF_OSL_RESULT_DIR)/$(name)_ref_osl_trace_result.txt ;)
 
 clean:
 	rm $(BC_DIR)/*.bc

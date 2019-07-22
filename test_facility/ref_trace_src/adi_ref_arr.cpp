@@ -111,7 +111,7 @@ int main() {
 
 	adi_trace(p, q, v, u);
 	
-	dumpSetSize();
+	dumpRI();
 
 	return 0;
 }

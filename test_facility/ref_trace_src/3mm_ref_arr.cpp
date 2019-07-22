@@ -133,7 +133,7 @@ int main() {
 
     mm3_cpu_trace(a, b, c, d, e, f, g);
 	
-    dumpSetSize();
+    dumpRI();
     
     return 0;
 }

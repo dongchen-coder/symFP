@@ -304,7 +304,7 @@ namespace idxAnalysis {
     /* Dump (array name, index expression) pairs for all references inside the function.
        Two hash tables are used to store array names and index expressions, the keys are load/store instruction pointers */
     void IndexAnalysis::dumpAllInfo() {
-        errs() << "Array index info\n";
+        errs() << "Array index info: Total number of references: " << arrayName.size()  << "\n";
         for (std::map<Instruction*, std::string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
             errs() << it->second << " " << arrayExpression[it->first] << "\n";
         }

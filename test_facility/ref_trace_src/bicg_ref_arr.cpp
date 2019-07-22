@@ -79,7 +79,7 @@ int main() {
 
     bicg_cpu_trace(A, r, s, p ,q, NX, NY);
     
-    dumpSetSize();
+    dumpRI();
 
     return 0;
 }

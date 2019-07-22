@@ -10,6 +10,9 @@
 #elif defined(EX)
 #endif
 
+#define DATA_OFFSET 0
+#define MEAN_OFFSET M * N
+#define SYMMAT_OFFSET M * N + M
 
 #define FLOAT_N 3214212.01
 #define EPS 0.005
@@ -114,16 +117,18 @@ void covariance_trace(double* data, double* mean, double* symmat, unsigned int m
     for (j = 0; j < M; j++)
     {
         mean[j] = 0.0;
+        rtTmpAccess(MEAN_OFFSET + j, 0, 0);
+        
         for (i = 0; i < N; i++)
         {
             mean[j] = mean[j] + data[i * M + j];
-            rtTmpAccess(j + (M * N), 0, 1);
-            rtTmpAccess(i * M + j, 1, 2);
-            rtTmpAccess(j + (M * N), 2, 1);
+            rtTmpAccess(DATA_OFFSET + i * M + j, 1, 1);
+            rtTmpAccess(MEAN_OFFSET + j, 2, 0);
+            rtTmpAccess(MEAN_OFFSET + j, 3, 0);
         }
         mean[j] = mean[j] / FLOAT_N;
-        rtTmpAccess(j + (M * N), 3, 1);
-        rtTmpAccess(j + (M * N), 4, 1);
+        rtTmpAccess(MEAN_OFFSET + j, 4, 0);
+        rtTmpAccess(MEAN_OFFSET + j, 5, 0);
     }
     
     /* Center the column vectors. */
@@ -132,9 +137,9 @@ void covariance_trace(double* data, double* mean, double* symmat, unsigned int m
         for (j = 0; j < M; j++)
         {
             data[i * M + j] = data[i * M + j] - mean[j];
-            rtTmpAccess(i * M + j, 5, 2);
-            rtTmpAccess(j + (M * N), 6, 1);
-            rtTmpAccess(i * M + j, 7, 2);
+            rtTmpAccess(MEAN_OFFSET + j, 6, 0);
+            rtTmpAccess(DATA_OFFSET + i * M + j, 7, 1);
+            rtTmpAccess(DATA_OFFSET + i * M + j, 8, 1);
         }
     }
     
@@ -144,21 +149,19 @@ void covariance_trace(double* data, double* mean, double* symmat, unsigned int m
         for (j2 = j1; j2 < M; j2++)
         {
             symmat[j1 * M + j2] = 0.0;
+            rtTmpAccess(SYMMAT_OFFSET + j1 * M + j2, 9, 2);
+            
             for (i = 0; i < N; i++)
             {
                 symmat[j1 * M + j2] = symmat[j1 * M + j2] + data[i * M + j1] * data[i * M + j2];
-                rtTmpAccess(i * M + j1, 8, 3);
-                // load data[i * M + j1]
-                rtTmpAccess(i * M + j2, 9, 2);
-                // load data[i * M + j2]
-                rtTmpAccess(j1 * M + j2 + (M + M * N), 10, 2);
-                // load symmat[j1 * M + j2]
-                rtTmpAccess(j1 * M + j2 + (M + M * N), 11, 3);
-                // store symmat[j1 * M + j2]        
+                rtTmpAccess(DATA_OFFSET + i * M + j1, 10, 1);
+                rtTmpAccess(DATA_OFFSET + i * M + j2, 11, 1);
+                rtTmpAccess(SYMMAT_OFFSET + j1 * M + j2, 12, 2);
+                rtTmpAccess(SYMMAT_OFFSET + j1 * M + j2, 13, 2);
             }
             symmat[j2 * M + j1] = symmat[j1 * M + j2];
-            rtTmpAccess(j1 * M + j2 + (M + M*N), 12, 3);
-            rtTmpAccess(j2 * M + j1 + (M + M*N), 13, 3);
+            rtTmpAccess(SYMMAT_OFFSET + j1 * M + j2, 14, 2);
+            rtTmpAccess(SYMMAT_OFFSET + j2 * M + j1, 15, 2);
         }
     }
     return;
@@ -177,7 +180,7 @@ int main() {
 
     covariance_trace(data, mean, symmat, M, N);
     
-    dumpSetSize();
+    dumpRI();
 
     /*
     if (varify(data, mean, symmat)) {
