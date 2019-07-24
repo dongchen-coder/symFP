@@ -27,6 +27,24 @@ NOTE: we also provides CMake files for standalone build for linux named (CmakeLi
 
 IMPORTANT: our tool currently relys on DEBUG build of LLVM libs and opt tool. We recommand you build llvm from source with DEBUG mode before you start to play with our tool.
 
+## Tests
+
+Testing scripts for Polybench is in folder test\_facility:
+
+cd test\_facility
+
+### To generate sampling code for all benchmarks with specific sampling rate (for example 0.02)
+
+make all\_gen SPSRATE=0.02
+
+### To run the generated sampling code
+
+make all\_run
+
+### To trace
+
+make trace\_run
+
 ## Code structure
 
 There are 6 analysis passes, 2 code generation pass and 1 top wrapper pass.
