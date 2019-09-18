@@ -1,10 +1,44 @@
+#ifndef DEBUG
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define STANDARD_DATASET
+# endif
+#ifdef MINI_DATASET
+	#define NI 32
+	#define NJ 32
+	#define NK 32
+	#define NL 32
+#endif
+#ifdef SMALL_DATASET
+	#define NI 256
+    #define NJ 256
+    #define NL 256
+    #define NK 256
+#endif 
+#ifdef STANDARD_DATASET
+	#define NI 1024
+	#define NJ 1024
+	#define NK 1024
+	#define NL 1024
+#endif
+#ifdef LARGE_DATASET
+	#define NI 2048
+	#define NJ 2048
+	#define NL 2048
+	#define NK 2048
+#endif
+#ifdef EXTRALARGE_DATASET
+	#define NI 4096
+	#define NJ 4096
+	#define NL 4096
+	#define NK 4096
+#endif
 
-
-
-#define NI 1024
-#define NJ 1024
-#define NK 1024
-#define NL 1024
+#else
+	#define NI 4
+	#define NJ 4
+	#define NK 4
+	#define NL 4
+#endif
 
 void mm2(double* tmp, double* A, double* B, double* C, double* D, double alpha, double beta) {
 

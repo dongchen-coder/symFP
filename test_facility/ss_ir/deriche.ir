@@ -1,9 +1,9 @@
-; ModuleID = '/Users/dchen/tools/symFP/test_facility/ss_bc/deriche.bc'
-source_filename = "/Users/dchen/tools/symFP/test_facility/ss_src/deriche.c"
-target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-apple-macosx10.14.0"
+; ModuleID = './ss_bc/deriche.bc'
+source_filename = "./ss_src/deriche.c"
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
 
-; Function Attrs: noinline nounwind optnone ssp uwtable
+; Function Attrs: noinline nounwind optnone uwtable
 define void @deriche(double* %y1, double* %imgIn, double* %y2, double* %imgOut, double %alpha) #0 {
 entry:
   %y1.addr = alloca double*, align 8
@@ -43,557 +43,557 @@ entry:
   store double %alpha, double* %alpha.addr, align 8
   %0 = load double, double* %alpha.addr, align 8
   %sub = fsub double -0.000000e+00, %0
-  %1 = call double @llvm.exp.f64(double %sub)
-  %sub1 = fsub double 1.000000e+00, %1
+  %call = call double @exp(double %sub) #2
+  %sub1 = fsub double 1.000000e+00, %call
+  %1 = load double, double* %alpha.addr, align 8
+  %sub2 = fsub double -0.000000e+00, %1
+  %call3 = call double @exp(double %sub2) #2
+  %sub4 = fsub double 1.000000e+00, %call3
+  %mul = fmul double %sub1, %sub4
   %2 = load double, double* %alpha.addr, align 8
-  %sub2 = fsub double -0.000000e+00, %2
-  %3 = call double @llvm.exp.f64(double %sub2)
-  %sub3 = fsub double 1.000000e+00, %3
-  %mul = fmul double %sub1, %sub3
+  %mul5 = fmul double 2.000000e+00, %2
+  %3 = load double, double* %alpha.addr, align 8
+  %sub6 = fsub double -0.000000e+00, %3
+  %call7 = call double @exp(double %sub6) #2
+  %mul8 = fmul double %mul5, %call7
+  %add = fadd double 1.000000e+00, %mul8
   %4 = load double, double* %alpha.addr, align 8
-  %mul4 = fmul double 2.000000e+00, %4
-  %5 = load double, double* %alpha.addr, align 8
-  %sub5 = fsub double -0.000000e+00, %5
-  %6 = call double @llvm.exp.f64(double %sub5)
-  %mul6 = fmul double %mul4, %6
-  %add = fadd double 1.000000e+00, %mul6
-  %7 = load double, double* %alpha.addr, align 8
-  %mul7 = fmul double 2.000000e+00, %7
-  %8 = call double @llvm.exp.f64(double %mul7)
-  %sub8 = fsub double %add, %8
-  %div = fdiv double %mul, %sub8
+  %mul9 = fmul double 2.000000e+00, %4
+  %call10 = call double @exp(double %mul9) #2
+  %sub11 = fsub double %add, %call10
+  %div = fdiv double %mul, %sub11
   store double %div, double* %k, align 8
+  %5 = load double, double* %k, align 8
+  store double %5, double* %a5, align 8
+  store double %5, double* %a1, align 8
+  %6 = load double, double* %k, align 8
+  %7 = load double, double* %alpha.addr, align 8
+  %sub12 = fsub double -0.000000e+00, %7
+  %call13 = call double @exp(double %sub12) #2
+  %mul14 = fmul double %6, %call13
+  %8 = load double, double* %alpha.addr, align 8
+  %sub15 = fsub double %8, 1.000000e+00
+  %mul16 = fmul double %mul14, %sub15
+  store double %mul16, double* %a6, align 8
+  store double %mul16, double* %a2, align 8
   %9 = load double, double* %k, align 8
-  store double %9, double* %a5, align 8
-  store double %9, double* %a1, align 8
-  %10 = load double, double* %k, align 8
+  %10 = load double, double* %alpha.addr, align 8
+  %sub17 = fsub double -0.000000e+00, %10
+  %call18 = call double @exp(double %sub17) #2
+  %mul19 = fmul double %9, %call18
   %11 = load double, double* %alpha.addr, align 8
-  %sub9 = fsub double -0.000000e+00, %11
-  %12 = call double @llvm.exp.f64(double %sub9)
-  %mul10 = fmul double %10, %12
+  %add20 = fadd double %11, 1.000000e+00
+  %mul21 = fmul double %mul19, %add20
+  store double %mul21, double* %a7, align 8
+  store double %mul21, double* %a3, align 8
+  %12 = load double, double* %k, align 8
+  %sub22 = fsub double -0.000000e+00, %12
   %13 = load double, double* %alpha.addr, align 8
-  %sub11 = fsub double %13, 1.000000e+00
-  %mul12 = fmul double %mul10, %sub11
-  store double %mul12, double* %a6, align 8
-  store double %mul12, double* %a2, align 8
-  %14 = load double, double* %k, align 8
+  %mul23 = fmul double -2.000000e+00, %13
+  %call24 = call double @exp(double %mul23) #2
+  %mul25 = fmul double %sub22, %call24
+  store double %mul25, double* %a8, align 8
+  store double %mul25, double* %a4, align 8
+  %14 = load double, double* %alpha.addr, align 8
+  %sub26 = fsub double -0.000000e+00, %14
+  %call27 = call double @pow(double 2.000000e+00, double %sub26) #2
+  store double %call27, double* %b1, align 8
   %15 = load double, double* %alpha.addr, align 8
-  %sub13 = fsub double -0.000000e+00, %15
-  %16 = call double @llvm.exp.f64(double %sub13)
-  %mul14 = fmul double %14, %16
-  %17 = load double, double* %alpha.addr, align 8
-  %add15 = fadd double %17, 1.000000e+00
-  %mul16 = fmul double %mul14, %add15
-  store double %mul16, double* %a7, align 8
-  store double %mul16, double* %a3, align 8
-  %18 = load double, double* %k, align 8
-  %sub17 = fsub double -0.000000e+00, %18
-  %19 = load double, double* %alpha.addr, align 8
-  %mul18 = fmul double -2.000000e+00, %19
-  %20 = call double @llvm.exp.f64(double %mul18)
-  %mul19 = fmul double %sub17, %20
-  store double %mul19, double* %a8, align 8
-  store double %mul19, double* %a4, align 8
-  %21 = load double, double* %alpha.addr, align 8
-  %sub20 = fsub double -0.000000e+00, %21
-  %22 = call double @llvm.pow.f64(double 2.000000e+00, double %sub20)
-  store double %22, double* %b1, align 8
-  %23 = load double, double* %alpha.addr, align 8
-  %mul21 = fmul double -2.000000e+00, %23
-  %24 = call double @llvm.exp.f64(double %mul21)
-  %sub22 = fsub double -0.000000e+00, %24
-  store double %sub22, double* %b2, align 8
+  %mul28 = fmul double -2.000000e+00, %15
+  %call29 = call double @exp(double %mul28) #2
+  %sub30 = fsub double -0.000000e+00, %call29
+  store double %sub30, double* %b2, align 8
   store double 1.000000e+00, double* %c2, align 8
   store double 1.000000e+00, double* %c1, align 8
   store i32 0, i32* %i, align 4
   br label %for.cond
 
-for.cond:                                         ; preds = %for.inc47, %entry
-  %25 = load i32, i32* %i, align 4
-  %cmp = icmp slt i32 %25, 1024
-  br i1 %cmp, label %for.body, label %for.end49
+for.cond:                                         ; preds = %for.inc55, %entry
+  %16 = load i32, i32* %i, align 4
+  %cmp = icmp slt i32 %16, 1024
+  br i1 %cmp, label %for.body, label %for.end57
 
 for.body:                                         ; preds = %for.cond
   store double 0.000000e+00, double* %ym1, align 8
   store double 0.000000e+00, double* %ym2, align 8
   store double 0.000000e+00, double* %xm1, align 8
   store i32 0, i32* %j, align 4
-  br label %for.cond23
+  br label %for.cond31
 
-for.cond23:                                       ; preds = %for.inc, %for.body
-  %26 = load i32, i32* %j, align 4
-  %cmp24 = icmp slt i32 %26, 1024
-  br i1 %cmp24, label %for.body25, label %for.end
+for.cond31:                                       ; preds = %for.inc, %for.body
+  %17 = load i32, i32* %j, align 4
+  %cmp32 = icmp slt i32 %17, 1024
+  br i1 %cmp32, label %for.body33, label %for.end
 
-for.body25:                                       ; preds = %for.cond23
-  %27 = load double, double* %a1, align 8
-  %28 = load double*, double** %imgIn.addr, align 8
-  %29 = load i32, i32* %i, align 4
-  %mul26 = mul nsw i32 %29, 1024
-  %30 = load i32, i32* %j, align 4
-  %add27 = add nsw i32 %mul26, %30
-  %idxprom = sext i32 %add27 to i64
-  %arrayidx = getelementptr inbounds double, double* %28, i64 %idxprom
-  %31 = load double, double* %arrayidx, align 8
-  %mul28 = fmul double %27, %31
-  %32 = load double, double* %a2, align 8
-  %33 = load double, double* %xm1, align 8
-  %mul29 = fmul double %32, %33
-  %add30 = fadd double %mul28, %mul29
-  %34 = load double, double* %b1, align 8
-  %35 = load double, double* %ym1, align 8
-  %mul31 = fmul double %34, %35
-  %add32 = fadd double %add30, %mul31
-  %36 = load double, double* %b2, align 8
-  %37 = load double, double* %ym2, align 8
-  %mul33 = fmul double %36, %37
-  %add34 = fadd double %add32, %mul33
-  %38 = load double*, double** %y1.addr, align 8
-  %39 = load i32, i32* %i, align 4
-  %mul35 = mul nsw i32 %39, 1024
-  %40 = load i32, i32* %j, align 4
-  %add36 = add nsw i32 %mul35, %40
-  %idxprom37 = sext i32 %add36 to i64
-  %arrayidx38 = getelementptr inbounds double, double* %38, i64 %idxprom37
-  store double %add34, double* %arrayidx38, align 8
-  %41 = load double*, double** %imgIn.addr, align 8
-  %42 = load i32, i32* %i, align 4
-  %mul39 = mul nsw i32 %42, 1024
-  %43 = load i32, i32* %j, align 4
-  %add40 = add nsw i32 %mul39, %43
-  %idxprom41 = sext i32 %add40 to i64
-  %arrayidx42 = getelementptr inbounds double, double* %41, i64 %idxprom41
-  %44 = load double, double* %arrayidx42, align 8
-  store double %44, double* %xm1, align 8
-  %45 = load double, double* %ym1, align 8
-  store double %45, double* %ym2, align 8
-  %46 = load double*, double** %y1.addr, align 8
-  %47 = load i32, i32* %i, align 4
-  %mul43 = mul nsw i32 %47, 1024
-  %48 = load i32, i32* %j, align 4
-  %add44 = add nsw i32 %mul43, %48
+for.body33:                                       ; preds = %for.cond31
+  %18 = load double, double* %a1, align 8
+  %19 = load double*, double** %imgIn.addr, align 8
+  %20 = load i32, i32* %i, align 4
+  %mul34 = mul nsw i32 %20, 1024
+  %21 = load i32, i32* %j, align 4
+  %add35 = add nsw i32 %mul34, %21
+  %idxprom = sext i32 %add35 to i64
+  %arrayidx = getelementptr inbounds double, double* %19, i64 %idxprom
+  %22 = load double, double* %arrayidx, align 8
+  %mul36 = fmul double %18, %22
+  %23 = load double, double* %a2, align 8
+  %24 = load double, double* %xm1, align 8
+  %mul37 = fmul double %23, %24
+  %add38 = fadd double %mul36, %mul37
+  %25 = load double, double* %b1, align 8
+  %26 = load double, double* %ym1, align 8
+  %mul39 = fmul double %25, %26
+  %add40 = fadd double %add38, %mul39
+  %27 = load double, double* %b2, align 8
+  %28 = load double, double* %ym2, align 8
+  %mul41 = fmul double %27, %28
+  %add42 = fadd double %add40, %mul41
+  %29 = load double*, double** %y1.addr, align 8
+  %30 = load i32, i32* %i, align 4
+  %mul43 = mul nsw i32 %30, 1024
+  %31 = load i32, i32* %j, align 4
+  %add44 = add nsw i32 %mul43, %31
   %idxprom45 = sext i32 %add44 to i64
-  %arrayidx46 = getelementptr inbounds double, double* %46, i64 %idxprom45
-  %49 = load double, double* %arrayidx46, align 8
-  store double %49, double* %ym1, align 8
+  %arrayidx46 = getelementptr inbounds double, double* %29, i64 %idxprom45
+  store double %add42, double* %arrayidx46, align 8
+  %32 = load double*, double** %imgIn.addr, align 8
+  %33 = load i32, i32* %i, align 4
+  %mul47 = mul nsw i32 %33, 1024
+  %34 = load i32, i32* %j, align 4
+  %add48 = add nsw i32 %mul47, %34
+  %idxprom49 = sext i32 %add48 to i64
+  %arrayidx50 = getelementptr inbounds double, double* %32, i64 %idxprom49
+  %35 = load double, double* %arrayidx50, align 8
+  store double %35, double* %xm1, align 8
+  %36 = load double, double* %ym1, align 8
+  store double %36, double* %ym2, align 8
+  %37 = load double*, double** %y1.addr, align 8
+  %38 = load i32, i32* %i, align 4
+  %mul51 = mul nsw i32 %38, 1024
+  %39 = load i32, i32* %j, align 4
+  %add52 = add nsw i32 %mul51, %39
+  %idxprom53 = sext i32 %add52 to i64
+  %arrayidx54 = getelementptr inbounds double, double* %37, i64 %idxprom53
+  %40 = load double, double* %arrayidx54, align 8
+  store double %40, double* %ym1, align 8
   br label %for.inc
 
-for.inc:                                          ; preds = %for.body25
-  %50 = load i32, i32* %j, align 4
-  %inc = add nsw i32 %50, 1
+for.inc:                                          ; preds = %for.body33
+  %41 = load i32, i32* %j, align 4
+  %inc = add nsw i32 %41, 1
   store i32 %inc, i32* %j, align 4
-  br label %for.cond23
+  br label %for.cond31
 
-for.end:                                          ; preds = %for.cond23
-  br label %for.inc47
+for.end:                                          ; preds = %for.cond31
+  br label %for.inc55
 
-for.inc47:                                        ; preds = %for.end
-  %51 = load i32, i32* %i, align 4
-  %inc48 = add nsw i32 %51, 1
-  store i32 %inc48, i32* %i, align 4
+for.inc55:                                        ; preds = %for.end
+  %42 = load i32, i32* %i, align 4
+  %inc56 = add nsw i32 %42, 1
+  store i32 %inc56, i32* %i, align 4
   br label %for.cond
 
-for.end49:                                        ; preds = %for.cond
+for.end57:                                        ; preds = %for.cond
   store i32 0, i32* %i, align 4
-  br label %for.cond50
+  br label %for.cond58
 
-for.cond50:                                       ; preds = %for.inc77, %for.end49
-  %52 = load i32, i32* %i, align 4
-  %cmp51 = icmp slt i32 %52, 1024
-  br i1 %cmp51, label %for.body52, label %for.end79
+for.cond58:                                       ; preds = %for.inc85, %for.end57
+  %43 = load i32, i32* %i, align 4
+  %cmp59 = icmp slt i32 %43, 1024
+  br i1 %cmp59, label %for.body60, label %for.end87
 
-for.body52:                                       ; preds = %for.cond50
+for.body60:                                       ; preds = %for.cond58
   store double 0.000000e+00, double* %yp1, align 8
   store double 0.000000e+00, double* %yp2, align 8
   store double 0.000000e+00, double* %xp1, align 8
   store double 0.000000e+00, double* %xp2, align 8
   store i32 1023, i32* %j, align 4
-  br label %for.cond53
+  br label %for.cond61
 
-for.cond53:                                       ; preds = %for.inc75, %for.body52
-  %53 = load i32, i32* %j, align 4
-  %cmp54 = icmp sge i32 %53, 0
-  br i1 %cmp54, label %for.body55, label %for.end76
+for.cond61:                                       ; preds = %for.inc83, %for.body60
+  %44 = load i32, i32* %j, align 4
+  %cmp62 = icmp sge i32 %44, 0
+  br i1 %cmp62, label %for.body63, label %for.end84
 
-for.body55:                                       ; preds = %for.cond53
-  %54 = load double, double* %a3, align 8
-  %55 = load double, double* %xp1, align 8
-  %mul56 = fmul double %54, %55
-  %56 = load double, double* %a4, align 8
-  %57 = load double, double* %xp2, align 8
-  %mul57 = fmul double %56, %57
-  %add58 = fadd double %mul56, %mul57
-  %58 = load double, double* %b1, align 8
-  %59 = load double, double* %yp1, align 8
-  %mul59 = fmul double %58, %59
-  %add60 = fadd double %add58, %mul59
-  %60 = load double, double* %b2, align 8
-  %61 = load double, double* %yp2, align 8
-  %mul61 = fmul double %60, %61
-  %add62 = fadd double %add60, %mul61
+for.body63:                                       ; preds = %for.cond61
+  %45 = load double, double* %a3, align 8
+  %46 = load double, double* %xp1, align 8
+  %mul64 = fmul double %45, %46
+  %47 = load double, double* %a4, align 8
+  %48 = load double, double* %xp2, align 8
+  %mul65 = fmul double %47, %48
+  %add66 = fadd double %mul64, %mul65
+  %49 = load double, double* %b1, align 8
+  %50 = load double, double* %yp1, align 8
+  %mul67 = fmul double %49, %50
+  %add68 = fadd double %add66, %mul67
+  %51 = load double, double* %b2, align 8
+  %52 = load double, double* %yp2, align 8
+  %mul69 = fmul double %51, %52
+  %add70 = fadd double %add68, %mul69
+  %53 = load double*, double** %y2.addr, align 8
+  %54 = load i32, i32* %i, align 4
+  %mul71 = mul nsw i32 %54, 1024
+  %55 = load i32, i32* %j, align 4
+  %add72 = add nsw i32 %mul71, %55
+  %idxprom73 = sext i32 %add72 to i64
+  %arrayidx74 = getelementptr inbounds double, double* %53, i64 %idxprom73
+  store double %add70, double* %arrayidx74, align 8
+  %56 = load double, double* %xp1, align 8
+  store double %56, double* %xp2, align 8
+  %57 = load double*, double** %imgIn.addr, align 8
+  %58 = load i32, i32* %i, align 4
+  %mul75 = mul nsw i32 %58, 1024
+  %59 = load i32, i32* %j, align 4
+  %add76 = add nsw i32 %mul75, %59
+  %idxprom77 = sext i32 %add76 to i64
+  %arrayidx78 = getelementptr inbounds double, double* %57, i64 %idxprom77
+  %60 = load double, double* %arrayidx78, align 8
+  store double %60, double* %xp1, align 8
+  %61 = load double, double* %yp1, align 8
+  store double %61, double* %yp2, align 8
   %62 = load double*, double** %y2.addr, align 8
   %63 = load i32, i32* %i, align 4
-  %mul63 = mul nsw i32 %63, 1024
+  %mul79 = mul nsw i32 %63, 1024
   %64 = load i32, i32* %j, align 4
-  %add64 = add nsw i32 %mul63, %64
-  %idxprom65 = sext i32 %add64 to i64
-  %arrayidx66 = getelementptr inbounds double, double* %62, i64 %idxprom65
-  store double %add62, double* %arrayidx66, align 8
-  %65 = load double, double* %xp1, align 8
-  store double %65, double* %xp2, align 8
-  %66 = load double*, double** %imgIn.addr, align 8
-  %67 = load i32, i32* %i, align 4
-  %mul67 = mul nsw i32 %67, 1024
-  %68 = load i32, i32* %j, align 4
-  %add68 = add nsw i32 %mul67, %68
-  %idxprom69 = sext i32 %add68 to i64
-  %arrayidx70 = getelementptr inbounds double, double* %66, i64 %idxprom69
-  %69 = load double, double* %arrayidx70, align 8
-  store double %69, double* %xp1, align 8
-  %70 = load double, double* %yp1, align 8
-  store double %70, double* %yp2, align 8
-  %71 = load double*, double** %y2.addr, align 8
-  %72 = load i32, i32* %i, align 4
-  %mul71 = mul nsw i32 %72, 1024
-  %73 = load i32, i32* %j, align 4
-  %add72 = add nsw i32 %mul71, %73
-  %idxprom73 = sext i32 %add72 to i64
-  %arrayidx74 = getelementptr inbounds double, double* %71, i64 %idxprom73
-  %74 = load double, double* %arrayidx74, align 8
-  store double %74, double* %yp1, align 8
-  br label %for.inc75
+  %add80 = add nsw i32 %mul79, %64
+  %idxprom81 = sext i32 %add80 to i64
+  %arrayidx82 = getelementptr inbounds double, double* %62, i64 %idxprom81
+  %65 = load double, double* %arrayidx82, align 8
+  store double %65, double* %yp1, align 8
+  br label %for.inc83
 
-for.inc75:                                        ; preds = %for.body55
-  %75 = load i32, i32* %j, align 4
-  %dec = add nsw i32 %75, -1
+for.inc83:                                        ; preds = %for.body63
+  %66 = load i32, i32* %j, align 4
+  %dec = add nsw i32 %66, -1
   store i32 %dec, i32* %j, align 4
-  br label %for.cond53
+  br label %for.cond61
 
-for.end76:                                        ; preds = %for.cond53
-  br label %for.inc77
+for.end84:                                        ; preds = %for.cond61
+  br label %for.inc85
 
-for.inc77:                                        ; preds = %for.end76
-  %76 = load i32, i32* %i, align 4
-  %inc78 = add nsw i32 %76, 1
-  store i32 %inc78, i32* %i, align 4
-  br label %for.cond50
+for.inc85:                                        ; preds = %for.end84
+  %67 = load i32, i32* %i, align 4
+  %inc86 = add nsw i32 %67, 1
+  store i32 %inc86, i32* %i, align 4
+  br label %for.cond58
 
-for.end79:                                        ; preds = %for.cond50
+for.end87:                                        ; preds = %for.cond58
   store i32 0, i32* %i, align 4
-  br label %for.cond80
+  br label %for.cond88
 
-for.cond80:                                       ; preds = %for.inc103, %for.end79
-  %77 = load i32, i32* %i, align 4
-  %cmp81 = icmp slt i32 %77, 1024
-  br i1 %cmp81, label %for.body82, label %for.end105
+for.cond88:                                       ; preds = %for.inc111, %for.end87
+  %68 = load i32, i32* %i, align 4
+  %cmp89 = icmp slt i32 %68, 1024
+  br i1 %cmp89, label %for.body90, label %for.end113
 
-for.body82:                                       ; preds = %for.cond80
+for.body90:                                       ; preds = %for.cond88
   store i32 0, i32* %j, align 4
-  br label %for.cond83
+  br label %for.cond91
 
-for.cond83:                                       ; preds = %for.inc100, %for.body82
-  %78 = load i32, i32* %j, align 4
-  %cmp84 = icmp slt i32 %78, 1024
-  br i1 %cmp84, label %for.body85, label %for.end102
+for.cond91:                                       ; preds = %for.inc108, %for.body90
+  %69 = load i32, i32* %j, align 4
+  %cmp92 = icmp slt i32 %69, 1024
+  br i1 %cmp92, label %for.body93, label %for.end110
 
-for.body85:                                       ; preds = %for.cond83
-  %79 = load double, double* %c1, align 8
-  %80 = load double*, double** %y1.addr, align 8
-  %81 = load i32, i32* %i, align 4
-  %mul86 = mul nsw i32 %81, 1024
+for.body93:                                       ; preds = %for.cond91
+  %70 = load double, double* %c1, align 8
+  %71 = load double*, double** %y1.addr, align 8
+  %72 = load i32, i32* %i, align 4
+  %mul94 = mul nsw i32 %72, 1024
+  %73 = load i32, i32* %j, align 4
+  %add95 = add nsw i32 %mul94, %73
+  %idxprom96 = sext i32 %add95 to i64
+  %arrayidx97 = getelementptr inbounds double, double* %71, i64 %idxprom96
+  %74 = load double, double* %arrayidx97, align 8
+  %75 = load double*, double** %y2.addr, align 8
+  %76 = load i32, i32* %i, align 4
+  %mul98 = mul nsw i32 %76, 1024
+  %77 = load i32, i32* %j, align 4
+  %add99 = add nsw i32 %mul98, %77
+  %idxprom100 = sext i32 %add99 to i64
+  %arrayidx101 = getelementptr inbounds double, double* %75, i64 %idxprom100
+  %78 = load double, double* %arrayidx101, align 8
+  %add102 = fadd double %74, %78
+  %mul103 = fmul double %70, %add102
+  %79 = load double*, double** %imgOut.addr, align 8
+  %80 = load i32, i32* %i, align 4
+  %mul104 = mul nsw i32 %80, 1024
+  %81 = load i32, i32* %j, align 4
+  %add105 = add nsw i32 %mul104, %81
+  %idxprom106 = sext i32 %add105 to i64
+  %arrayidx107 = getelementptr inbounds double, double* %79, i64 %idxprom106
+  store double %mul103, double* %arrayidx107, align 8
+  br label %for.inc108
+
+for.inc108:                                       ; preds = %for.body93
   %82 = load i32, i32* %j, align 4
-  %add87 = add nsw i32 %mul86, %82
-  %idxprom88 = sext i32 %add87 to i64
-  %arrayidx89 = getelementptr inbounds double, double* %80, i64 %idxprom88
-  %83 = load double, double* %arrayidx89, align 8
-  %84 = load double*, double** %y2.addr, align 8
-  %85 = load i32, i32* %i, align 4
-  %mul90 = mul nsw i32 %85, 1024
-  %86 = load i32, i32* %j, align 4
-  %add91 = add nsw i32 %mul90, %86
-  %idxprom92 = sext i32 %add91 to i64
-  %arrayidx93 = getelementptr inbounds double, double* %84, i64 %idxprom92
-  %87 = load double, double* %arrayidx93, align 8
-  %add94 = fadd double %83, %87
-  %mul95 = fmul double %79, %add94
-  %88 = load double*, double** %imgOut.addr, align 8
-  %89 = load i32, i32* %i, align 4
-  %mul96 = mul nsw i32 %89, 1024
-  %90 = load i32, i32* %j, align 4
-  %add97 = add nsw i32 %mul96, %90
-  %idxprom98 = sext i32 %add97 to i64
-  %arrayidx99 = getelementptr inbounds double, double* %88, i64 %idxprom98
-  store double %mul95, double* %arrayidx99, align 8
-  br label %for.inc100
+  %inc109 = add nsw i32 %82, 1
+  store i32 %inc109, i32* %j, align 4
+  br label %for.cond91
 
-for.inc100:                                       ; preds = %for.body85
-  %91 = load i32, i32* %j, align 4
-  %inc101 = add nsw i32 %91, 1
-  store i32 %inc101, i32* %j, align 4
-  br label %for.cond83
+for.end110:                                       ; preds = %for.cond91
+  br label %for.inc111
 
-for.end102:                                       ; preds = %for.cond83
-  br label %for.inc103
+for.inc111:                                       ; preds = %for.end110
+  %83 = load i32, i32* %i, align 4
+  %inc112 = add nsw i32 %83, 1
+  store i32 %inc112, i32* %i, align 4
+  br label %for.cond88
 
-for.inc103:                                       ; preds = %for.end102
-  %92 = load i32, i32* %i, align 4
-  %inc104 = add nsw i32 %92, 1
-  store i32 %inc104, i32* %i, align 4
-  br label %for.cond80
-
-for.end105:                                       ; preds = %for.cond80
+for.end113:                                       ; preds = %for.cond88
   store i32 0, i32* %j, align 4
-  br label %for.cond106
+  br label %for.cond114
 
-for.cond106:                                      ; preds = %for.inc138, %for.end105
-  %93 = load i32, i32* %j, align 4
-  %cmp107 = icmp slt i32 %93, 1024
-  br i1 %cmp107, label %for.body108, label %for.end140
+for.cond114:                                      ; preds = %for.inc146, %for.end113
+  %84 = load i32, i32* %j, align 4
+  %cmp115 = icmp slt i32 %84, 1024
+  br i1 %cmp115, label %for.body116, label %for.end148
 
-for.body108:                                      ; preds = %for.cond106
+for.body116:                                      ; preds = %for.cond114
   store double 0.000000e+00, double* %tm1, align 8
   store double 0.000000e+00, double* %ym1, align 8
   store double 0.000000e+00, double* %ym2, align 8
   store i32 0, i32* %i, align 4
-  br label %for.cond109
+  br label %for.cond117
 
-for.cond109:                                      ; preds = %for.inc135, %for.body108
-  %94 = load i32, i32* %i, align 4
-  %cmp110 = icmp slt i32 %94, 1024
-  br i1 %cmp110, label %for.body111, label %for.end137
+for.cond117:                                      ; preds = %for.inc143, %for.body116
+  %85 = load i32, i32* %i, align 4
+  %cmp118 = icmp slt i32 %85, 1024
+  br i1 %cmp118, label %for.body119, label %for.end145
 
-for.body111:                                      ; preds = %for.cond109
-  %95 = load double, double* %a5, align 8
-  %96 = load double*, double** %imgOut.addr, align 8
-  %97 = load i32, i32* %i, align 4
-  %mul112 = mul nsw i32 %97, 1024
-  %98 = load i32, i32* %j, align 4
-  %add113 = add nsw i32 %mul112, %98
-  %idxprom114 = sext i32 %add113 to i64
-  %arrayidx115 = getelementptr inbounds double, double* %96, i64 %idxprom114
-  %99 = load double, double* %arrayidx115, align 8
-  %mul116 = fmul double %95, %99
-  %100 = load double, double* %a6, align 8
-  %101 = load double, double* %tm1, align 8
-  %mul117 = fmul double %100, %101
-  %add118 = fadd double %mul116, %mul117
-  %102 = load double, double* %b1, align 8
-  %103 = load double, double* %ym1, align 8
-  %mul119 = fmul double %102, %103
-  %add120 = fadd double %add118, %mul119
-  %104 = load double, double* %b2, align 8
-  %105 = load double, double* %ym2, align 8
-  %mul121 = fmul double %104, %105
-  %add122 = fadd double %add120, %mul121
-  %106 = load double*, double** %y1.addr, align 8
-  %107 = load i32, i32* %i, align 4
-  %mul123 = mul nsw i32 %107, 1024
-  %108 = load i32, i32* %j, align 4
-  %add124 = add nsw i32 %mul123, %108
-  %idxprom125 = sext i32 %add124 to i64
-  %arrayidx126 = getelementptr inbounds double, double* %106, i64 %idxprom125
-  store double %add122, double* %arrayidx126, align 8
-  %109 = load double*, double** %imgOut.addr, align 8
-  %110 = load i32, i32* %i, align 4
-  %mul127 = mul nsw i32 %110, 1024
-  %111 = load i32, i32* %j, align 4
-  %add128 = add nsw i32 %mul127, %111
-  %idxprom129 = sext i32 %add128 to i64
-  %arrayidx130 = getelementptr inbounds double, double* %109, i64 %idxprom129
-  %112 = load double, double* %arrayidx130, align 8
-  store double %112, double* %tm1, align 8
-  %113 = load double, double* %ym1, align 8
-  store double %113, double* %ym2, align 8
-  %114 = load double*, double** %y1.addr, align 8
-  %115 = load i32, i32* %i, align 4
-  %mul131 = mul nsw i32 %115, 1024
-  %116 = load i32, i32* %j, align 4
-  %add132 = add nsw i32 %mul131, %116
+for.body119:                                      ; preds = %for.cond117
+  %86 = load double, double* %a5, align 8
+  %87 = load double*, double** %imgOut.addr, align 8
+  %88 = load i32, i32* %i, align 4
+  %mul120 = mul nsw i32 %88, 1024
+  %89 = load i32, i32* %j, align 4
+  %add121 = add nsw i32 %mul120, %89
+  %idxprom122 = sext i32 %add121 to i64
+  %arrayidx123 = getelementptr inbounds double, double* %87, i64 %idxprom122
+  %90 = load double, double* %arrayidx123, align 8
+  %mul124 = fmul double %86, %90
+  %91 = load double, double* %a6, align 8
+  %92 = load double, double* %tm1, align 8
+  %mul125 = fmul double %91, %92
+  %add126 = fadd double %mul124, %mul125
+  %93 = load double, double* %b1, align 8
+  %94 = load double, double* %ym1, align 8
+  %mul127 = fmul double %93, %94
+  %add128 = fadd double %add126, %mul127
+  %95 = load double, double* %b2, align 8
+  %96 = load double, double* %ym2, align 8
+  %mul129 = fmul double %95, %96
+  %add130 = fadd double %add128, %mul129
+  %97 = load double*, double** %y1.addr, align 8
+  %98 = load i32, i32* %i, align 4
+  %mul131 = mul nsw i32 %98, 1024
+  %99 = load i32, i32* %j, align 4
+  %add132 = add nsw i32 %mul131, %99
   %idxprom133 = sext i32 %add132 to i64
-  %arrayidx134 = getelementptr inbounds double, double* %114, i64 %idxprom133
-  %117 = load double, double* %arrayidx134, align 8
-  store double %117, double* %ym1, align 8
-  br label %for.inc135
+  %arrayidx134 = getelementptr inbounds double, double* %97, i64 %idxprom133
+  store double %add130, double* %arrayidx134, align 8
+  %100 = load double*, double** %imgOut.addr, align 8
+  %101 = load i32, i32* %i, align 4
+  %mul135 = mul nsw i32 %101, 1024
+  %102 = load i32, i32* %j, align 4
+  %add136 = add nsw i32 %mul135, %102
+  %idxprom137 = sext i32 %add136 to i64
+  %arrayidx138 = getelementptr inbounds double, double* %100, i64 %idxprom137
+  %103 = load double, double* %arrayidx138, align 8
+  store double %103, double* %tm1, align 8
+  %104 = load double, double* %ym1, align 8
+  store double %104, double* %ym2, align 8
+  %105 = load double*, double** %y1.addr, align 8
+  %106 = load i32, i32* %i, align 4
+  %mul139 = mul nsw i32 %106, 1024
+  %107 = load i32, i32* %j, align 4
+  %add140 = add nsw i32 %mul139, %107
+  %idxprom141 = sext i32 %add140 to i64
+  %arrayidx142 = getelementptr inbounds double, double* %105, i64 %idxprom141
+  %108 = load double, double* %arrayidx142, align 8
+  store double %108, double* %ym1, align 8
+  br label %for.inc143
 
-for.inc135:                                       ; preds = %for.body111
-  %118 = load i32, i32* %i, align 4
-  %inc136 = add nsw i32 %118, 1
-  store i32 %inc136, i32* %i, align 4
-  br label %for.cond109
+for.inc143:                                       ; preds = %for.body119
+  %109 = load i32, i32* %i, align 4
+  %inc144 = add nsw i32 %109, 1
+  store i32 %inc144, i32* %i, align 4
+  br label %for.cond117
 
-for.end137:                                       ; preds = %for.cond109
-  br label %for.inc138
+for.end145:                                       ; preds = %for.cond117
+  br label %for.inc146
 
-for.inc138:                                       ; preds = %for.end137
-  %119 = load i32, i32* %j, align 4
-  %inc139 = add nsw i32 %119, 1
-  store i32 %inc139, i32* %j, align 4
-  br label %for.cond106
+for.inc146:                                       ; preds = %for.end145
+  %110 = load i32, i32* %j, align 4
+  %inc147 = add nsw i32 %110, 1
+  store i32 %inc147, i32* %j, align 4
+  br label %for.cond114
 
-for.end140:                                       ; preds = %for.cond106
+for.end148:                                       ; preds = %for.cond114
   store i32 0, i32* %j, align 4
-  br label %for.cond141
+  br label %for.cond149
 
-for.cond141:                                      ; preds = %for.inc169, %for.end140
-  %120 = load i32, i32* %j, align 4
-  %cmp142 = icmp slt i32 %120, 1024
-  br i1 %cmp142, label %for.body143, label %for.end171
+for.cond149:                                      ; preds = %for.inc177, %for.end148
+  %111 = load i32, i32* %j, align 4
+  %cmp150 = icmp slt i32 %111, 1024
+  br i1 %cmp150, label %for.body151, label %for.end179
 
-for.body143:                                      ; preds = %for.cond141
+for.body151:                                      ; preds = %for.cond149
   store double 0.000000e+00, double* %tp1, align 8
   store double 0.000000e+00, double* %tp2, align 8
   store double 0.000000e+00, double* %yp1, align 8
   store double 0.000000e+00, double* %yp2, align 8
   store i32 1023, i32* %i, align 4
-  br label %for.cond144
+  br label %for.cond152
 
-for.cond144:                                      ; preds = %for.inc166, %for.body143
-  %121 = load i32, i32* %i, align 4
-  %cmp145 = icmp sge i32 %121, 0
-  br i1 %cmp145, label %for.body146, label %for.end168
+for.cond152:                                      ; preds = %for.inc174, %for.body151
+  %112 = load i32, i32* %i, align 4
+  %cmp153 = icmp sge i32 %112, 0
+  br i1 %cmp153, label %for.body154, label %for.end176
 
-for.body146:                                      ; preds = %for.cond144
-  %122 = load double, double* %a7, align 8
-  %123 = load double, double* %tp1, align 8
-  %mul147 = fmul double %122, %123
-  %124 = load double, double* %a8, align 8
-  %125 = load double, double* %tp2, align 8
-  %mul148 = fmul double %124, %125
-  %add149 = fadd double %mul147, %mul148
-  %126 = load double, double* %b1, align 8
-  %127 = load double, double* %yp1, align 8
-  %mul150 = fmul double %126, %127
-  %add151 = fadd double %add149, %mul150
-  %128 = load double, double* %b2, align 8
-  %129 = load double, double* %yp2, align 8
-  %mul152 = fmul double %128, %129
-  %add153 = fadd double %add151, %mul152
+for.body154:                                      ; preds = %for.cond152
+  %113 = load double, double* %a7, align 8
+  %114 = load double, double* %tp1, align 8
+  %mul155 = fmul double %113, %114
+  %115 = load double, double* %a8, align 8
+  %116 = load double, double* %tp2, align 8
+  %mul156 = fmul double %115, %116
+  %add157 = fadd double %mul155, %mul156
+  %117 = load double, double* %b1, align 8
+  %118 = load double, double* %yp1, align 8
+  %mul158 = fmul double %117, %118
+  %add159 = fadd double %add157, %mul158
+  %119 = load double, double* %b2, align 8
+  %120 = load double, double* %yp2, align 8
+  %mul160 = fmul double %119, %120
+  %add161 = fadd double %add159, %mul160
+  %121 = load double*, double** %y2.addr, align 8
+  %122 = load i32, i32* %i, align 4
+  %mul162 = mul nsw i32 %122, 1024
+  %123 = load i32, i32* %j, align 4
+  %add163 = add nsw i32 %mul162, %123
+  %idxprom164 = sext i32 %add163 to i64
+  %arrayidx165 = getelementptr inbounds double, double* %121, i64 %idxprom164
+  store double %add161, double* %arrayidx165, align 8
+  %124 = load double, double* %tp1, align 8
+  store double %124, double* %tp2, align 8
+  %125 = load double*, double** %imgOut.addr, align 8
+  %126 = load i32, i32* %i, align 4
+  %mul166 = mul nsw i32 %126, 1024
+  %127 = load i32, i32* %j, align 4
+  %add167 = add nsw i32 %mul166, %127
+  %idxprom168 = sext i32 %add167 to i64
+  %arrayidx169 = getelementptr inbounds double, double* %125, i64 %idxprom168
+  %128 = load double, double* %arrayidx169, align 8
+  store double %128, double* %tp1, align 8
+  %129 = load double, double* %yp1, align 8
+  store double %129, double* %yp2, align 8
   %130 = load double*, double** %y2.addr, align 8
   %131 = load i32, i32* %i, align 4
-  %mul154 = mul nsw i32 %131, 1024
+  %mul170 = mul nsw i32 %131, 1024
   %132 = load i32, i32* %j, align 4
-  %add155 = add nsw i32 %mul154, %132
-  %idxprom156 = sext i32 %add155 to i64
-  %arrayidx157 = getelementptr inbounds double, double* %130, i64 %idxprom156
-  store double %add153, double* %arrayidx157, align 8
-  %133 = load double, double* %tp1, align 8
-  store double %133, double* %tp2, align 8
-  %134 = load double*, double** %imgOut.addr, align 8
-  %135 = load i32, i32* %i, align 4
-  %mul158 = mul nsw i32 %135, 1024
-  %136 = load i32, i32* %j, align 4
-  %add159 = add nsw i32 %mul158, %136
-  %idxprom160 = sext i32 %add159 to i64
-  %arrayidx161 = getelementptr inbounds double, double* %134, i64 %idxprom160
-  %137 = load double, double* %arrayidx161, align 8
-  store double %137, double* %tp1, align 8
-  %138 = load double, double* %yp1, align 8
-  store double %138, double* %yp2, align 8
-  %139 = load double*, double** %y2.addr, align 8
-  %140 = load i32, i32* %i, align 4
-  %mul162 = mul nsw i32 %140, 1024
-  %141 = load i32, i32* %j, align 4
-  %add163 = add nsw i32 %mul162, %141
-  %idxprom164 = sext i32 %add163 to i64
-  %arrayidx165 = getelementptr inbounds double, double* %139, i64 %idxprom164
-  %142 = load double, double* %arrayidx165, align 8
-  store double %142, double* %yp1, align 8
-  br label %for.inc166
+  %add171 = add nsw i32 %mul170, %132
+  %idxprom172 = sext i32 %add171 to i64
+  %arrayidx173 = getelementptr inbounds double, double* %130, i64 %idxprom172
+  %133 = load double, double* %arrayidx173, align 8
+  store double %133, double* %yp1, align 8
+  br label %for.inc174
 
-for.inc166:                                       ; preds = %for.body146
-  %143 = load i32, i32* %i, align 4
-  %dec167 = add nsw i32 %143, -1
-  store i32 %dec167, i32* %i, align 4
-  br label %for.cond144
+for.inc174:                                       ; preds = %for.body154
+  %134 = load i32, i32* %i, align 4
+  %dec175 = add nsw i32 %134, -1
+  store i32 %dec175, i32* %i, align 4
+  br label %for.cond152
 
-for.end168:                                       ; preds = %for.cond144
-  br label %for.inc169
+for.end176:                                       ; preds = %for.cond152
+  br label %for.inc177
 
-for.inc169:                                       ; preds = %for.end168
-  %144 = load i32, i32* %j, align 4
-  %inc170 = add nsw i32 %144, 1
-  store i32 %inc170, i32* %j, align 4
-  br label %for.cond141
+for.inc177:                                       ; preds = %for.end176
+  %135 = load i32, i32* %j, align 4
+  %inc178 = add nsw i32 %135, 1
+  store i32 %inc178, i32* %j, align 4
+  br label %for.cond149
 
-for.end171:                                       ; preds = %for.cond141
+for.end179:                                       ; preds = %for.cond149
   store i32 0, i32* %i, align 4
-  br label %for.cond172
+  br label %for.cond180
 
-for.cond172:                                      ; preds = %for.inc195, %for.end171
-  %145 = load i32, i32* %i, align 4
-  %cmp173 = icmp slt i32 %145, 1024
-  br i1 %cmp173, label %for.body174, label %for.end197
+for.cond180:                                      ; preds = %for.inc203, %for.end179
+  %136 = load i32, i32* %i, align 4
+  %cmp181 = icmp slt i32 %136, 1024
+  br i1 %cmp181, label %for.body182, label %for.end205
 
-for.body174:                                      ; preds = %for.cond172
+for.body182:                                      ; preds = %for.cond180
   store i32 0, i32* %j, align 4
-  br label %for.cond175
+  br label %for.cond183
 
-for.cond175:                                      ; preds = %for.inc192, %for.body174
-  %146 = load i32, i32* %j, align 4
-  %cmp176 = icmp slt i32 %146, 1024
-  br i1 %cmp176, label %for.body177, label %for.end194
+for.cond183:                                      ; preds = %for.inc200, %for.body182
+  %137 = load i32, i32* %j, align 4
+  %cmp184 = icmp slt i32 %137, 1024
+  br i1 %cmp184, label %for.body185, label %for.end202
 
-for.body177:                                      ; preds = %for.cond175
-  %147 = load double, double* %c2, align 8
-  %148 = load double*, double** %y1.addr, align 8
-  %149 = load i32, i32* %i, align 4
-  %mul178 = mul nsw i32 %149, 1024
+for.body185:                                      ; preds = %for.cond183
+  %138 = load double, double* %c2, align 8
+  %139 = load double*, double** %y1.addr, align 8
+  %140 = load i32, i32* %i, align 4
+  %mul186 = mul nsw i32 %140, 1024
+  %141 = load i32, i32* %j, align 4
+  %add187 = add nsw i32 %mul186, %141
+  %idxprom188 = sext i32 %add187 to i64
+  %arrayidx189 = getelementptr inbounds double, double* %139, i64 %idxprom188
+  %142 = load double, double* %arrayidx189, align 8
+  %143 = load double*, double** %y2.addr, align 8
+  %144 = load i32, i32* %i, align 4
+  %mul190 = mul nsw i32 %144, 1024
+  %145 = load i32, i32* %j, align 4
+  %add191 = add nsw i32 %mul190, %145
+  %idxprom192 = sext i32 %add191 to i64
+  %arrayidx193 = getelementptr inbounds double, double* %143, i64 %idxprom192
+  %146 = load double, double* %arrayidx193, align 8
+  %add194 = fadd double %142, %146
+  %mul195 = fmul double %138, %add194
+  %147 = load double*, double** %imgOut.addr, align 8
+  %148 = load i32, i32* %i, align 4
+  %mul196 = mul nsw i32 %148, 1024
+  %149 = load i32, i32* %j, align 4
+  %add197 = add nsw i32 %mul196, %149
+  %idxprom198 = sext i32 %add197 to i64
+  %arrayidx199 = getelementptr inbounds double, double* %147, i64 %idxprom198
+  store double %mul195, double* %arrayidx199, align 8
+  br label %for.inc200
+
+for.inc200:                                       ; preds = %for.body185
   %150 = load i32, i32* %j, align 4
-  %add179 = add nsw i32 %mul178, %150
-  %idxprom180 = sext i32 %add179 to i64
-  %arrayidx181 = getelementptr inbounds double, double* %148, i64 %idxprom180
-  %151 = load double, double* %arrayidx181, align 8
-  %152 = load double*, double** %y2.addr, align 8
-  %153 = load i32, i32* %i, align 4
-  %mul182 = mul nsw i32 %153, 1024
-  %154 = load i32, i32* %j, align 4
-  %add183 = add nsw i32 %mul182, %154
-  %idxprom184 = sext i32 %add183 to i64
-  %arrayidx185 = getelementptr inbounds double, double* %152, i64 %idxprom184
-  %155 = load double, double* %arrayidx185, align 8
-  %add186 = fadd double %151, %155
-  %mul187 = fmul double %147, %add186
-  %156 = load double*, double** %imgOut.addr, align 8
-  %157 = load i32, i32* %i, align 4
-  %mul188 = mul nsw i32 %157, 1024
-  %158 = load i32, i32* %j, align 4
-  %add189 = add nsw i32 %mul188, %158
-  %idxprom190 = sext i32 %add189 to i64
-  %arrayidx191 = getelementptr inbounds double, double* %156, i64 %idxprom190
-  store double %mul187, double* %arrayidx191, align 8
-  br label %for.inc192
+  %inc201 = add nsw i32 %150, 1
+  store i32 %inc201, i32* %j, align 4
+  br label %for.cond183
 
-for.inc192:                                       ; preds = %for.body177
-  %159 = load i32, i32* %j, align 4
-  %inc193 = add nsw i32 %159, 1
-  store i32 %inc193, i32* %j, align 4
-  br label %for.cond175
+for.end202:                                       ; preds = %for.cond183
+  br label %for.inc203
 
-for.end194:                                       ; preds = %for.cond175
-  br label %for.inc195
+for.inc203:                                       ; preds = %for.end202
+  %151 = load i32, i32* %i, align 4
+  %inc204 = add nsw i32 %151, 1
+  store i32 %inc204, i32* %i, align 4
+  br label %for.cond180
 
-for.inc195:                                       ; preds = %for.end194
-  %160 = load i32, i32* %i, align 4
-  %inc196 = add nsw i32 %160, 1
-  store i32 %inc196, i32* %i, align 4
-  br label %for.cond172
-
-for.end197:                                       ; preds = %for.cond172
+for.end205:                                       ; preds = %for.cond180
   ret void
 }
 
-; Function Attrs: nounwind readnone speculatable
-declare double @llvm.exp.f64(double) #1
+; Function Attrs: nounwind
+declare double @exp(double) #1
 
-; Function Attrs: nounwind readnone speculatable
-declare double @llvm.pow.f64(double, double) #1
+; Function Attrs: nounwind
+declare double @pow(double, double) #1
 
-attributes #0 = { noinline nounwind optnone ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="penryn" "target-features"="+cx16,+fxsr,+mmx,+sahf,+sse,+sse2,+sse3,+sse4.1,+ssse3,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #1 = { nounwind readnone speculatable }
+attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind }
 
-!llvm.module.flags = !{!0, !1}
-!llvm.ident = !{!2}
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{i32 7, !"PIC Level", i32 2}
-!2 = !{!"clang version 8.0.0 (tags/RELEASE_800/final)"}
+!1 = !{!"clang version 6.0.0 (tags/RELEASE_600/final)"}

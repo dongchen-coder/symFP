@@ -1,5 +1,27 @@
 //void gesummv(int n, DATA_TYPE alpha, DATA_TYPE beta, DATA_TYPE POLYBENCH_2D(A,N,N,n,n), DATA_TYPE POLYBENCH_2D(B,N,N,n,n), DATA_TYPE POLYBENCH_1D(tmp,N,n), DATA_TYPE POLYBENCH_1D(x,N,n), DATA_TYPE POLYBENCH_1D(y,N,n))
-#define N 1024
+#ifndef DEBUG
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define STANDARD_DATASET
+# endif
+#ifdef MINI_DATASET
+    #define N 32
+#endif
+#ifdef SMALL_DATASET
+    #define N 1024
+#endif
+#ifdef STANDARD_DATASET
+    #define N 4096
+#endif
+#ifdef LARGE_DATASET
+    #define N 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define N 100000
+#endif
+
+#else
+    #define N 4
+#endif
 
 void gesummv(int n, double alpha, double beta, double* A, double* B, double* tmp, double* x, double* y)
 {
