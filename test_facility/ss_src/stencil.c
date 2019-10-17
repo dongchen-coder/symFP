@@ -25,15 +25,13 @@
 #else
 	#define NI 4
 	#define NJ 4
-	#define NK 4
-	#define NL 4
 #endif
 
 
 int stencil(double* a, double* b) {
 
-	for (int i = 1; i < NI + 1; i++) {
-		for (int j = 1; j < NJ + 1; j++) {
+	for (int i = 1; i < NI + 2; i++) {
+		for (int j = 1; j < NJ + 2; j++) {
 			b[(NJ+2)*i+j] = a[(NJ+2)*i+j] 
 						+ a[(NJ+2)*i+j+1] 
 						+ a[(NJ+2)*i+j-1]

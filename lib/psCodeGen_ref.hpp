@@ -87,7 +87,20 @@ namespace psCodeGen_ref {
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
         
-        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
+        /* 
+         * When enableOPT is close
+         * - Find loops that contains the sampled referenceID
+         * When enableOPT is open
+         * - Find loops that contains the reference, the reference could have different ID but should have the same name 
+         * The useID here is to filter out those references that will not be iterated anymore because it appears in the loops that had already finished execution 
+        */
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
+            std::string refName, 
+            int useID, 
+            std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,
+            bool enableOPT
+        );
         
         void searchReuseDifferentLoopsUpdateFuncGen();
         void searchReuseDifferentLoopsCalFuncGen();
@@ -125,6 +138,7 @@ namespace psCodeGen_ref {
         bool refRTSearchGen(
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
             bool GenFlag, 
+            bool isFirstOutLoop, 
             std::string refName, 
             int useID, 
             std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, 

@@ -1,15 +1,14 @@
 
  /* Start to analysis array index
-Array index info: Total number of references: 10
-y.addr i
-y.addr j
-A.addr ((i * 1024) + j)
+Array index info: Total number of references: 9
 tmp.addr i
 tmp.addr i
-A.addr ((i * 1024) + j)
+A.addr ((i * 4096) + j)
+tmp.addr i
+A.addr ((i * 4096) + j)
 x.addr j
 tmp.addr i
-tmp.addr i
+y.addr j
 y.addr j
 
  Finish to analysis array index */ 
@@ -30,29 +29,24 @@ double* %tmp
 
  /* Start analysis loops
 --i
---Loop Bound: (0, 1024)
---Loop inc: (i + 1)
---Loop predicate: <
-----array access y.addr i
---i
---Loop Bound: (0, 1024)
+--Loop Bound: (0, 4096)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----array access tmp.addr i
 ----j
-----Loop Bound: (0, 1024)
+----Loop Bound: (0, 4096)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
 ------array access tmp.addr i
-------array access A.addr ((i * 1024) + j)
+------array access A.addr ((i * 4096) + j)
 ------array access x.addr j
 ------array access tmp.addr i
 ----j
-----Loop Bound: (0, 1024)
+----Loop Bound: (0, 4096)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
 ------array access y.addr j
-------array access A.addr ((i * 1024) + j)
+------array access A.addr ((i * 4096) + j)
 ------array access tmp.addr i
 ------array access y.addr j
 
@@ -60,25 +54,58 @@ Finish analysis loops */
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 10
-----Sample number: 10
-------Sample number: 104
-------Sample number: 104
+----Sample number: 4096
+------Sample number: 16777216
+------Sample number: 16777216
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
 #include <map>
 #include <set>
+#include <vector>
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
+#ifndef THREAD_NUM
+#    define THREAD_NUM   4
+#endif
+#ifndef BIN_SIZE
+#    define BIN_SIZE   4
+#endif
+#ifndef CHUNK_SIZE
+#    define CHUNK_SIZE   4
+#endif
 using namespace std;
 std::map<uint64_t, double> RT;
 std::map<uint64_t, double> MR;
-void rtHistoCal( int rt) {
+void rtHistoCal( int rt, int val ) {
+    if ( val <= 0) {
+;        return;
+    }
     if (RT.find(rt) == RT.end()) { 
-        RT[rt] = 1;
+        RT[rt] = val;
     } else {
-        RT[rt] += 1;
+        RT[rt] += val;
+    }
+    return;
+}
+void subBlkRT(int rt) {
+    int msb = 0;
+    int tmp_rt = rt;
+    while(tmp_rt != 0) {
+        tmp_rt = tmp_rt / 2;
+        ++msb;
+    }
+    if (msb >= BIN_SIZE) {
+        int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;
+        for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {
+            if (rt < b) {
+                rtHistoCal(b - diff, 1);
+                break;
+            }
+        }
+    }
+    else {
+        rtHistoCal(pow(2, msb-1), 1);
     }
     return;
 }
@@ -148,14 +175,24 @@ void dumpMR() {
     }
     return;
 }
-/* y_addr i 0 */
-int calAddry_addr0( int i) {
+/* tmp_addr i 0 */
+int calAddrtmp_addr0( int i) {
     int result = (i) * 8 / 64;
     return result;
 }
 /* tmp_addr i 1 */
-int calAddrtmp_addr1( int i) {
+int calAddrtmp_addr1( int i, int j) {
     int result = (i) * 8 / 64;
+    return result;
+}
+/* A_addr ((i * 4096) + j) 0 */
+int calAddrA_addr0( int i, int j) {
+    int result = (((i * 4096) + j)) * 8 / 64;
+    return result;
+}
+/* x_addr j 0 */
+int calAddrx_addr0( int i, int j) {
+    int result = (j) * 8 / 64;
     return result;
 }
 /* tmp_addr i 2 */
@@ -163,224 +200,362 @@ int calAddrtmp_addr2( int i, int j) {
     int result = (i) * 8 / 64;
     return result;
 }
-/* A_addr ((i * 1024) + j) 3 */
-int calAddrA_addr3( int i, int j) {
-    int result = (((i * 1024) + j)) * 8 / 64;
-    return result;
-}
-/* x_addr j 4 */
-int calAddrx_addr4( int i, int j) {
+/* y_addr j 0 */
+int calAddry_addr0( int i, int j) {
     int result = (j) * 8 / 64;
     return result;
 }
-/* tmp_addr i 5 */
-int calAddrtmp_addr5( int i, int j) {
+/* A_addr ((i * 4096) + j) 1 */
+int calAddrA_addr1( int i, int j) {
+    int result = (((i * 4096) + j)) * 8 / 64;
+    return result;
+}
+/* tmp_addr i 3 */
+int calAddrtmp_addr3( int i, int j) {
     int result = (i) * 8 / 64;
     return result;
 }
-/* y_addr j 6 */
-int calAddry_addr6( int i, int j) {
+/* y_addr j 1 */
+int calAddry_addr1( int i, int j) {
     int result = (j) * 8 / 64;
     return result;
 }
-/* A_addr ((i * 1024) + j) 7 */
-int calAddrA_addr7( int i, int j) {
-    int result = (((i * 1024) + j)) * 8 / 64;
-    return result;
-}
-/* tmp_addr i 8 */
-int calAddrtmp_addr8( int i, int j) {
-    int result = (i) * 8 / 64;
-    return result;
-}
-/* y_addr j 9 */
-int calAddry_addr9( int i, int j) {
-    int result = (j) * 8 / 64;
-    return result;
-}
-void ref_y_addr0() {
+void ref_tmp_addr0() {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 10;) {
+    for ( int s = 0; s < 4096;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (4096 - 0) + 0;
         string idx_string = std::to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[tmp_addr0]Samples: " << idx_string << endl;
+#endif
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
         /* Generating reuse search code */
-
-        {
+        /* Sampled IDVs 1  */
+        /* Sampled IDV: i  */
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 1024; i++) {
-            if (cntStart == true) {
-                cnt++;
-                if ( calAddry_addr0( i) == calAddry_addr0(i_Start)) {
-                    rtHistoCal(cnt);
-                    goto EndSample;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ")" << endl;
+#endif
+            vector<int> v = { i};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
             }
-            cntStart = true;
-        }
-        }
-        {
-        int iLB1 = 0;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
             }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                /* Remove those invalid interleaving */
+                if (it->size() <= 0) { continue; }
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddry_addr6( i, j) == calAddry_addr0(i_Start)) {
-                        rtHistoCal(cnt);
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                    if ( calAddrtmp_addr0( it->at(0)) == calAddrtmp_addr0(i_Start)) {
+#ifdef DEBUG
+                        cout << "[REUSE FIND] @ (" << calAddrtmp_addr0(it->at(0)) << ", " << "(" << it->at(0) << "), " << cnt << ") " << endl;
+                        rtHistoCal(cnt, 1);
+#else
+                        subBlkRT(cnt);
+#endif
                         goto EndSample;
                     }
                 }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddry_addr9( i, j) == calAddry_addr0(i_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+                if (it->at(0) == i_Start            ) { cntStart = true; }
+            }
+#ifdef DEBUG
+            cout << endl;
+            /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
+#endif
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ")" << endl;
+#endif
+                vector<int> v = { i};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr1( it->at(0), it->at(1)) == calAddrtmp_addr0(i_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_y_addr6() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddry_addr6( i, j) == calAddry_addr6(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr2( it->at(0), it->at(1)) == calAddrtmp_addr0(i_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddry_addr9( i, j) == calAddry_addr6(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 2 */
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ")" << endl;
+#endif
+                vector<int> v = { i};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr3( it->at(0), it->at(1)) == calAddrtmp_addr0(i_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_A_addr7() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrA_addr3( i, j) == calAddrA_addr7(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 3 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
                     }
-                }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrA_addr7( i, j) == calAddrA_addr7(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
 EndSample:
         s++;
         }
@@ -388,66 +563,1657 @@ EndSample:
 void ref_tmp_addr1() {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 10;) {
+    for ( int s = 0; s < 16777216;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" ;
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[tmp_addr1]Samples: " << idx_string << endl;
+#endif
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
         /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB1 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                /* Remove those invalid interleaving */
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                    if ( calAddrtmp_addr0( it->at(0)) == calAddrtmp_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                        cout << "[REUSE FIND] @ (" << calAddrtmp_addr1(it->at(0)) << ", " << "(" << it->at(0) << "), " << cnt << ") " << endl;
+                        rtHistoCal(cnt, 1);
+#else
+                        subBlkRT(cnt);
+#endif
+                        goto EndSample;
+                    }
+                }
+            }
+#ifdef DEBUG
+            cout << endl;
+            /* useID: 1 refNumber[LoopRefTree->AA]: 0 */
+#endif
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr1( it->at(0), it->at(1)) == calAddrtmp_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr2( it->at(0), it->at(1)) == calAddrtmp_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 2 */
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr3( it->at(0), it->at(1)) == calAddrtmp_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 3 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
+EndSample:
+        s++;
+        }
+}
+void ref_A_addr1() {
+    /* Generating sampling loop */
+    set<string> record;
+    for ( int s = 0; s < 16777216;) {
+SAMPLE:
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
+        record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[A_addr1]Samples: " << idx_string << endl;
+#endif
+        uint64_t cnt = 0;
+        bool cntStart = false;
 
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) {
-                cnt++;
-                if ( calAddrtmp_addr1( i) == calAddrtmp_addr1(i_Start)) {
-                    rtHistoCal(cnt);
-                    goto EndSample;
-                }
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
+        /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB2 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
             }
-            cntStart = true;
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr2( i, j) == calAddrtmp_addr1(i_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
                     }
                 }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                if (it->size() <= 0) { continue; }
                 if (cntStart == true) {
                     cnt++;
-                    if ( calAddrtmp_addr5( i, j) == calAddrtmp_addr1(i_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                }
+            } // end of interleaving loop
+#ifdef DEBUG
+            cout << endl;
+#endif
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrA_addr0( it->at(0), it->at(1)) == calAddrA_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrA_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-            }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr8( i, j) == calAddrtmp_addr1(i_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 0 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
                     }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB2 = j_Start;
+            }
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
                 }
-                if (cntStart == true) cnt++;
-            }
-            }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrA_addr1( it->at(0), it->at(1)) == calAddrA_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrA_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
+EndSample:
+        s++;
         }
+}
+void ref_tmp_addr3() {
+    /* Generating sampling loop */
+    set<string> record;
+    for ( int s = 0; s < 16777216;) {
+SAMPLE:
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
+        record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[tmp_addr3]Samples: " << idx_string << endl;
+#endif
+        uint64_t cnt = 0;
+        bool cntStart = false;
+
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
+        /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB2 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                /* Remove those invalid interleaving */
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                    if ( calAddrtmp_addr0( it->at(0)) == calAddrtmp_addr3(i_Start, j_Start)) {
+#ifdef DEBUG
+                        cout << "[REUSE FIND] @ (" << calAddrtmp_addr3(it->at(0)) << ", " << "(" << it->at(0) << "), " << cnt << ") " << endl;
+                        rtHistoCal(cnt, 1);
+#else
+                        subBlkRT(cnt);
+#endif
+                        goto EndSample;
+                    }
+                }
+            }
+#ifdef DEBUG
+            cout << endl;
+            /* useID: 3 refNumber[LoopRefTree->AA]: 0 */
+#endif
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr1( it->at(0), it->at(1)) == calAddrtmp_addr3(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr3(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 3 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr2( it->at(0), it->at(1)) == calAddrtmp_addr3(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr3(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 3 refNumber[LoopRefTree->AA]: 2 */
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB2 = j_Start;
+            }
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr3( it->at(0), it->at(1)) == calAddrtmp_addr3(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr3(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 3 refNumber[LoopRefTree->AA]: 3 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
+EndSample:
+        s++;
         }
+}
+void ref_A_addr0() {
+    /* Generating sampling loop */
+    set<string> record;
+    for ( int s = 0; s < 16777216;) {
+SAMPLE:
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
+        record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[A_addr0]Samples: " << idx_string << endl;
+#endif
+        uint64_t cnt = 0;
+        bool cntStart = false;
+
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
+        /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB1 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                }
+            } // end of interleaving loop
+#ifdef DEBUG
+            cout << endl;
+#endif
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrA_addr0( it->at(0), it->at(1)) == calAddrA_addr0(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrA_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrA_addr1( it->at(0), it->at(1)) == calAddrA_addr0(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrA_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
+EndSample:
+        s++;
+        }
+}
+void ref_x_addr0() {
+    /* Generating sampling loop */
+    set<string> record;
+    for ( int s = 0; s < 16777216;) {
+SAMPLE:
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
+        record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[x_addr0]Samples: " << idx_string << endl;
+#endif
+        uint64_t cnt = 0;
+        bool cntStart = false;
+
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
+        /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB1 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                }
+            } // end of interleaving loop
+#ifdef DEBUG
+            cout << endl;
+#endif
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrx_addr0( it->at(0), it->at(1)) == calAddrx_addr0(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrx_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
 EndSample:
         s++;
         }
@@ -455,404 +2221,1010 @@ EndSample:
 void ref_tmp_addr2() {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 16777216;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[tmp_addr2]Samples: " << idx_string << endl;
+#endif
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
         /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) {
-                cnt++;
-                if ( calAddrtmp_addr1( i) == calAddrtmp_addr2(i_Start, j_Start)) {
-                    rtHistoCal(cnt);
-                    goto EndSample;
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB1 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                /* Remove those invalid interleaving */
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                    if ( calAddrtmp_addr0( it->at(0)) == calAddrtmp_addr2(i_Start, j_Start)) {
+#ifdef DEBUG
+                        cout << "[REUSE FIND] @ (" << calAddrtmp_addr2(it->at(0)) << ", " << "(" << it->at(0) << "), " << cnt << ") " << endl;
+                        rtHistoCal(cnt, 1);
+#else
+                        subBlkRT(cnt);
+#endif
+                        goto EndSample;
+                    }
                 }
             }
-            {
-            int jLB2 = 0;
-            if ( i == i_Start ) {
+#ifdef DEBUG
+            cout << endl;
+            /* useID: 2 refNumber[LoopRefTree->AA]: 0 */
+#endif
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
+                jLB1 = j_Start;
+            }
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr1( it->at(0), it->at(1)) == calAddrtmp_addr2(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr2(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 2 refNumber[LoopRefTree->AA]: 1 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr2( it->at(0), it->at(1)) == calAddrtmp_addr2(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr2(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 2 refNumber[LoopRefTree->AA]: 2 */
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddrtmp_addr3( it->at(0), it->at(1)) == calAddrtmp_addr2(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddrtmp_addr2(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 2 refNumber[LoopRefTree->AA]: 3 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
+EndSample:
+        s++;
+        }
+}
+void ref_y_addr0() {
+    /* Generating sampling loop */
+    set<string> record;
+    for ( int s = 0; s < 16777216;) {
+SAMPLE:
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
+        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
+        record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[y_addr0]Samples: " << idx_string << endl;
+#endif
+        uint64_t cnt = 0;
+        bool cntStart = false;
+
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
+        /* Generating reuse search code */
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB2 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                }
+            } // end of interleaving loop
+#ifdef DEBUG
+            cout << endl;
+#endif
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
                 jLB2 = j_Start;
             }
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr2( i, j) == calAddrtmp_addr2(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddry_addr0( it->at(0), it->at(1)) == calAddry_addr0(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddry_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
+                }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddry_addr1( it->at(0), it->at(1)) == calAddry_addr0(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddry_addr0(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr5( i, j) == calAddrtmp_addr2(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-            }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr8( i, j) == calAddrtmp_addr2(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 0 refNumber[LoopRefTree->AA]: 1 */
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
 EndSample:
         s++;
         }
 }
-void ref_A_addr3() {
+void ref_y_addr1() {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 16777216;) {
 SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
+        int i_Start = rand() % (4096 - 0) + 0;
+        if ( (4096 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (4096 - 0) + 0;
         string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
+#ifdef DEBUG
+        cout << "[y_addr1]Samples: " << idx_string << endl;
+#endif
         uint64_t cnt = 0;
         bool cntStart = false;
 
+        /* Variable used to compute thread-local iteration space */
+        int B = 0;
+        auto BLIST = new int[THREAD_NUM][2];
+        int seperator = 0;
+        int t_Start = 0;
         /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            if ( i == i_Start ) {
+        /* Sampled IDVs 2  */
+        /* Sampled IDV: i  */
+        /* Sampled IDV: j  */
+        int iLB0 = i_Start;
+        int jLB2 = 0;
+        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
+        vector<vector<int>> nv(THREAD_NUM);
+        /* Generating thread local iteration space mapping code */
+#ifdef DEBUG
+        cout << "Count: " << cnt << endl;
+#endif
+        /* Compute the chunk size. */
+#ifdef CHUNK_SIZE
+        int chunk_size = CHUNK_SIZE;
+        int chunk_num = (4096 - 0) / (THREAD_NUM * chunk_size);
+#else
+        int chunk_size = (4096 - 0) / THREAD_NUM;
+        int chunk_num = 1;
+#endif
+        /* Compute the number of chunks */
+        int c_Start = (i_Start - 1) / (THREAD_NUM * chunk_size);
+        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
+        for (int cid = c_Start; cid < chunk_num; cid++) {
+            /* Computes bound express for each thread */
+            for (int t = 0; t < THREAD_NUM; ++t) {
+                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
+                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 4096) - 1;
+#ifdef DEBUG
+                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
+#endif
+            }
+            /* Iterate within a chunk */
+            int ci_Start = 0;
+            if (cid == c_Start) {
+                ci_Start = (i_Start - 0) % chunk_size;
+            }
+            for ( int ci = ci_Start; ci < chunk_size; ci++) {
+                if ( cid != c_Start || ci != ci_Start ) {
+                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
+                }
+#ifdef DEBUG
+            cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+            vector<int> v = { i, j};
+            /* Interleaving */
+            t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+            cout << "Generate interleaved iteration for (";
+            for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                cout << *it;
+                if (it != v.end()) { cout << ", "; }
+            }
+            cout << ")" << endl;
+#endif
+            for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                vector<int> tmp;
+                for (int vi = 0; vi < v.size(); vi++ ) {
+                    if (vi == 0) {
+                        tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                    } else {
+                        tmp.push_back(v[vi]);
+                    }
+                }
+                if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                cout << "(";
+                for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                    cout << *it << ", ";
+                }
+                cout << ")" << endl;
+#endif
+            }
+            /* Generating thread local iteration space mapping code */
+            /* iterate thread local iteration space mapping code after interleaving */
+            for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                if (it->size() <= 0) { continue; }
+                if (cntStart == true) {
+                    cnt++;
+#ifdef DEBUG
+                    cout  << "[tmp_addr0]" << it->at(0) << ", cnt: " << cnt << ")	";
+#endif
+                }
+            } // end of interleaving loop
+#ifdef DEBUG
+            cout << endl;
+#endif
+            /* Generating thread local iteration space mapping code */
+            for ( int j = jLB1; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[x_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr2]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                    }
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+            } // end of inner for loops
+            /* Generating thread local iteration space mapping code */
+                if ( iLB0 == i_Start ) {
                 jLB2 = j_Start;
             }
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrA_addr3( i, j) == calAddrA_addr3(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+            for ( int j = jLB2; j < 4096; j++) {
+                int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
+#ifdef DEBUG
+                cout << "Iterate (" << i << ", " << j << ")" << endl;
+#endif
+                vector<int> v = { i, j};
+                /* Interleaving */
+                t_Start = ((i - 1) / chunk_size) % THREAD_NUM;
+#ifdef DEBUG
+                cout << "Generate interleaved iteration for (";
+                for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
+                    cout << *it;
+                    if (it != v.end()) { cout << ", "; }
+                }
+                cout << ")" << endl;
+#endif
+                for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
+                    vector<int> tmp;
+                    for (int vi = 0; vi < v.size(); vi++ ) {
+                        if (vi == 0) {
+                            tmp.push_back(v[0] + chunk_size * (tid - t_Start));
+                        } else {
+                            tmp.push_back(v[vi]);
+                        }
+                    }
+                    if (tmp.size() > 0) { nv[tid] = tmp; }
+#ifdef DEBUG
+                    cout << "(";
+                    for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
+                        cout << *it << ", ";
+                    }
+                    cout << ")" << endl;
+#endif
+                }
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr0]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddry_addr0( it->at(0), it->at(1)) == calAddry_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddry_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
                 }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrA_addr7( i, j) == calAddrA_addr3(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 0 */
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[A_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
                     }
-                }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_x_addr4() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            if ( i == i_Start ) {
-                jLB2 = j_Start;
-            }
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrx_addr4( i, j) == calAddrx_addr4(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[tmp_addr3]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
                     }
-                }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-            }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_tmp_addr5() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) {
-                cnt++;
-                if ( calAddrtmp_addr1( i) == calAddrtmp_addr5(i_Start, j_Start)) {
-                    rtHistoCal(cnt);
-                    goto EndSample;
-                }
-            }
-            {
-            int jLB2 = 0;
-            if ( i == i_Start ) {
-                jLB2 = j_Start;
-            }
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr2( i, j) == calAddrtmp_addr5(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
+                } // end of interleaving loop
+#ifdef DEBUG
+                cout << endl;
+#endif
+                /* Generating thread local iteration space mapping code */
+                /* iterate thread local iteration space mapping code after interleaving */
+                for (vector<vector<int>>::iterator it = nv.begin(); it != nv.end(); it++) {
+                    /* Remove those invalid interleaving */
+                    if (it->size() <= 0) { continue; }
+                    if (cntStart == true) {
+                        cnt++;
+#ifdef DEBUG
+                        cout  << "[y_addr1]" << it->at(0) << ", " << it->at(1) << ", cnt: " << cnt << ")	";
+#endif
+                        if ( calAddry_addr1( it->at(0), it->at(1)) == calAddry_addr1(i_Start, j_Start)) {
+#ifdef DEBUG
+                            cout << "[REUSE FIND] @ (" << calAddry_addr1(it->at(0), it->at(1)) << ", " << "(" << it->at(0) << ", " << it->at(1) << "), " << cnt << ") " << endl;
+                            rtHistoCal(cnt, 1);
+#else
+                            subBlkRT(cnt);
+#endif
+                            goto EndSample;
+                        }
                     }
+                    if (it->at(0) == i_Start && it->at(1) == j_Start                ) { cntStart = true; }
                 }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr5( i, j) == calAddrtmp_addr5(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-            }
-            }
-            {
-            int jLB3 = 0;
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr8( i, j) == calAddrtmp_addr5(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_tmp_addr8() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) {
-                cnt++;
-                if ( calAddrtmp_addr1( i) == calAddrtmp_addr8(i_Start, j_Start)) {
-                    rtHistoCal(cnt);
-                    goto EndSample;
-                }
-            }
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr2( i, j) == calAddrtmp_addr8(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr5( i, j) == calAddrtmp_addr8(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-            }
-            }
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddrtmp_addr8( i, j) == calAddrtmp_addr8(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-                if (cntStart == true) cnt++;
-            }
-            }
-        }
-        }
-EndSample:
-        s++;
-        }
-}
-void ref_y_addr9() {
-    /* Generating sampling loop */
-    set<string> record;
-    for ( int s = 0; s < 104;) {
-SAMPLE:
-        int i_Start = rand() % (1024 - 0) + 0;
-        if ( (1024 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (1024 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
-        if ( record.find(idx_string) != record.end() ) goto SAMPLE;
-        record.insert( idx_string );
-        uint64_t cnt = 0;
-        bool cntStart = false;
-
-        /* Generating reuse search code */
-
-        {
-        int iLB1 = i_Start;
-        for ( int i = iLB1; i < 1024; i++) {
-            if (cntStart == true) cnt++;
-            {
-            int jLB2 = 0;
-            for ( int j = jLB2; j < 1024; j++) {
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-            }
-            }
-            {
-            int jLB3 = 0;
-            if ( i == i_Start ) {
-                jLB3 = j_Start;
-            }
-            for ( int j = jLB3; j < 1024; j++) {
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddry_addr6( i, j) == calAddry_addr9(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                if (cntStart == true) cnt++;
-                if (cntStart == true) cnt++;
-                if (cntStart == true) {
-                    cnt++;
-                    if ( calAddry_addr9( i, j) == calAddry_addr9(i_Start, j_Start)) {
-                        rtHistoCal(cnt);
-                        goto EndSample;
-                    }
-                }
-                cntStart = true;
-            }
-            }
-        }
-        }
+#ifdef DEBUG
+                cout << endl;
+                /* useID: 1 refNumber[LoopRefTree->AA]: 1 */
+#endif
+            } // end of inner for loops
+            } // end of outer for - ci loops
+        } // end of outer for - cid loops
 EndSample:
         s++;
         }
 }
 int main() {
-    ref_y_addr0();
-    ref_y_addr6();
-    ref_A_addr7();
+    ref_tmp_addr0();
     ref_tmp_addr1();
+    ref_A_addr1();
+    ref_tmp_addr3();
+    ref_A_addr0();
+    ref_x_addr0();
     ref_tmp_addr2();
-    ref_A_addr3();
-    ref_x_addr4();
-    ref_tmp_addr5();
-    ref_tmp_addr8();
-    ref_y_addr9();
+    ref_y_addr0();
+    ref_y_addr1();
     rtDump();
     RTtoMR_AET();
     dumpMR();
