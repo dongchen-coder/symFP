@@ -1172,10 +1172,11 @@ namespace psCodeGen_ref {
                     errs() << space + "    if (cid == c_Start) {\n";
                     errs() << space + "        ci_Start = (" + indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") \% chunk_size;\n";
                     errs() << space + "    }\n";
+                    errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start;\n";
                 } else {
                     errs() << space + "    ci_Start = 0;\n";
+                    errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ";\n";
                 }
-                errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ";\n";
                 errs() << space + "    for ( int ci = ci_Start; ci < chunk_size; ci++) {\n";
                 errs() << space + "        if ( cid != c_Start || ci != ci_Start ) {\n";
                 errs() << space + "            " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = cid * (THREAD_NUM * chunk_size) + ci;\n";
@@ -1255,8 +1256,15 @@ namespace psCodeGen_ref {
                 if (hasAA) {
                     /* Check if this is the first compare in if-cond */
                     bool hasPrevComp = false;
-                    errs() << space + "        int " + indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*currentLoops.front()->LIS->LB)[0].first) + ";\n";
-                    errs() << space + "        if(" + indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
+                    errs() << space + "        int ";
+                    /* if the reference is enclosed in the out-most loop, currentLoops is empty */
+                    if (currentLoops.size() == 0) {
+                        errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*LoopRefTree->LIS->LB)[0].first) + ";\n";
+                        errs() << space + "        if(" + indvName[(*LoopRefTree->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
+                    } else {
+                        errs() << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*currentLoops.front()->LIS->LB)[0].first) + ";\n";
+                        errs() << space + "        if(" + indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
+                    }
                     // for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
                     //     if (std::find(sampleIDVs.begin(), sampleIDVs.end(), (*it)) != sampleIDVs.end()) {
                     //         if (it == currentLoops.begin()) {
@@ -1290,11 +1298,9 @@ namespace psCodeGen_ref {
                     for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(); it != currentLoops.end(); ++it) {
                         tmp += (" << " + indvName[(*(*it)->LIS->IDV)[0]] + " << \", \"");
                     }
-                    /* remove the ", " when print out the last variable */
-                    tmp.pop_back();
-                    tmp.pop_back();
-                    tmp.pop_back();
-                    tmp.pop_back();
+                    if (currentLoops.size() == 0) {
+                        tmp += " << " + indvName[(*LoopRefTree->LIS->IDV)[0]] + " << ";
+                    }
                     errs() << tmp + "\")\" << endl;\n";
                     errs() << "#endif\n";
                     /* Generate the interleaving iteation space */
@@ -1306,7 +1312,11 @@ namespace psCodeGen_ref {
                     tmp += indvName[(*LoopRefTree->LIS->IDV)[0]];
                     errs() << tmp + " };\n";
                     errs() << space + "        /* Interleaving */\n";
-                    errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*currentLoops.front()->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
+                    if (currentLoops.size() == 0) {
+                        errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
+                    } else {
+                        errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*currentLoops.front()->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
+                    }
                     errs() << "#ifdef DEBUG\n";
                     errs() << space + "        cout << \"Generate interleaved iteration for (\";\n";
                     errs() << space + "        for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {\n";

@@ -49,4 +49,5 @@ set_target_properties(LLVMSPS PROPERTIES
    COMPILE_FLAGS "-fno-rtti"
 )
 
-add_definitions(-DPARALLEL)
+# Comment this out to disable PLUM and switch it to SPS
+# add_definitions(-DPARALLEL)
