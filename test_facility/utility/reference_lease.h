@@ -47,14 +47,14 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t arr_id) {
 	srcRef[addr] = ref_id;
 
 	if (refAddrReuseMark.find(ref_id) != refAddrReuseMark.end()) {
-		if ((*refAddrReuseMark[ref_it]).find(addr) != (*refAddrReuseMark[ref_it]).end()) {
-			(*refAddrReuseMark[ref_it])[addr] = true;
+		if ((*refAddrReuseMark[ref_id]).find(addr) != (*refAddrReuseMark[ref_id]).end()) {
+			(*refAddrReuseMark[ref_id])[addr] = true;
 		} else {
-			(*refAddrReuseMark[ref_it])[addr] = false;
+			(*refAddrReuseMark[ref_id])[addr] = false;
 		}
 	} else {
-		refAddrReuseMark = new map<uint64_t, bool>;
-		(*refAddrReuseMark)[ref_id][addr] = false;
+		refAddrReuseMark[ref_id] = new map<uint64_t, bool>;
+		(*refAddrReuseMark[ref_id])[addr] = false;
 	}
 
 	// Init leases to all references to be 0
@@ -66,14 +66,14 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t arr_id) {
 }
 
 void RIwithInfinite() {
-	for (map<uint64_t, mape<uint64_t, bool>* >::iterator ref_it = refAddrReuseMark.begin(), ref_eit = refAddrReuseMark.end(); ref_it != ref_eit; ++ref_it) {
+	for (map<uint64_t, map<uint64_t, bool>* >::iterator ref_it = refAddrReuseMark.begin(), ref_eit = refAddrReuseMark.end(); ref_it != ref_eit; ++ref_it) {
 		uint64_t cnt = 0;
 		for(map<uint64_t, bool>::iterator addr_it = (*ref_it->second).begin(), addr_eit = (*ref_it->second).end(); addr_it != addr_eit; ++addr_it) {
 			if (addr_it->second == false) {
 				cnt++;
 			}
 		}
-		RI[ref_it->first][std::numeric_limits<uint64_t>::max()] = cnt;
+		(*RI[ref_it->first])[std::numeric_limits<uint64_t>::max()] = cnt;
 	}
 	return;
 }
