@@ -245,8 +245,10 @@ void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {
 void OSL_ref(uint64_t CacheSize) {
 	
 	cout << "Start to init hits and costs" << endl;
-	initHitsCosts();
+	
 	RIwithInfinite();
+	initHitsCosts();
+
 	//accessRatioCal();
 	cout << "Finished to init hits and costs" << endl;
 	
