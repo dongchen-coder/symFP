@@ -163,156 +163,16 @@ Ref 9 RI 5 CNT 1047552
 Ref 9 RI 18446744073709551615 CNT 0
 Ref 9 RISETSIZE 3
 Average RISETSIZE for each reference 15.2
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 1 to ref 0 avg cache size 0.000122041 miss ratio 0.999893
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 3 to ref 2 avg cache size 0.375031 miss ratio 0.874924
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 3 to ref 4 avg cache size 0.749939 miss ratio 0.749954
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 3 to ref 6 avg cache size 1.12485 miss ratio 0.624985
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 5 to ref 9 avg cache size 1.74919 miss ratio 0.500031
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 5 to ref 1 avg cache size 1.7498 miss ratio 0.499908
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 5 to ref 7 avg cache size 2.29654 miss ratio 0.39056
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 5 to ref 5 avg cache size 2.92131 miss ratio 0.281212
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 9 to ref 3 avg cache size 3.92106 miss ratio 0.156258
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 8 to ref 8 avg cache size 4.92069 miss ratio 0.0469093
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 8130 to ref 0 avg cache size 4.99045 miss ratio 0.0468941
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 8134 to ref 5 avg cache size 131.851 miss ratio 0.0312881
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
 Assign lease 8137 to ref 8 avg cache size 258.712 miss ratio 0.0156822
-No RI/Newlease 18446744073709551615 for ref 0
-No RI/Newlease 18446744073709551615 for ref 1
-No RI/Newlease 18446744073709551615 for ref 2
-No RI/Newlease 18446744073709551615 for ref 3
-No RI/Newlease 18446744073709551615 for ref 4
-No RI/Newlease 18446744073709551615 for ref 5
-No RI/Newlease 18446744073709551615 for ref 6
-No RI/Newlease 18446744073709551615 for ref 7
-No RI/Newlease 18446744073709551615 for ref 8
-No RI/Newlease 18446744073709551615 for ref 9
