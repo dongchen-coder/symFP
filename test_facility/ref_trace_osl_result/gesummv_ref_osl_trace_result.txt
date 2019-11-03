@@ -43,17 +43,17 @@ Ref 12 RI 2 CNT 896
 Ref 12 RI 18446744073709551615 CNT 0
 Ref 12 RISETSIZE 2
 Average RISETSIZE for each reference 2.23077
-Assign lease 1 to ref 4 avg cache size 0.124924 miss ratio 0.875076
-Assign lease 1 to ref 8 avg cache size 0.249848 miss ratio 0.750152
-Assign lease 1 to ref 11 avg cache size 0.24997 miss ratio 0.75003
-Assign lease 2 to ref 12 avg cache size 0.250183 miss ratio 0.749924
-Assign lease 3 to ref 10 avg cache size 0.250503 miss ratio 0.749817
-Assign lease 4 to ref 0 avg cache size 0.250991 miss ratio 0.749695
-Assign lease 4 to ref 3 avg cache size 0.750686 miss ratio 0.624771
-Assign lease 4 to ref 7 avg cache size 1.25032 miss ratio 0.515463
-Assign lease 7 to ref 9 avg cache size 2.12418 miss ratio 0.390539
-Assign lease 7 to ref 5 avg cache size 2.9984 miss ratio 0.265615
-Assign lease 7 to ref 1 avg cache size 2.99925 miss ratio 0.265493
-Assign lease 8 to ref 2 avg cache size 3.87372 miss ratio 0.156185
-Assign lease 8 to ref 6 avg cache size 4.74819 miss ratio 0.0468769
-Assign lease 8137 to ref 7 avg cache size 131.625 miss ratio 0.0312767
+Assign lease 1 to ref 4 avg cache size 0.124924 miss ratio 0.871043
+Assign lease 1 to ref 8 avg cache size 0.249848 miss ratio 0.742086
+Assign lease 1 to ref 11 avg cache size 0.24997 miss ratio 0.74196
+Assign lease 2 to ref 12 avg cache size 0.250183 miss ratio 0.74185
+Assign lease 3 to ref 10 avg cache size 0.250503 miss ratio 0.741739
+Assign lease 4 to ref 0 avg cache size 0.250991 miss ratio 0.741614
+Assign lease 4 to ref 3 avg cache size 0.750686 miss ratio 0.612656
+Assign lease 4 to ref 7 avg cache size 1.25032 miss ratio 0.499819
+Assign lease 7 to ref 9 avg cache size 2.12418 miss ratio 0.370862
+Assign lease 7 to ref 5 avg cache size 2.9984 miss ratio 0.241905
+Assign lease 7 to ref 1 avg cache size 2.99925 miss ratio 0.241779
+Assign lease 8 to ref 2 avg cache size 3.87372 miss ratio 0.128941
+Assign lease 8 to ref 6 avg cache size 4.74819 miss ratio 0.0161039
+Assign lease 8137 to ref 7 avg cache size 131.625 miss ratio 0

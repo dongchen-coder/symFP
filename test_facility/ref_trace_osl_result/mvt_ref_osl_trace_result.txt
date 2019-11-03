@@ -2067,14 +2067,14 @@ Ref 7 RI 1 CNT 1048448
 Ref 7 RI 18446744073709551615 CNT 0
 Ref 7 RISETSIZE 2
 Average RISETSIZE for each reference 257.25
-Assign lease 1 to ref 3 avg cache size 0.124985 miss ratio 0.875015
-Assign lease 1 to ref 7 avg cache size 0.249969 miss ratio 0.750031
-Assign lease 3 to ref 0 avg cache size 0.624969 miss ratio 0.625031
-Assign lease 3 to ref 4 avg cache size 0.999969 miss ratio 0.500031
-Assign lease 4 to ref 2 avg cache size 1.49991 miss ratio 0.390656
-Assign lease 4 to ref 6 avg cache size 1.99985 miss ratio 0.281281
-Assign lease 4 to ref 1 avg cache size 2.49985 miss ratio 0.171906
-Assign lease 4068 to ref 2 avg cache size 65.9378 miss ratio 0.156296
-Assign lease 4068 to ref 6 avg cache size 129.376 miss ratio 0.140686
-Assign lease 4096 to ref 5 avg cache size 577.376 miss ratio 0.031311
-Assign lease 8351748 to ref 1 avg cache size 65889.1 miss ratio 0.015686
+Assign lease 1 to ref 3 avg cache size 0.124985 miss ratio 0.873024
+Assign lease 1 to ref 7 avg cache size 0.249969 miss ratio 0.746047
+Assign lease 3 to ref 0 avg cache size 0.624969 miss ratio 0.619055
+Assign lease 3 to ref 4 avg cache size 0.999969 miss ratio 0.492063
+Assign lease 4 to ref 2 avg cache size 1.49991 miss ratio 0.380945
+Assign lease 4 to ref 6 avg cache size 1.99985 miss ratio 0.269827
+Assign lease 4 to ref 1 avg cache size 2.49985 miss ratio 0.158709
+Assign lease 4068 to ref 2 avg cache size 65.9378 miss ratio 0.14285
+Assign lease 4068 to ref 6 avg cache size 129.376 miss ratio 0.126992
+Assign lease 4096 to ref 5 avg cache size 577.376 miss ratio 0.015874
+Assign lease 8351748 to ref 1 avg cache size 65889.1 miss ratio 0
