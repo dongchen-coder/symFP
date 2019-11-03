@@ -83,6 +83,17 @@ void RIwithInfinite() {
 	return;
 }
 
+uint64_t getTotalNumOfRueses() {
+	uint64_t reuseCnt = 0;
+	for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
+		for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+			if (ri_it->first != std::numeric_limits<uint64_t>::max()) {
+				reuseCnt += ri_it->second;
+			}
+		}
+	}
+	return reuseCnt;
+}
 
 /*
 // calculate access ratio
@@ -219,6 +230,10 @@ void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {
 	for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
 		for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
 			//cout << "compare ri " << ri_it->first << " with lease " << Lease[ref_it->first] << " for reference " << ref_it->first << endl;
+			if (ri_it->first == std::numeric_limits<uint64_t>::max()) {
+				continue;
+			}			
+
 			if (ri_it->first > Lease[ref_it->first]) {
 				double ppuc = getPPUC(ref_it->first, Lease[ref_it->first], ri_it->first);
 				//cout << "  compare ppuc " << ppuc << " with max PPUC " << maxPPUC << endl;
@@ -262,9 +277,11 @@ void OSL_ref(uint64_t CacheSize) {
 	dumpRI();
 
 	uint64_t N = refT;
+	uint64_t totalNumOfReuses = getTotalNumOfRueses();
 	uint64_t totalCost = 0;
 	uint64_t totalHits = 0;
 	uint64_t targetCost = CacheSize * N;
+	
 	while(true) {
 		bool finished = false;
 		uint64_t ref_to_assign;
@@ -278,7 +295,7 @@ void OSL_ref(uint64_t CacheSize) {
 			totalHits += (*hits[ref_to_assign])[newLease] - (*hits[ref_to_assign])[Lease[ref_to_assign]];
 			Lease[ref_to_assign] = newLease;
 			
-			cout << "Assign lease " << newLease << " to ref " << ref_to_assign << " avg cache size " << double(totalCost) / N  << " miss ratio " << 1 - double(totalHits) / N << endl;
+			cout << "Assign lease " << newLease << " to ref " << ref_to_assign << " avg cache size " << double(totalCost) / N  << " miss ratio " << 1 - double(totalHits) / totalNumOfReuses << endl;
 			
 		} else {
 			break;
