@@ -73,7 +73,12 @@ void RIwithInfinite() {
 				cnt++;
 			}
 		}
-		(*RI[ref_it->first])[std::numeric_limits<uint64_t>::max()] = cnt;
+		if (RI.find(ref_it->first) != RI.end()) {
+			(*RI[ref_it->first])[std::numeric_limits<uint64_t>::max()] = cnt;
+		} else {
+			RI[ref_it->first] = new map<uint64_t, uint64_t>;
+			(*RI[ref_it->first])[std::numeric_limits<uint64_t>::max()] = cnt;
+		}
 	}
 	return;
 }
