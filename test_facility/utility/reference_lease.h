@@ -4,6 +4,8 @@
 #include <limits>
 using namespace std;
 
+#define assignLeaseToAllAccesses
+
 #define CLS 64
 #define DS 8
 
@@ -29,6 +31,7 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t arr_id) {
 	refT++;
 	addr = addr * DS / CLS;
 	
+	// update last access table
 	if (lat.find(addr) != lat.end()) {
 		uint64_t ri = refT - lat[addr];
 		uint64_t sourceRef = srcRef[addr];
@@ -46,6 +49,7 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t arr_id) {
 	lat[addr] = refT;
 	srcRef[addr] = ref_id;
 
+	// update reuse mask for accesses in each reference
 	if (refAddrReuseMark.find(ref_id) != refAddrReuseMark.end()) {
 		if ((*refAddrReuseMark[ref_id]).find(addr) != (*refAddrReuseMark[ref_id]).end()) {
 			(*refAddrReuseMark[ref_id])[addr] = true;
@@ -65,6 +69,7 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t arr_id) {
 	return;
 }
 
+// Add infinite entry to each RI distribution
 void RIwithInfinite() {
 	for (map<uint64_t, map<uint64_t, bool>* >::iterator ref_it = refAddrReuseMark.begin(), ref_eit = refAddrReuseMark.end(); ref_it != ref_eit; ++ref_it) {
 		uint64_t cnt = 0;
@@ -83,6 +88,7 @@ void RIwithInfinite() {
 	return;
 }
 
+// Get the total number of reuses
 uint64_t getTotalNumOfRueses() {
 	uint64_t reuseCnt = 0;
 	for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
@@ -154,7 +160,7 @@ void dumpRI() {
 }
 
 
-
+// dump leases
 void dumpLeases() {
 	cout << "Dump leases" << endl;
 	for (map<uint64_t, uint64_t>::iterator it = Lease.begin(), eit = Lease.end(); it != eit; ++it) {
@@ -265,8 +271,11 @@ void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {
 void OSL_ref(uint64_t CacheSize) {
 	
 	cout << "Start to init hits and costs" << endl;
-	
+
+#ifdef assignLeaseToAllAccesses
 	RIwithInfinite();
+#endif
+	
 	initHitsCosts();
 
 	//accessRatioCal();
