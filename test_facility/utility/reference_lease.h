@@ -5,6 +5,8 @@
 using namespace std;
 
 #define assignLeaseToAllAccesses
+#define randomAssignment
+
 
 #define CLS 64
 #define DS 8
@@ -265,6 +267,34 @@ void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {
 	return;
 }
 
+void hitCostRandomAssignment(uint64_t N, uint64_t totalNumOfReuses) {
+	double total_randomHits = 0;
+	double total_randomCosts = 0;
+	for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {
+		uint64_t riCnt = 0;
+		uint64_t infCnt = 0;
+		for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+			riCnt += ri_it->second;
+			if (ri_it->first == std::numeric_limits<uint64_t>::max()) {
+				infCnt = ri_it->second;
+			}
+		}
+		double missAssignmentRatio = double(infCnt) / riCnt;
+		double randomHits = (*hits[ref_it->first])[Lease[ref_it->first]] * (1-missAssignmentRatio);
+		uint64_t randomCosts = 0;
+		for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+			if (ri_it->first < Lease[ref_it->first]) {
+				randomCosts += ri_it->first * ri_it->second * (1-missAssignmentRatio);
+			} else {
+				randomCosts += Lease[ref_it->first] * ri_it->second * (1-missAssignmentRatio);
+			}
+		}
+		total_randomHits += randomHits;
+		total_randomCosts += randomCosts;
+	}
+	cout << "Assign(RANDOM) avg cache size " << total_randomCosts / N << " miss ratio " << 1 - total_randomHits / totalNumOfReuses << endl;
+	return;
+}
 
 
 // main OSL_ref alg
@@ -272,7 +302,7 @@ void OSL_ref(uint64_t CacheSize) {
 	
 	cout << "Start to init hits and costs" << endl;
 
-#ifdef assignLeaseToAllAccesses
+#if defined(assignLeaseToAllAccesses) or defined(randomAssignment)
 	RIwithInfinite();
 #endif
 	
@@ -305,7 +335,9 @@ void OSL_ref(uint64_t CacheSize) {
 			Lease[ref_to_assign] = newLease;
 			
 			cout << "Assign lease " << newLease << " to ref " << ref_to_assign << " avg cache size " << double(totalCost) / N  << " miss ratio " << 1 - double(totalHits) / totalNumOfReuses << endl;
-			
+#ifdef randomAssignment
+			hitCostRandomAssignment(N, totalNumOfReuses);
+#endif			
 		} else {
 			break;
 		}
