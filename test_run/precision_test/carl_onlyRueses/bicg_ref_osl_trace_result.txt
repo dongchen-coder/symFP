@@ -1,0 +1,168 @@
+Start to init hits and costs
+Finished to init hits and costs
+Ref 0 RI 1 CNT 896
+Ref 0 RI 1018 CNT 1
+Ref 0 RI 1074 CNT 1
+Ref 0 RI 1130 CNT 1
+Ref 0 RI 1186 CNT 1
+Ref 0 RI 1242 CNT 1
+Ref 0 RI 1298 CNT 1
+Ref 0 RI 1354 CNT 1
+Ref 0 RI 1410 CNT 1
+Ref 0 RI 1466 CNT 1
+Ref 0 RI 1522 CNT 1
+Ref 0 RI 1578 CNT 1
+Ref 0 RI 1634 CNT 1
+Ref 0 RI 1690 CNT 1
+Ref 0 RI 1746 CNT 1
+Ref 0 RI 1802 CNT 1
+Ref 0 RI 1858 CNT 1
+Ref 0 RI 1914 CNT 1
+Ref 0 RI 1970 CNT 1
+Ref 0 RI 2026 CNT 1
+Ref 0 RI 2082 CNT 1
+Ref 0 RI 2138 CNT 1
+Ref 0 RI 2194 CNT 1
+Ref 0 RI 2250 CNT 1
+Ref 0 RI 2306 CNT 1
+Ref 0 RI 2362 CNT 1
+Ref 0 RI 2418 CNT 1
+Ref 0 RI 2474 CNT 1
+Ref 0 RI 2530 CNT 1
+Ref 0 RI 2586 CNT 1
+Ref 0 RI 2642 CNT 1
+Ref 0 RI 2698 CNT 1
+Ref 0 RI 2754 CNT 1
+Ref 0 RI 2810 CNT 1
+Ref 0 RI 2866 CNT 1
+Ref 0 RI 2922 CNT 1
+Ref 0 RI 2978 CNT 1
+Ref 0 RI 3034 CNT 1
+Ref 0 RI 3090 CNT 1
+Ref 0 RI 3146 CNT 1
+Ref 0 RI 3202 CNT 1
+Ref 0 RI 3258 CNT 1
+Ref 0 RI 3314 CNT 1
+Ref 0 RI 3370 CNT 1
+Ref 0 RI 3426 CNT 1
+Ref 0 RI 3482 CNT 1
+Ref 0 RI 3538 CNT 1
+Ref 0 RI 3594 CNT 1
+Ref 0 RI 3650 CNT 1
+Ref 0 RI 3706 CNT 1
+Ref 0 RI 3762 CNT 1
+Ref 0 RI 3818 CNT 1
+Ref 0 RI 3874 CNT 1
+Ref 0 RI 3930 CNT 1
+Ref 0 RI 3986 CNT 1
+Ref 0 RI 4042 CNT 1
+Ref 0 RI 4098 CNT 1
+Ref 0 RI 4154 CNT 1
+Ref 0 RI 4210 CNT 1
+Ref 0 RI 4266 CNT 1
+Ref 0 RI 4322 CNT 1
+Ref 0 RI 4378 CNT 1
+Ref 0 RI 4434 CNT 1
+Ref 0 RI 4490 CNT 1
+Ref 0 RI 4546 CNT 1
+Ref 0 RI 4602 CNT 1
+Ref 0 RI 4658 CNT 1
+Ref 0 RI 4714 CNT 1
+Ref 0 RI 4770 CNT 1
+Ref 0 RI 4826 CNT 1
+Ref 0 RI 4882 CNT 1
+Ref 0 RI 4938 CNT 1
+Ref 0 RI 4994 CNT 1
+Ref 0 RI 5050 CNT 1
+Ref 0 RI 5106 CNT 1
+Ref 0 RI 5162 CNT 1
+Ref 0 RI 5218 CNT 1
+Ref 0 RI 5274 CNT 1
+Ref 0 RI 5330 CNT 1
+Ref 0 RI 5386 CNT 1
+Ref 0 RI 5442 CNT 1
+Ref 0 RI 5498 CNT 1
+Ref 0 RI 5554 CNT 1
+Ref 0 RI 5610 CNT 1
+Ref 0 RI 5666 CNT 1
+Ref 0 RI 5722 CNT 1
+Ref 0 RI 5778 CNT 1
+Ref 0 RI 5834 CNT 1
+Ref 0 RI 5890 CNT 1
+Ref 0 RI 5946 CNT 1
+Ref 0 RI 6002 CNT 1
+Ref 0 RI 6058 CNT 1
+Ref 0 RI 6114 CNT 1
+Ref 0 RI 6170 CNT 1
+Ref 0 RI 6226 CNT 1
+Ref 0 RI 6282 CNT 1
+Ref 0 RI 6338 CNT 1
+Ref 0 RI 6394 CNT 1
+Ref 0 RI 6450 CNT 1
+Ref 0 RI 6506 CNT 1
+Ref 0 RI 6562 CNT 1
+Ref 0 RI 6618 CNT 1
+Ref 0 RI 6674 CNT 1
+Ref 0 RI 6730 CNT 1
+Ref 0 RI 6786 CNT 1
+Ref 0 RI 6842 CNT 1
+Ref 0 RI 6898 CNT 1
+Ref 0 RI 6954 CNT 1
+Ref 0 RI 7010 CNT 1
+Ref 0 RI 7066 CNT 1
+Ref 0 RI 7122 CNT 1
+Ref 0 RI 7178 CNT 1
+Ref 0 RI 7234 CNT 1
+Ref 0 RI 7290 CNT 1
+Ref 0 RI 7346 CNT 1
+Ref 0 RI 7402 CNT 1
+Ref 0 RI 7458 CNT 1
+Ref 0 RI 7514 CNT 1
+Ref 0 RI 7570 CNT 1
+Ref 0 RI 7626 CNT 1
+Ref 0 RI 7682 CNT 1
+Ref 0 RI 7738 CNT 1
+Ref 0 RI 7794 CNT 1
+Ref 0 RI 7850 CNT 1
+Ref 0 RI 7906 CNT 1
+Ref 0 RI 7962 CNT 1
+Ref 0 RI 8018 CNT 1
+Ref 0 RI 8074 CNT 1
+Ref 0 RI 8130 CNT 1
+Ref 0 RISETSIZE 129
+Ref 1 RI 5 CNT 1024
+Ref 1 RISETSIZE 1
+Ref 2 RI 3 CNT 1048576
+Ref 2 RISETSIZE 1
+Ref 3 RI 8 CNT 1047552
+Ref 3 RI 9 CNT 896
+Ref 3 RISETSIZE 2
+Ref 4 RI 3 CNT 1048576
+Ref 4 RISETSIZE 1
+Ref 5 RI 5 CNT 917504
+Ref 5 RI 8134 CNT 130944
+Ref 5 RISETSIZE 2
+Ref 6 RI 3 CNT 1048576
+Ref 6 RISETSIZE 1
+Ref 7 RI 5 CNT 917504
+Ref 7 RISETSIZE 1
+Ref 8 RI 8 CNT 917504
+Ref 8 RI 8137 CNT 130944
+Ref 8 RISETSIZE 2
+Ref 9 RI 1 CNT 896
+Ref 9 RI 5 CNT 1047552
+Ref 9 RISETSIZE 2
+Average RISETSIZE for each reference 14.2
+Assign lease 1 to ref 0 avg cache size 0.000122041 miss ratio 0.999892
+Assign lease 3 to ref 2 avg cache size 0.375031 miss ratio 0.872931
+Assign lease 3 to ref 4 avg cache size 0.749939 miss ratio 0.74597
+Assign lease 3 to ref 6 avg cache size 1.12485 miss ratio 0.61901
+Assign lease 5 to ref 9 avg cache size 1.74919 miss ratio 0.492065
+Assign lease 5 to ref 1 avg cache size 1.7498 miss ratio 0.491941
+Assign lease 5 to ref 7 avg cache size 2.29654 miss ratio 0.380851
+Assign lease 5 to ref 5 avg cache size 2.92131 miss ratio 0.26976
+Assign lease 9 to ref 3 avg cache size 3.92106 miss ratio 0.142815
+Assign lease 8 to ref 8 avg cache size 4.92069 miss ratio 0.0317246
+Assign lease 8130 to ref 0 avg cache size 4.99045 miss ratio 0.0317091
+Assign lease 8134 to ref 5 avg cache size 131.851 miss ratio 0.0158546
+Assign lease 8137 to ref 8 avg cache size 258.712 miss ratio 0

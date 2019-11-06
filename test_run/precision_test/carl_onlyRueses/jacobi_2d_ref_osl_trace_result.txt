@@ -1,0 +1,103 @@
+Start to init hits and costs
+Finished to init hits and costs
+Ref 0 RI 1 CNT 9146900
+Ref 0 RI 2 CNT 1297940
+Ref 0 RISETSIZE 2
+Ref 1 RI 1 CNT 7848960
+Ref 1 RI 6 CNT 1297940
+Ref 1 RI 6087 CNT 1286460
+Ref 1 RI 6093 CNT 10210
+Ref 1 RI 6266860 CNT 1260
+Ref 1 RI 6266866 CNT 10
+Ref 1 RISETSIZE 6
+Ref 2 RI 4 CNT 10434620
+Ref 2 RI 6098 CNT 10210
+Ref 2 RI 6266871 CNT 10
+Ref 2 RISETSIZE 3
+Ref 3 RI 6 CNT 9136680
+Ref 3 RI 6083 CNT 1286460
+Ref 3 RI 6089 CNT 10210
+Ref 3 RI 6093 CNT 10210
+Ref 3 RI 12533766 CNT 1134
+Ref 3 RI 12533772 CNT 18
+Ref 3 RISETSIZE 6
+Ref 4 RI 6 CNT 9136680
+Ref 4 RI 6260731 CNT 1286460
+Ref 4 RI 6260737 CNT 20420
+Ref 4 RI 12533766 CNT 1134
+Ref 4 RI 12533772 CNT 18
+Ref 4 RISETSIZE 5
+Ref 5 RI 6 CNT 9136680
+Ref 5 RI 6260728 CNT 1286460
+Ref 5 RI 6260734 CNT 20420
+Ref 5 RI 6266853 CNT 1260
+Ref 5 RI 6266859 CNT 10
+Ref 5 RI 6266863 CNT 10
+Ref 5 RISETSIZE 6
+Ref 6 RI 1 CNT 9146900
+Ref 6 RI 2 CNT 1297940
+Ref 6 RISETSIZE 2
+Ref 7 RI 1 CNT 7848960
+Ref 7 RI 6 CNT 1297940
+Ref 7 RI 6087 CNT 1286460
+Ref 7 RI 6093 CNT 10210
+Ref 7 RI 6266860 CNT 1134
+Ref 7 RI 6266866 CNT 9
+Ref 7 RISETSIZE 6
+Ref 8 RI 4 CNT 10434620
+Ref 8 RI 6098 CNT 10210
+Ref 8 RI 6266871 CNT 9
+Ref 8 RISETSIZE 3
+Ref 9 RI 6 CNT 9136680
+Ref 9 RI 6083 CNT 1286460
+Ref 9 RI 6089 CNT 10210
+Ref 9 RI 6093 CNT 10210
+Ref 9 RI 12533766 CNT 1134
+Ref 9 RI 12533772 CNT 18
+Ref 9 RISETSIZE 6
+Ref 10 RI 6 CNT 9136680
+Ref 10 RI 6260731 CNT 1157814
+Ref 10 RI 6260737 CNT 18378
+Ref 10 RI 12533766 CNT 1134
+Ref 10 RI 12533772 CNT 18
+Ref 10 RISETSIZE 5
+Ref 11 RI 6 CNT 9136680
+Ref 11 RI 6260728 CNT 1157814
+Ref 11 RI 6260734 CNT 18378
+Ref 11 RI 6266853 CNT 1134
+Ref 11 RI 6266859 CNT 9
+Ref 11 RI 6266863 CNT 9
+Ref 11 RISETSIZE 6
+Average RISETSIZE for each reference 4.66667
+Assign lease 2 to ref 0 avg cache size 0.0936888 miss ratio 0.916492
+Assign lease 2 to ref 6 avg cache size 0.187378 miss ratio 0.832984
+Assign lease 1 to ref 7 avg cache size 0.27071 miss ratio 0.77023
+Assign lease 1 to ref 1 avg cache size 0.354043 miss ratio 0.707477
+Assign lease 4 to ref 8 avg cache size 0.687377 miss ratio 0.624051
+Assign lease 4 to ref 2 avg cache size 1.02071 miss ratio 0.540624
+Assign lease 6 to ref 10 avg cache size 1.51445 miss ratio 0.467575
+Assign lease 6 to ref 11 avg cache size 2.00819 miss ratio 0.394526
+Assign lease 6 to ref 3 avg cache size 2.50818 miss ratio 0.321477
+Assign lease 6 to ref 4 avg cache size 3.00817 miss ratio 0.248428
+Assign lease 6 to ref 9 avg cache size 3.50817 miss ratio 0.175379
+Assign lease 6 to ref 5 avg cache size 4.00817 miss ratio 0.10233
+Assign lease 6 to ref 7 avg cache size 4.11172 miss ratio 0.0919527
+Assign lease 6 to ref 1 avg cache size 4.21527 miss ratio 0.0815755
+Assign lease 6093 to ref 3 avg cache size 67.6364 miss ratio 0.0711268
+Assign lease 6093 to ref 9 avg cache size 131.058 miss ratio 0.0606781
+Assign lease 6093 to ref 7 avg cache size 194.024 miss ratio 0.0503111
+Assign lease 6093 to ref 1 avg cache size 256.996 miss ratio 0.039944
+Assign lease 6098 to ref 8 avg cache size 257.493 miss ratio 0.0398624
+Assign lease 6098 to ref 2 avg cache size 257.99 miss ratio 0.0397808
+Assign lease 6266863 to ref 5 avg cache size 65601.5 miss ratio 0.0293218
+Assign lease 6266863 to ref 11 avg cache size 124411 miss ratio 0.0199088
+Assign lease 6266866 to ref 1 avg cache size 124474 miss ratio 0.0198986
+Assign lease 6266866 to ref 7 avg cache size 124531 miss ratio 0.0198895
+Assign lease 6266871 to ref 2 avg cache size 124532 miss ratio 0.0198894
+Assign lease 6266871 to ref 8 avg cache size 124532 miss ratio 0.0198894
+Assign lease 6260737 to ref 4 avg cache size 189869 miss ratio 0.00944066
+Assign lease 6260737 to ref 10 avg cache size 248678 miss ratio 3.68416e-05
+Assign lease 12533772 to ref 4 avg cache size 248736 miss ratio 2.76312e-05
+Assign lease 12533772 to ref 10 avg cache size 248794 miss ratio 1.84208e-05
+Assign lease 12533772 to ref 3 avg cache size 248909 miss ratio 9.2104e-06
+Assign lease 12533772 to ref 9 avg cache size 249024 miss ratio 0
