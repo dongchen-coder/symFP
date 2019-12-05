@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #include <math.h>
 
@@ -102,9 +105,25 @@ int main() {
 		seq[i] = i % 64;
 	}
 
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
 	nussinov_trace(table, seq);
 
-	OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
+    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 	return 0;
 }

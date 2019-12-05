@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #ifdef ORG
 	#define NI 256
@@ -131,9 +134,25 @@ int main() {
             d[i] = i % 256;
     }
 
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
+
     mm3_cpu_trace(a, b, c, d, e, f, g);
-	
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
     OSL_ref(0);
-    
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
     return 0;
 }

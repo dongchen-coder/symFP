@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #ifdef ORG
 	#define _PB_TMAX 10
@@ -67,9 +70,24 @@ int main() {
 	double* ex = (double *)malloc(_PB_NX * _PB_NY * sizeof(double));
 	double* hz = (double *)malloc(_PB_NX * _PB_NY * sizeof(double));	
 
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
 	fdtd_2d_trace(_fict_, ey, ex, hz);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 
-	OSL_ref(0);
-
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
+    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 	return 0;
 }

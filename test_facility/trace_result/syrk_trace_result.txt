@@ -1,76 +1,43 @@
-Starting to print results.
-/* Total number of data blocks is 16384 */
-/* Total number of accesses is 67239936 */
-/* Bin 0 Distance 0 */	Reuses: 16965632
-/* Bin 1 Distance 1 */	Reuses: 122848
-/* Bin 2 Distance 2 to 3 */	Reuses: 45948960
-/* Bin 3 Distance 4 to 7 */	Reuses: 0
-/* Bin 4 Distance 8 to 15 */	Reuses: 0
-/* Bin 5 Distance 16 to 31 */	Reuses: 0
-/* Bin 6 Distance 32 to 63 */	Reuses: 16004	SLQ: 0
-/* Bin 7 Distance 64 to 127 */	Reuses: 2073081	SLQ: 0
-/* Bin 8 Distance 128 to 255 */	Reuses: 256	SLQ: 0
-/* Bin 9 Distance 256 to 511 */	Reuses: 510	SLQ: 0
-/* Bin 10 Distance 512 to 767 */	Reuses: 510	SLQ: 0
-/* Bin 11 Distance 768 to 1023 */	Reuses: 510	SLQ: 0
-/* Bin 12 Distance 1024 to 1279 */	Reuses: 510	SLQ: 0
-/* Bin 13 Distance 1280 to 1535 */	Reuses: 510	SLQ: 0
-/* Bin 14 Distance 1536 to 1791 */	Reuses: 510	SLQ: 0
-/* Bin 15 Distance 1792 to 2047 */	Reuses: 510	SLQ: 0
-/* Bin 16 Distance 2048 to 2303 */	Reuses: 510	SLQ: 0
-/* Bin 17 Distance 2304 to 2559 */	Reuses: 510	SLQ: 0
-/* Bin 18 Distance 2560 to 2815 */	Reuses: 510	SLQ: 0
-/* Bin 19 Distance 2816 to 3071 */	Reuses: 510	SLQ: 0
-/* Bin 20 Distance 3072 to 3327 */	Reuses: 509	SLQ: 0
-/* Bin 21 Distance 3328 to 3583 */	Reuses: 511	SLQ: 0
-/* Bin 22 Distance 3584 to 3839 */	Reuses: 509	SLQ: 0
-/* Bin 23 Distance 3840 to 4095 */	Reuses: 510	SLQ: 0
-/* Bin 24 Distance 4096 to 4351 */	Reuses: 510	SLQ: 0
-/* Bin 25 Distance 4352 to 4607 */	Reuses: 510	SLQ: 0
-/* Bin 26 Distance 4608 to 4863 */	Reuses: 510	SLQ: 0
-/* Bin 27 Distance 4864 to 5119 */	Reuses: 510	SLQ: 0
-/* Bin 28 Distance 5120 to 5375 */	Reuses: 510	SLQ: 0
-/* Bin 29 Distance 5376 to 5631 */	Reuses: 510	SLQ: 0
-/* Bin 30 Distance 5632 to 5887 */	Reuses: 510	SLQ: 0
-/* Bin 31 Distance 5888 to 6143 */	Reuses: 510	SLQ: 0
-/* Bin 32 Distance 6144 to 6399 */	Reuses: 510	SLQ: 0
-/* Bin 33 Distance 6400 to 6655 */	Reuses: 510	SLQ: 0
-/* Bin 34 Distance 6656 to 6911 */	Reuses: 509	SLQ: 0
-/* Bin 35 Distance 6912 to 7167 */	Reuses: 511	SLQ: 0
-/* Bin 36 Distance 7168 to 7423 */	Reuses: 510	SLQ: 0
-/* Bin 37 Distance 7424 to 7679 */	Reuses: 510	SLQ: 0
-/* Bin 38 Distance 7680 to 7935 */	Reuses: 511	SLQ: 0
-/* Bin 39 Distance 7936 to 8191 */	Reuses: 509	SLQ: 0
-/* Bin 40 Distance 8192 to 8447 */	Reuses: 2072771	SLQ: 0
-/* Bin 41 Distance 8448 to 8703 */	Reuses: 1	SLQ: 0
-/* Bin 42 Distance 8704 to 8959 */	Reuses: 1	SLQ: 0
-/* Bin 43 Distance 8960 to 9215 */	Reuses: 1	SLQ: 0
-/* Bin 44 Distance 9216 to 9471 */	Reuses: 1	SLQ: 0
-/* Bin 45 Distance 9472 to 9727 */	Reuses: 1	SLQ: 0
-/* Bin 46 Distance 9728 to 9983 */	Reuses: 1	SLQ: 0
-/* Bin 47 Distance 9984 to 10239 */	Reuses: 1	SLQ: 0
-/* Bin 48 Distance 10240 to 10495 */	Reuses: 1	SLQ: 0
-/* Bin 49 Distance 10496 to 10751 */	Reuses: 1	SLQ: 0
-/* Bin 50 Distance 10752 to 11007 */	Reuses: 1	SLQ: 0
-/* Bin 51 Distance 11008 to 11263 */	Reuses: 1	SLQ: 0
-/* Bin 52 Distance 11264 to 11519 */	Reuses: 1	SLQ: 0
-/* Bin 53 Distance 11520 to 11775 */	Reuses: 1	SLQ: 0
-/* Bin 54 Distance 11776 to 12031 */	Reuses: 1	SLQ: 0
-/* Bin 55 Distance 12032 to 12287 */	Reuses: 1	SLQ: 0
-/* Bin 56 Distance 12288 to 12543 */	Reuses: 1	SLQ: 0
-/* Bin 57 Distance 12544 to 12799 */	Reuses: 1	SLQ: 0
-/* Bin 58 Distance 12800 to 13055 */	Reuses: 1	SLQ: 0
-/* Bin 59 Distance 13056 to 13311 */	Reuses: 1	SLQ: 0
-/* Bin 60 Distance 13312 to 13567 */	Reuses: 1	SLQ: 0
-/* Bin 61 Distance 13568 to 13823 */	Reuses: 1	SLQ: 0
-/* Bin 62 Distance 13824 to 14079 */	Reuses: 1	SLQ: 0
-/* Bin 63 Distance 14080 to 14335 */	Reuses: 1	SLQ: 0
-/* Bin 64 Distance 14336 to 14591 */	Reuses: 1	SLQ: 0
-/* Bin 65 Distance 14592 to 14847 */	Reuses: 1	SLQ: 0
-/* Bin 66 Distance 14848 to 15103 */	Reuses: 1	SLQ: 0
-/* Bin 67 Distance 15104 to 15359 */	Reuses: 1	SLQ: 0
-/* Bin 68 Distance 15360 to 15615 */	Reuses: 1	SLQ: 0
-/* Bin 69 Distance 15616 to 15871 */	Reuses: 1	SLQ: 0
-/* Bin 70 Distance 15872 to 16127 */	Reuses: 1	SLQ: 0
-/* Bin 71 Distance 16128 to 16383 */	Reuses: 8161	SLQ: 0
-/* End tree size is 4618 */
+Start to dump reuse time histogram
+1, 35712, 0.268786
+2, 33536, 0.252408
+4, 55552, 0.418112
+64, 3976, 0.0299253
+128, 8, 6.02119e-05
+256, 16, 0.000120424
+512, 32, 0.000240848
+1024, 65, 0.000489222
+2048, 3842, 0.0289168
+4096, 4, 3.0106e-05
+8192, 8, 6.02119e-05
+16384, 16, 0.000120424
+32768, 32, 0.000240848
+65536, 65, 0.000489222
+miss ratio
+0 1
+1 1
+2 0.478805
+3 0.0606936
+6 0.0606936
+7 0.0307683
+8 0.0307683
+9 0.0307081
+12 0.0307081
+13 0.0305877
+20 0.0305877
+21 0.0303468
+35 0.0303468
+36 0.0298576
+66 0.0298576
+67 0.000940812
+68 0.000940812
+69 0.000910706
+71 0.000910706
+72 0.000850494
+78 0.000850494
+79 0.00073007
+90 0.00073007
+91 0.000489222
+106 0.000489222
+107 0
+65536 0

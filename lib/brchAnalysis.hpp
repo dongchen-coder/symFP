@@ -17,6 +17,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Analysis/CFG.h"
 
+#include "Utils.hpp"
 #include "idxAnalysis.hpp"
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
@@ -50,7 +51,7 @@ namespace brchAnalysis {
         vector<BasicBlock *> FindIfBody(Loop *L);
         
         // Tranverse the LoopRefTree
-        void tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
+        void tranverseLoopRefTree(TreeNodeBase* node);
         
         // Find the Branch Conditions
         void FindBranch(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* nodeL);

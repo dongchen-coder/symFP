@@ -8,18 +8,28 @@
 #include "../utility/reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define NX 1024
-	#define NY 1024
-#elif defined(TX)
-	#define NX 1024
-	#define NY 2048
-#elif defined(FX)
-	#define NX 1024
-	#define NY 4096
-#elif defined(EX)
-	#define NX 1024
-	#define NY 8192
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+    #define STANDARD_DATASET
+#endif
+#ifdef MINI_DATASET
+    #define NX 32
+    #define NY 32
+#endif
+#ifdef SMALL_DATASET
+    #define NX 1024
+    #define NY 1024
+#endif 
+#ifdef STANDARD_DATASET
+    #define NX 4096
+    #define NY 4096
+#endif
+#ifdef LARGE_DATASET
+    #define NX 8192
+    #define NY 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+   #define NX 100000
+    #define NY 100000
 #endif
 
 
@@ -33,17 +43,9 @@
 void bicg_cpu_trace(double* A, double* r, double* s, double* p, double* q, unsigned int nx, int ny) {
  
 	int i,j;
-
-    for (i = 0; i < NY; i++)
-    {
-        s[i] = 0.0;
-    	rtTmpAccess(S_OFFSET + i);
-	}
-
+    
     for (i = 0; i < NX; i++)
     {
-        q[i] = 0.0;
-		rtTmpAccess(Q_OFFSET + i);
         for (j = 0; j < NY; j++)
         {
             s[j] = s[j] + r[i] * A[i * NY + j];
@@ -73,10 +75,12 @@ int main() {
 
     for (int i = 0; i < NX; i++) {
         r[i] = i % 256;
+        q[i] = 0.0;
     }
 
     for (int i = 0; i< NY; i++) {
         p[i] = i % 256;
+        s[i] = 0.0;
     }
 
     for (int i = 0; i< NY*NX; i++) {
@@ -98,6 +102,12 @@ int main() {
 #ifdef RD
     FiniRD();
 #endif
+
+    free(A);
+    free(r);
+    free(s);
+    free(q);
+    free(p);
 
     return 0;
 }

@@ -24,8 +24,19 @@
 #include "ssCodeGen_ref.hpp"
 /* sequential resverior sampling gen */
 #include "rsCodeGen_ref.hpp"
-/* parallel 1:1 interleaving static sampling gen */
-#include "psCodeGen_ref.hpp"
+#if defined(PARALLEL)
+#include "loopTreeTransform.cpp"
+#   if defined(UNIFORM_INTERLEAVING)
+        /* parallel 1:1 interleaving static sampling gen */
+#       include "uiCodeGen_ref.hpp"
+#   elif defined(RANDOM_INTERLEAVING)
+        /* parallel random interleaving static sampling gen */
+        #include "riCodeGen_ref.hpp"
+#   else
+        /* parallel 1:1 interleaving static sampling gen */
+#       include "psCodeGen_ref.hpp"
+#   endif
+#endif
 
 
 //#define REF_PAIR
@@ -48,10 +59,14 @@ namespace symFP {
 
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
-#if defined(RS_SAMPLE)
-            AU.addRequired<rsCodeGen_ref::ReservoirSamplingCodeGen_ref>();
-#elif defined(PARALLEL)
+#if defined(PARALLEL)
+#   if defined(UNIFORM_INTERLEAVING)
+            AU.addRequired<uiCodeGen_ref::UniformInterleavingCodeGen_ref>();
+#   elif defined(RANDOM_INTERLEAVING)
+            AU.addRequired<riCodeGen_ref::RandomInterleavingCodeGen_ref>();
+#   else
             AU.addRequired<psCodeGen_ref::ParallelSamplingCodeGen_ref>();
+#endif
 #elif defined(REF_PAIR)
             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();
 #else

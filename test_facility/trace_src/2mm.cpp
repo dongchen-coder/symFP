@@ -8,15 +8,40 @@
 	#include "../utility/reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define NI 256
-	#define NJ 256
-	#define NK 256
-	#define NL 256
-#elif defined (TX)
-#elif defined (FX)
-#elif defined (EX)
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+    #define STANDARD_DATASET
 #endif
+#ifdef MINI_DATASET
+    #define NI 32
+    #define NJ 32
+    #define NK 32
+    #define NL 32
+#endif
+#ifdef SMALL_DATASET
+    #define NI 128
+    #define NJ 128
+    #define NL 128
+    #define NK 128
+#endif
+#ifdef STANDARD_DATASET
+    #define NI 1024
+    #define NJ 1024
+    #define NK 1024
+    #define NL 1024
+#endif
+#ifdef LARGE_DATASET
+    #define NI 2048
+    #define NJ 2048
+    #define NL 2048
+    #define NK 2048
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define NI 4096
+    #define NJ 4096
+    #define NL 4096
+    #define NK 4096
+#endif
+
 
 #define TMP_OFFSET 0
 #define A_OFFSET NI * NJ
@@ -47,6 +72,7 @@ void mm2_trace(double* tmp, double* A, double* B, double* C, double* D, double a
         for (j = 0; j < NL; j++) {
             D[i * NL + j] *= beta;
 			rtTmpAccess(D_OFFSET + i * NL + j);
+            rtTmpAccess(D_OFFSET + i * NL + j);
             for (k = 0; k < NJ; ++k) {
                 D[i * NL + j] += tmp[i * NJ + k] * C[k * NL + j];
             	rtTmpAccess(TMP_OFFSET + i * NJ + k);
@@ -84,6 +110,12 @@ int main() {
 #ifdef RD
     FiniRD();
 #endif
+
+    free(A);
+    free(B);
+    free(C);
+    free(D);
+    free(tmp);
 
 	return 0;
 }

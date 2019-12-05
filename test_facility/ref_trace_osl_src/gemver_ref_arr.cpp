@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #ifdef ORG
 	#define N 1024
@@ -105,9 +108,25 @@ int main(int argc, char const *argv[])
     double alpha = 1.0;
     double beta = 1.5;
 
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     gemver_trace(alpha, beta, A, u1, v1, u2, v2, w, x, y, z);
     
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
     OSL_ref(0);
-	
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
     return 0;
 }

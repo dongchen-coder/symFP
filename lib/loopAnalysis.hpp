@@ -19,10 +19,11 @@
 #include "llvm/Analysis/CFG.h"
 #include "llvm/IR/Constants.h"
 
-
+#include "Utils.hpp"
 #include "idxAnalysis.hpp"
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
+
 
 using namespace llvm;
 using namespace std;
@@ -42,19 +43,19 @@ namespace loopAnalysis {
         /* Data structures for loop info */
         typedef pair<Value*, Value*> LoopBound;              /* loop bounds are stored in pairs (lower bound, upper bound) */
         
-        struct LoopInfoStruct{
+        struct LoopInfoStruct {
             vector<Value *>* IDV;                            /* induction variable */
             vector<Value *>* INC;                            /* stride */
             vector<LoopIndvBoundAnalysis::LoopBound>* LB;    /* bounds */
             vector<llvm::CmpInst::Predicate>* PREDICATE;     /* upper bound condition >, >=, <, <= */
         };
         
-        struct LoopRefTNode {                                /* Tree node structure for loop/reference tree */
+        /* Tree node structure for loop/reference tree */
+        struct LoopRefTNode: TreeNodeBase {       
             int LoopLevel;
             Loop* L;
             LoopInfoStruct* LIS;
             Instruction* AA;
-            vector<LoopRefTNode *>* next;
         };
         
         LoopRefTNode* LoopRefTree;                           /* Root node for loop reference tree */

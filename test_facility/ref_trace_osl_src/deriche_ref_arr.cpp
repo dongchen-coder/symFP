@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #include<math.h>
 
@@ -134,9 +137,25 @@ int main() {
 	double* imgOut = (double *)malloc(W * H * sizeof(double));
 	double alpha = 0.5;
 
+
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
 	deriche_trace(y1, imgIn, y2, imgOut, alpha);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 
-	OSL_ref(0);
-
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
+    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 	return 0;
 }

@@ -32,10 +32,9 @@
 
 void bicg_cpu(int nx, int ny, double* A, double* r, double* s, double* p, double* q) {
     int i,j;
-    
+
     for (i = 0; i < NX; i++)
     {
-        q[i] = 0.0;
         for (j = 0; j < NY; j++)
         {
             s[j] = s[j] + r[i] * A[i * NY + j];

@@ -10,6 +10,7 @@
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "loopTreeTransform.hpp"
 #include "sampleNumAnalysis.hpp"
 
 using namespace llvm;
@@ -49,7 +50,7 @@ namespace psCodeGen_ref {
         
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
-        void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        void initIndvName(TreeNodeBase* LoopRefTree);
         void initArrayName();
         
         void addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::vector<std::string> indvs);
@@ -136,7 +137,7 @@ namespace psCodeGen_ref {
             string space);
         
         bool refRTSearchGen(
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
+            TreeNodeBase *LoopRefTree, 
             bool GenFlag, 
             bool isFirstOutLoop, 
             std::string refName, 

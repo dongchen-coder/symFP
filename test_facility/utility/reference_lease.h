@@ -126,24 +126,29 @@ void accessRatioCal() {
 
 // dump hits
 void dumpHits() {
-	cout << "Dump hits" << endl;
-	for (map<uint64_t, map<uint64_t, double>* >::iterator ref_it = hits.begin(), ref_eit = hits.end(); ref_it != ref_eit; ++ref_it) {
-		for (map<uint64_t, double>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
-			cout << "Ref " << ref_it->first << " " << " Lease " << ri_it->first << " Hits " << (*hits[ref_it->first])[ri_it->first] << endl;
-		}
-		cout << endl;
-	}
+    cout << "Dump hits" << endl;
+    for (map<uint64_t, map<uint64_t, double>* >::iterator ref_it = hits.begin(), ref_eit = hits.end(); ref_it != ref_eit; ++ref_it) {
+        for (map<uint64_t, double>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+#ifdef DEBUG
+            cout << "Ref " << ref_it->first << " " << " Lease " << ri_it->first << " Hits " << (*hits[ref_it->first])[ri_it->first] << endl;
+#endif
+        }
+        cout << endl;
+    }
 }
 
 // dump costs
 void dumpCosts() {
 	cout << "Dump costs" << endl;
 	for (map<uint64_t, map<uint64_t, double>* >::iterator ref_it = costs.begin(), ref_eit = costs.end(); ref_it != ref_eit; ++ref_it) {
-		for (map<uint64_t, double>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
-			cout << "Ref " << ref_it->first << " " << " Lease " << ri_it->first << " Costs " << (*costs[ref_it->first])[ri_it->first] << endl;
-		}
-		cout << endl;
-	}
+        for (map<uint64_t, double>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {
+#ifdef DEBUG
+            cout << "Ref " << ref_it->first << " " << " Lease " << ri_it->first << " Costs " << (*costs[ref_it->first])[ri_it->first] << endl;
+        	}
+#endif
+        }
+        cout << endl;
+    }
 }
 
 // dump RI
@@ -299,7 +304,7 @@ void hitCostRandomAssignment(uint64_t N, uint64_t totalNumOfReuses) {
 
 // main OSL_ref alg
 void OSL_ref(uint64_t CacheSize) {
-	
+#ifdef DEBUG
 	cout << "Start to init hits and costs" << endl;
 
 #if defined(assignLeaseToAllAccesses) or defined(randomAssignment)
@@ -314,7 +319,6 @@ void OSL_ref(uint64_t CacheSize) {
 	//dumpHits();
 	//dumpCosts();
 	dumpRI();
-
 	uint64_t N = refT;
 	uint64_t totalNumOfReuses = getTotalNumOfRueses();
 	uint64_t totalCost = 0;

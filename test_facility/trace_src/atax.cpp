@@ -8,18 +8,28 @@
 #include "../utility/reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define NX 1024
-	#define NY 1024
-#elif defined(TX)
-	#define NX 1024
-	#define NY 2048
-#elif defined(FX)
-	#define NX 1024
-	#define NY 4096
-#elif defined(EX)
-	#define NX 1024
-	#define NY 8192
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define STANDARD_DATASET
+# endif
+#ifdef MINI_DATASET
+    #define NX 32
+    #define NY 32
+#endif
+#ifdef SMALL_DATASET
+    #define NX 1024
+    #define NY 1024
+#endif
+#ifdef STANDARD_DATASET
+    #define NX 4096
+    #define NY 4096
+#endif
+#ifdef LARGE_DATASET
+    #define NX 8192
+    #define NY 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define NX 100000
+    #define NY 100000
 #endif
 
 #define A_OFFSET 0
@@ -32,17 +42,16 @@ void atax_cpu_trace(double* A, double* x, double* y, double* tmp, unsigned int d
     
 	int i,j;
 
-    for (i= 0; i < NY; i++)
-    {
-        y[i] = 0;
-    	rtTmpAccess(Y_OFFSET + i);
-	}
+ //    for (i= 0; i < NY; i++)
+ //    {
+ //        y[i] = 0;
+ //    	rtTmpAccess(Y_OFFSET + i);
+	// }
 
     for (i = 0; i < NX; i++)
     {
-            tmp[i] = 0;
-			rtTmpAccess(TMP_OFFSET + i);
-
+   //          tmp[i] = 0;
+			// rtTmpAccess(TMP_OFFSET + i);
             for (j = 0; j < NY; j++)
             {
                 tmp[i] = tmp[i] + A[i * NY + j] * x[j];
@@ -98,6 +107,11 @@ int main() {
 #ifdef RD
     FiniRD();
 #endif
+
+    free(A);
+    free(x);
+    free(y);
+    free(tmp);
 
     return 0;
 }

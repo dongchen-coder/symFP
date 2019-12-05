@@ -8,15 +8,26 @@
 #include "../utility/reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define N 1024
-#elif defined(TX)
-	#define N 1448
-#elif defined(FX)
-	#define N 2048
-#elif defined(EX)
-	#define N 2896
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+    #define STANDARD_DATASET
 #endif
+
+#ifdef MINI_DATASET
+    #define N 32
+#endif
+#ifdef SMALL_DATASET
+    #define N 1024
+#endif
+#ifdef STANDARD_DATASET
+    #define N 4096
+#endif
+#ifdef LARGE_DATASET
+    #define N 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define N 100000
+#endif
+
 
 #define A_OFFSET 0
 #define u1_OFFSET N * N  
@@ -126,6 +137,16 @@ int main(int argc, char const *argv[])
 #ifdef RD
     FiniRD();
 #endif
+
+    free(u1);
+    free(v1);
+    free(u2);
+    free(v2);
+    free(A);
+    free(y);
+    free(x);
+    free(z);
+    free(w);
 	
     return 0;
 }

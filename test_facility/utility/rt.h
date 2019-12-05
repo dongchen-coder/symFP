@@ -1,10 +1,14 @@
 #include<iostream>
 #include<map>
 #include<set>
+#include <cmath>
 using namespace std;
 
 #define CLS 64
 #define DS 8
+#ifndef BIN_SIZE
+#    define BIN_SIZE   64
+#endif
 
 /* first access time */
 std::map<int, int> fat;
@@ -25,6 +29,38 @@ map<uint64_t, uint64_t> srcRef;
 
 //std::map<uint64_t, std::set<uint64_t> > rtRefSet;
 //std::map<uint64_t, std::set<uint64_t> > rtArrSet;
+void rtHistoCal( uint64_t rt, uint64_t val ) {
+    if ( val <= 0) {
+;        return;
+    }
+    if (rtTmp.find(rt) == rtTmp.end()) { 
+        rtTmp[rt] = val;
+    } else {
+        rtTmp[rt] += val;
+    }
+    return;
+}
+void subBlkRT(uint64_t rt) {
+    int msb = 0;
+    int tmp_rt = rt;
+    while(tmp_rt != 0) {
+        tmp_rt = tmp_rt / 2;
+        ++msb;
+    }
+    if (msb >= BIN_SIZE) {
+        uint64_t diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;
+        for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {
+            if (rt < b) {
+                rtHistoCal((uint64_t)(b - diff), 1);
+                break;
+            }
+        }
+    }
+    else {
+        rtHistoCal((uint64_t)pow(2, msb-1), 1);
+    }
+    return;
+}
 
 void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t array_id) {
 	addr = addr * DS / CLS;
@@ -65,28 +101,24 @@ void rtTmpAccess(int addr) {
         fat[addr] = refT;
         lat[addr] = refT;
     } else {
-
-        if (rtTmp.find(refT - lat[addr]) == rtTmp.end()) {
-            rtTmp[refT - lat[addr]] = 1;
-        } else {
-            rtTmp[refT - lat[addr]] ++;
-        }
+    	subBlkRT(refT - lat[addr]);
         lat[addr] = refT;
     }
     return;
 }
 
 void dumpRtTmp() {
+	cout << "Number of Cache Line: " << fat.size() * DS / CLS << endl;
     uint64_t cnt = 0;
     for (std::map<uint64_t, uint64_t>::iterator it = rtTmp.begin(), eit = rtTmp.end(); it != eit; ++it) {
         cnt += it->second;
     }
-
+    cout << "Start to dump reuse time histogram" << endl;
     for (std::map<uint64_t, uint64_t>::iterator it = rtTmp.begin(), eit = rtTmp.end(); it != eit; ++it) {
-        cout << it->first << " " << it->second << " " << double(it->second)/cnt  << endl;
+        cout << it->first << ", " << it->second << ", " << double(it->second)/cnt  << endl;
     }
 
-	cout << rtTmp.size() << endl;
+	// cout << rtTmp.size() << endl;
 
     return;
 }
@@ -154,8 +186,7 @@ void RTtoMR_AET() {
 
 		//MR[c] = P[prev_t];
 
-	}
-	
+	}	
 	return;
 }
 

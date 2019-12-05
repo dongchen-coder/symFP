@@ -202,7 +202,7 @@ namespace loopAnalysis {
 #ifdef LOOP_DEBUG
         errs() << "\n start to analysis Ref\n";
 #endif
-        vector<LoopRefTNode*>* nextWithRef = new vector<LoopRefTNode*>;
+        vector<TreeNodeBase*>* nextWithRef = new vector<TreeNodeBase*>;
         
         if (root->next == NULL) {
 
@@ -217,54 +217,51 @@ namespace loopAnalysis {
                     }
                 }
             }
-            
         } else {
             
 #ifdef LOOP_DEBUG
             errs() << "not Last level loop\n";
 #endif
-            
-            vector<LoopRefTNode*>::iterator nextIter = root->next->begin();
-            vector<BasicBlock*> BBinLoop = (*nextIter)->L->getBlocks();
+            vector<TreeNodeBase*>::iterator nextIter = root->next->begin();
+            LoopRefTNode *next_node = static_cast<LoopRefTNode*>(*nextIter);
+            if (next_node != nullptr) {
+                
+                vector<BasicBlock*> BBinLoop = next_node->L->getBlocks();
 
 #ifdef LOOP_DEBUG
-            if (root->L != NULL) {
-                root->L->dump();
-            }
-            errs() << "--";
-            (*nextIter)->L->dump();
+                if (root->L != NULL) {
+                    root->L->dump();
+                }
+                errs() << "--";
+                next_node->L->dump();
 #endif
-
-            for (vector<BasicBlock*>::iterator it = BBList.begin(), eit = BBList.end(); it != eit; ++it) {
-            
-                BasicBlock* BB = *it;
-
+                for (vector<BasicBlock*>::iterator it = BBList.begin(), eit = BBList.end(); it != eit; ++it) {
+                
+                    BasicBlock* BB = *it;
 #ifdef LOOP_DEBUG
-                errs() << BB->getName() << "\n";
+                    errs() << BB->getName() << "\n";
 #endif
                 
-                if (find(BBinLoop.begin(), BBinLoop.end(), BB) == BBinLoop.end() || BBinLoop.empty()) {
-                    
-                    for (BasicBlock::iterator Inst = BB->begin(), eInst = BB->end(); Inst != eInst; ++Inst) {
-
-                        LoopRefTNode* Tmp = ExtractRefInfo(&*Inst);
-                        if (Tmp != NULL) {
-                            nextWithRef->push_back(Tmp);
-                        }
-                    }
-                    
-                } else {
-                    
-                    BBinLoop.erase(find(BBinLoop.begin(), BBinLoop.end(), BB));
-                    if (BBinLoop.empty()) {
+                    if (find(BBinLoop.begin(), BBinLoop.end(), BB) == BBinLoop.end() || BBinLoop.empty()) {
                         
-                        nextWithRef->push_back(*nextIter);
-                        ++nextIter;
-                        if (nextIter != root->next->end()) {
-                            BBinLoop = (*nextIter)->L->getBlocks();
+                        for (BasicBlock::iterator Inst = BB->begin(), eInst = BB->end(); Inst != eInst; ++Inst) {
+
+                            LoopRefTNode* Tmp = ExtractRefInfo(&*Inst);
+                            if (Tmp != NULL) {
+                                nextWithRef->push_back(Tmp);
+                            }
+                        }
+                        
+                    } else {
+                        BBinLoop.erase(find(BBinLoop.begin(), BBinLoop.end(), BB));
+                        if (BBinLoop.empty()) {
+                            nextWithRef->push_back(next_node);
+                            ++nextIter;
+                            if (nextIter != root->next->end()) {
+                                BBinLoop = next_node->L->getBlocks();
+                            }
                         }
                     }
-                    
                 }
             }
         }
@@ -275,17 +272,16 @@ namespace loopAnalysis {
         root->next = nextWithRef;
         
         /* add Ref nodes to sub loops */
-        for (vector<LoopRefTNode*>::iterator it = root->next->begin(), eit = root->next->end(); it != eit; ++it) {
-            if ((*it)->L != NULL) {
-                
+        for (vector<TreeNodeBase*>::iterator it = root->next->begin(), eit = root->next->end(); it != eit; ++it) {
+            LoopRefTNode* tmp = static_cast<LoopRefTNode*>(*it);
+            if (tmp != nullptr && tmp->L != NULL) {
                 vector<BasicBlock*> newBBList;
                 for (vector<BasicBlock*>::iterator bit = BBList.begin(), ebit = BBList.end(); bit != ebit; ++bit) {
-                    if (find((*it)->L->getBlocks(), *bit) != (*it)->L->getBlocks().end()) {
+                    if (find(tmp->L->getBlocks(), *bit) != tmp->L->getBlocks().end()) {
                         newBBList.push_back(*bit);
                     }
                 }
-                
-                (*it) = LoopTreeConstructionRef((*it), newBBList);
+                (*it) = LoopTreeConstructionRef(tmp, newBBList);
             }
         }
         
@@ -357,7 +353,7 @@ namespace loopAnalysis {
             if (L->getSubLoopsVector().empty()) {
                 root->next = NULL;
             } else {
-                root->next = new vector<LoopRefTNode *>;
+                root->next = new vector<TreeNodeBase *>;
             }
             
             for (Loop *SL : L->getSubLoops()) {
@@ -383,7 +379,7 @@ namespace loopAnalysis {
             root->L = NULL;
             root->LIS = NULL;
             root->AA = NULL;
-            root->next = new vector<LoopRefTNode *>;
+            root->next = new vector<TreeNodeBase *>;
             
             for(LoopInfo::reverse_iterator it = LI.rbegin(), eit = LI.rend(); it != eit; ++it){
                 
@@ -402,7 +398,7 @@ namespace loopAnalysis {
                 if (Tmp->L->getSubLoops().empty()) {
                     Tmp->next = NULL;
                 } else {
-                    Tmp->next = new vector<LoopRefTNode *>;
+                    Tmp->next = new vector<TreeNodeBase *>;
                 }
                 
                 root->next->push_back(Tmp);
@@ -456,8 +452,11 @@ namespace loopAnalysis {
             }
             
             if (LTroot->next != NULL) {
-                for (vector<LoopRefTNode*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
-                    DumpLoopTree(*it, prefix + "--");
+                for (vector<TreeNodeBase*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
+                    LoopRefTNode * next_node = static_cast<LoopRefTNode *>(*it);
+                    if (next_node != nullptr) {
+                        DumpLoopTree(next_node, prefix + "--");
+                    }
                 }
             }
         } else {

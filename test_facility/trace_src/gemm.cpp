@@ -9,22 +9,33 @@
 #endif
 
 
-#ifdef ORG
-	#define NI 256
-	#define NJ 256
-	#define NK 256
-#elif defined(TX)
-	#define NI 256
-	#define NJ 256
-	#define NK 512
-#elif defined(FX)
-	#define NI 256
-	#define NJ 512
-	#define NK 512
-#elif defined(EX)
-	#define NI 512
-	#define NJ 512
-	#define NK 512
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define STANDARD_DATASET
+# endif
+#ifdef MINI_DATASET
+    #define NI 32
+    #define NJ 32
+    #define NK 32
+#endif
+#ifdef SMALL_DATASET
+    #define NI 256
+    #define NJ 256
+    #define NK 256
+#endif
+#ifdef STANDARD_DATASET
+    #define NI 1024
+    #define NJ 1024
+    #define NK 1024
+#endif
+#ifdef LARGE_DATASET
+    #define NI 2048
+    #define NJ 2048
+    #define NK 2048
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define NI 4096
+    #define NJ 4096
+    #define NK 4096
 #endif
 
 #define A_OFFSET 0
@@ -89,6 +100,10 @@ int main()
 #ifdef RD
     FiniRD();
 #endif
+
+    free(A);
+    free(B);
+    free(C);
 
     return 0;
 }

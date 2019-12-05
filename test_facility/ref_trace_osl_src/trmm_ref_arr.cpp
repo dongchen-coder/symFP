@@ -1,7 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
-
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 #ifdef ORG
 	#define M 1024
 	#define N 1024
@@ -39,9 +41,25 @@ int main() {
 	double* B = (double *)malloc(M * N * sizeof(double));
 	double alpha = 0.2;
 
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
 	trmm_trace(A, B, alpha);
     
-    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
+    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 	return 0;
 }

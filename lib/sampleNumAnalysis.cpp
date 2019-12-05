@@ -435,12 +435,15 @@ namespace sampleNumAnalysis {
         }
         
         if (LoopRefTree->next != NULL) {
-            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops_New = loops;
                 if (LoopRefTree->L != NULL) {
                     loops_New.push_back(LoopRefTree);
                 }
-                calculateSampleNum(*it, loops_New);
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
+                if (node != nullptr) {
+                    calculateSampleNum(node, loops_New);
+                }
             }
         }
         
@@ -458,8 +461,12 @@ namespace sampleNumAnalysis {
         }
         
         if (LTroot->next != NULL) {
-            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
-                dumpSampleNum(*it, prefix + "--");
+            for (std::vector<TreeNodeBase*>::iterator it = LTroot->next->begin(), eit = LTroot->next->end(); it != eit; ++it) {
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
+                if (node != nullptr) {
+                    dumpSampleNum(node, prefix + "--");
+                }
+                
             }
         }
         

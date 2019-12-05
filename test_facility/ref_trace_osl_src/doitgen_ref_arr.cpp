@@ -1,6 +1,9 @@
 
 #include "../utility/reference_lease.h"
 #include "../utility/data_size.h"
+#ifdef PAPI_TIMER
+#   include "../utility/papi_timer.h"
+#endif
 
 #ifdef ORG
 	#define NR 64
@@ -47,11 +50,26 @@ int main() {
 	double * sum = (double *) malloc(NP * sizeof(double));
 	double * A = (double *) malloc(NR * NQ * NP * sizeof(double));
 	double * C4 = (double *) malloc(NP * NP);
-	
+
+#ifdef PAPI_TIMER
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
 	doitgen_trace(sum, A, C4);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 
-	OSL_ref(0);
-
+    printf("CARL Lease Assignment:\n");
+#ifdef PAPI_TIMER
+    PAPI_timer_start();
+#endif
+    OSL_ref(0);
+#ifdef PAPI_TIMER
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
 	return 0;
 }
 

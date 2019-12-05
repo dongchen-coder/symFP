@@ -59,7 +59,7 @@ namespace brchAnalysis {
         // tranverse the LoopRefNode
         // The root of the LoopRefTree is a special node with all component except the 'next' is empty
         if (lrn != NULL && lrn->next != NULL) {
-            for (loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node: *(lrn->next)) {
+            for (TreeNodeBase* node: *(lrn->next)) {
                 tranverseLoopRefTree(node);
             }
         }
@@ -71,13 +71,17 @@ namespace brchAnalysis {
         return false;
     }
 
-    void BranchAnalysis::tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node) {
+    void BranchAnalysis::tranverseLoopRefTree(TreeNodeBase* node) {
         if (node != NULL) {
-            if (node->L != NULL) {
-                errs() << node->L->getName();
-                FindBranch(node);
-                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>* subnodes = node->next;
-                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nit=subnodes->begin(), neit=subnodes->end(); nit!=neit; ++nit) {
+            if (static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(node) == nullptr) {
+                return;
+            }
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * lnd = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(node);
+            if (lnd->L != NULL) {
+                errs() << lnd->L->getName();
+                FindBranch(lnd);
+                vector<TreeNodeBase *>* subnodes = lnd->next;
+                for (vector<TreeNodeBase *>::iterator nit=subnodes->begin(), neit=subnodes->end(); nit!=neit; ++nit) {
                     tranverseLoopRefTree(*nit);
                 }
             }

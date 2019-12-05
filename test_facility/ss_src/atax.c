@@ -32,10 +32,15 @@
 void atax(int nx, int ny, double* A, double* x, double* y, double* tmp)
 {
     int i,j;
+
+    // for (i= 0; i < NY; i++)
+    // {
+    //     y[i] = 0;
+    // }
     
     for (i = 0; i < NX; i++)
     {   
-        tmp[i] = 0;
+        // tmp[i] = 0;
 
   		for (j = 0; j < NY; j++)
         {
@@ -47,6 +52,5 @@ void atax(int nx, int ny, double* A, double* x, double* y, double* tmp)
             y[j] = y[j] + A[i * NY + j] * tmp[i];
         }
     }
-    
     return;
 }

@@ -8,19 +8,35 @@
 #include "../utility/reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define NI 256
-	#define NJ 256
-#elif defined(TX)
-	#define NI 362
-	#define NJ 256
-#elif defined(FX)
-	#define NI 512
-	#define NJ 256
-#elif defined(EX)
-	#define NI 724
-	#define NJ 256
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+    #define STANDARD_DATASET
 #endif
+
+/* Define the possible dataset sizes. */
+#  ifdef MINI_DATASET
+#   define NI 32
+#   define NJ 32
+#  endif
+
+#  ifdef SMALL_DATASET
+#   define NI 128
+#   define NJ 128
+#  endif
+
+#  ifdef STANDARD_DATASET /* Default if unspecified. */
+#   define NI 1024
+#   define NJ 1024
+#  endif
+
+#  ifdef LARGE_DATASET
+#   define NI 2048
+#   define NJ 2048
+#  endif
+
+#  ifdef EXTRALARGE_DATASET
+#   define NI 4096
+#   define NJ 4096
+#  endif
 
 #define A_OFFSET 0
 #define C_OFFSET NI * NJ
@@ -86,6 +102,9 @@ int main(int argc, char const *argv[])
 #ifdef RD
     FiniRD();
 #endif
+
+    free(A);
+    free(C);
 
     return 0;
 }
