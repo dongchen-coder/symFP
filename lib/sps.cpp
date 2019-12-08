@@ -26,16 +26,16 @@
 // #include "rsCodeGen_ref.hpp"
 #if defined(PARALLEL)
 #   include "loopTreeTransform.hpp"
-#   if defined(UNIFORM_INTERLEAVING)
-        /* parallel 1:1 interleaving static sampling gen */
-#       include "uiCodeGen_ref.hpp"
-#   elif defined(RANDOM_INTERLEAVING)
-        /* parallel random interleaving static sampling gen */
-        #include "riCodeGen_ref.hpp"
-#   else
-        /* parallel 1:1 interleaving static sampling gen */
-#       include "psCodeGen_ref.hpp"
-#   endif
+// #   if defined(UNIFORM_INTERLEAVING)
+//         /* parallel 1:1 interleaving static sampling gen */
+// #       include "uiCodeGen_ref.hpp"
+// #   elif defined(RANDOM_INTERLEAVING)
+//         /* parallel random interleaving static sampling gen */
+//         #include "riCodeGen_ref.hpp"
+// #   else
+//         /* parallel 1:1 interleaving static sampling gen */
+// #       include "psCodeGen_ref.hpp"
+// #   endif
 #endif
 
 
@@ -59,19 +59,20 @@ namespace symFP {
 
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
-#if defined(PARALLEL)
-#   if defined(UNIFORM_INTERLEAVING)
-            AU.addRequired<uiCodeGen_ref::UniformInterleavingCodeGen_ref>();
-#   elif defined(RANDOM_INTERLEAVING)
-            AU.addRequired<riCodeGen_ref::RandomInterleavingCodeGen_ref>();
-#   else
-            AU.addRequired<psCodeGen_ref::ParallelSamplingCodeGen_ref>();
-#endif
-#elif defined(REF_PAIR)
-            AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();
-#else
-            AU.addRequired<ssCodeGen_ref::StaticSamplingCodeGen_ref>();
-#endif
+            AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
+// #if defined(PARALLEL)
+// #   if defined(UNIFORM_INTERLEAVING)
+//             AU.addRequired<uiCodeGen_ref::UniformInterleavingCodeGen_ref>();
+// #   elif defined(RANDOM_INTERLEAVING)
+//             AU.addRequired<riCodeGen_ref::RandomInterleavingCodeGen_ref>();
+// #   else
+//             AU.addRequired<psCodeGen_ref::ParallelSamplingCodeGen_ref>();
+// #endif
+// #elif defined(REF_PAIR)
+//             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();
+// #else
+//             AU.addRequired<ssCodeGen_ref::StaticSamplingCodeGen_ref>();
+// #endif
         }
     };
     

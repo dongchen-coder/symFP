@@ -22,10 +22,6 @@ namespace loopTreeTransform {
 
         typedef loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode LoopRefTNode;
 
-        struct ThreadNode: public TreeNodeBase {
-            int threadNum;
-        };
-
         /* LoopRefTree after the parallel transofrm */
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* PTLoopRefTree;
 
@@ -34,7 +30,7 @@ namespace loopTreeTransform {
         void findAllOutMostLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 
         void insertThreadNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
-        void tranverseLoopRefTree(TreeNodeBase* node);
+        void tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
 #if defined(UNIFORM_INTERLEAVING)
         void UniformLoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 #elif defined(RANDOM_INTERLEAVING)
@@ -42,7 +38,7 @@ namespace loopTreeTransform {
 #else
         void LoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 #endif
-        void DumpLoopTree(TreeNodeBase* LTroot, string prefix);
+        void DumpLoopTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LTroot, string prefix);
         bool runOnFunction(Function &F) override;
         void getAnalysisUsage(AnalysisUsage &AU) const override;
     };

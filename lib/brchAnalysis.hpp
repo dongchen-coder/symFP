@@ -51,7 +51,7 @@ namespace brchAnalysis {
         vector<BasicBlock *> FindIfBody(Loop *L);
         
         // Tranverse the LoopRefTree
-        void tranverseLoopRefTree(TreeNodeBase* node);
+        void tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
         
         // Find the Branch Conditions
         void FindBranch(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* nodeL);

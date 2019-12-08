@@ -29,7 +29,7 @@ using namespace llvm;
 using namespace std;
 
 /* Debugging flag, enable if debug is needed */
-//#define LOOP_DEBUG
+// #define LOOP_DEBUG
 
 namespace loopAnalysis {
     struct LoopIndvBoundAnalysis : public FunctionPass {
@@ -51,11 +51,13 @@ namespace loopAnalysis {
         };
         
         /* Tree node structure for loop/reference tree */
-        struct LoopRefTNode: public TreeNodeBase {       
+        struct LoopRefTNode {       
             int LoopLevel;
+            bool isThreadNode;
             Loop* L;
             LoopInfoStruct* LIS;
             Instruction* AA;
+            vector<LoopRefTNode *>* next;
         };
         
         LoopRefTNode* LoopRefTree;                           /* Root node for loop reference tree */

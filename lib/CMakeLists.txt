@@ -31,14 +31,14 @@ add_library(LLVMSPS MODULE
   # ssCodeGen.hpp
   # ssCodeGen.cpp
 
-  ssCodeGen_ref.hpp
-  ssCodeGen_ref.cpp
+  # ssCodeGen_ref.hpp
+  # ssCodeGen_ref.cpp
 
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
-  psCodeGen_ref.hpp
-  psCodeGen_ref.cpp
+  # psCodeGen_ref.hpp
+  # psCodeGen_ref.cpp
 
   # riCodeGen_ref.hpp
   # riCodeGen_ref.cpp
