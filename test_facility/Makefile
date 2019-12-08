@@ -52,10 +52,10 @@ cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_
 
 test_bench = test1 test2 # test3 test4 test5
 
-check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k doitgen stencil# 
+#check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k doitgen stencil# 
 #check_bench = stencil
 #check_bench = atax
-# check_bench = 2mm
+check_bench = 2mm
 #check_bench = heat_3d
 #check_bench = cholesky
 #check_bench = correlation

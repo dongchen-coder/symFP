@@ -23,9 +23,9 @@
 /* sequential static sampling gen */
 #include "ssCodeGen_ref.hpp"
 /* sequential resverior sampling gen */
-#include "rsCodeGen_ref.hpp"
+// #include "rsCodeGen_ref.hpp"
 #if defined(PARALLEL)
-#include "loopTreeTransform.cpp"
+#   include "loopTreeTransform.hpp"
 #   if defined(UNIFORM_INTERLEAVING)
         /* parallel 1:1 interleaving static sampling gen */
 #       include "uiCodeGen_ref.hpp"

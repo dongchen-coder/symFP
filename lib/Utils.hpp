@@ -11,7 +11,7 @@ struct TreeNodeBase
 public:
 	vector<TreeNodeBase *>* next;
 	TreeNodeBase();
-	~TreeNodeBase();
+	virtual ~TreeNodeBase();
 	
 };
 

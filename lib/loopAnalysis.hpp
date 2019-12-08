@@ -51,7 +51,7 @@ namespace loopAnalysis {
         };
         
         /* Tree node structure for loop/reference tree */
-        struct LoopRefTNode: TreeNodeBase {       
+        struct LoopRefTNode: public TreeNodeBase {       
             int LoopLevel;
             Loop* L;
             LoopInfoStruct* LIS;

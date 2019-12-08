@@ -31,7 +31,7 @@ namespace loopTreeTransform {
 
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>outMostLoops;
 
-        void findAllOutMostLOops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        void findAllOutMostLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 
         void insertThreadNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void tranverseLoopRefTree(TreeNodeBase* node);
