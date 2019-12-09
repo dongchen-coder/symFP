@@ -1246,9 +1246,12 @@ namespace psCodeGen_ref {
                     if (LoopRefTree->next != NULL) {
                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                             // contains a thread node is the node that contains a array access
-                            hasAA = (*it)->isThreadNode;
+                            hasAA = hasAA || (*it)->isThreadNode;
                         }
                     }
+#ifdef PSCODEGEN_DEBUG
+                            errs() << space + "/* Loop: " << LoopRefTree->L->getName() << "hasAA: " << hasAA << " */\n"; 
+#endif
 
                     /* Reach the inner-most loop */
                     if (hasAA) {
@@ -1306,7 +1309,9 @@ namespace psCodeGen_ref {
                         for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(); it != currentLoops.end(); ++it) {
                             tmp += (indvName[(*(*it)->LIS->IDV)[0]] + ", ");
                         }
-                        tmp += indvName[(*LoopRefTree->LIS->IDV)[0]];
+                        tmp.pop_back();
+                        tmp.pop_back();
+                        // tmp += indvName[(*LoopRefTree->LIS->IDV)[0]];
                         errs() << tmp + " };\n";
                         errs() << space + "        /* Interleaving */\n";
                         if (currentLoops.size() == 0) {
@@ -1346,13 +1351,13 @@ namespace psCodeGen_ref {
                 /* Generate addr checking instruction */
                 if (LoopRefTree->AA != NULL) {
                     if (arrayName[LoopRefTree->AA] == refName) {
-                        errs() << space + "        /* Remove those invalid interleaving */\n";
-                        errs() << space + "        if (nv[nvi].size() <= 0) { continue; }\n";
-                        errs() << space + "        if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
-                        errs() << space + "        if (cntStart == true) {\n";
-                        errs() << space + "            cnt++;\n";
+                        errs() << space + "    /* Remove those invalid interleaving */\n";
+                        errs() << space + "    if (nv[nvi].size() <= 0) { continue; }\n";
+                        errs() << space + "    if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
+                        errs() << space + "    if (cntStart == true) {\n";
+                        errs() << space + "        cnt++;\n";
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout  << \"[" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
+                        errs() << space + "        cout  << \"[" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             errs() << "nv[nvi][" + std::to_string(i) + "] << ";
                             if (i != currentLoops.size() - 1) {
@@ -1361,7 +1366,7 @@ namespace psCodeGen_ref {
                         }
                         errs() << "\", cnt: \" << cnt << \")\t\";\n";
                         errs() << "#endif\n";                  
-                        errs() << space + "            if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
+                        errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
                         string tmp = "";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "], ";
@@ -1393,7 +1398,7 @@ namespace psCodeGen_ref {
                         errs() << tmp + ")) {\n";
 
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "                cout << \"[REUSE FIND] @ (\" << ";
+                        errs() << space + "            cout << \"[REUSE FIND] @ (\" << ";
                         errs() << "calAddr" + refName + std::to_string(useID);
                         errs() << "(";
                         tmp = "";
@@ -1413,20 +1418,20 @@ namespace psCodeGen_ref {
                             }
                         }
                         errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
-                        errs() << space + "                rtHistoCal(cnt, 1);\n";
+                        errs() << space + "            rtHistoCal(cnt, 1);\n";
                         errs() << "#else\n";
 
 #ifdef REFERENCE_GROUP
-                        errs() << space + "                refSubBlkRT(cnt, \"" + refName + std::to_string(useID) + "\");\n";
+                        errs() << space + "            refSubBlkRT(cnt, \"" + refName + std::to_string(useID) + "\");\n";
 #else
-                        errs() << space + "                subBlkRT(cnt);\n";
+                        errs() << space + "            subBlkRT(cnt);\n";
 #endif
                         errs() << "#endif\n";
                     
-                        errs() << space + "                goto EndSample;\n";
+                        errs() << space + "            goto EndSample;\n";
                         
-                        errs() << space + "            }\n";
                         errs() << space + "        }\n";
+                        errs() << space + "    }\n";
                         if (useID == refNumber[LoopRefTree->AA]) {
                             errs() << space + "    if (";
                             for (unsigned i = 0; i < currentLoops.size(); i++) {
@@ -1445,12 +1450,12 @@ namespace psCodeGen_ref {
                         errs() << "#endif\n";
 #endif
                     } else {
-                        errs() << space + "        if (nv[nvi].size() <= 0) { continue; }\n";
-                        errs() << space + "        if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
-                        errs() << space + "        if (cntStart == true) {\n";
-                        errs() << space + "            cnt++;\n";
+                        errs() << space + "    if (nv[nvi].size() <= 0) { continue; }\n";
+                        errs() << space + "    if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
+                        errs() << space + "    if (cntStart == true) {\n";
+                        errs() << space + "        cnt++;\n";
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout  << \"[" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
+                        errs() << space + "        cout  << \"[" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             errs() << "nv[nvi][" + std::to_string(i) + "] << ";
                             if (i != currentLoops.size() - 1) {
@@ -1459,11 +1464,11 @@ namespace psCodeGen_ref {
                         }
                         errs() << "\", cnt: \" << cnt << \")\t\";\n";
                         errs() << "#endif\n";     
-                        errs() << space + "        }\n";
+                        errs() << space + "    }\n";
 #ifdef PARALLEL
-                        errs() << space + "    } // end of interleaving loop\n";
+                        errs() << space + "} // end of interleaving loop\n";
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "    cout << endl;\n";
+                        errs() << space + "cout << endl;\n";
                         errs() << "#endif\n";
 #endif
                     }
