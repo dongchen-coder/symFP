@@ -29,6 +29,7 @@ using namespace llvm;
 
 #define DumpRTMR
 // #define DumpRefLease
+#define PSCODEGEN_DEBUG
 
 namespace psCodeGen_ref {
     struct ParallelSamplingCodeGen_ref : public FunctionPass {
@@ -50,7 +51,7 @@ namespace psCodeGen_ref {
         
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
-        void initIndvName(TreeNodeBase* LoopRefTree);
+        void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initArrayName();
         
         void addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::vector<std::string> indvs);
@@ -137,7 +138,7 @@ namespace psCodeGen_ref {
             string space);
         
         bool refRTSearchGen(
-            TreeNodeBase *LoopRefTree, 
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
             bool GenFlag, 
             bool isFirstOutLoop, 
             std::string refName, 

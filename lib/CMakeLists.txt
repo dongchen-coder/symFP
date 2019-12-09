@@ -3,7 +3,6 @@ add_library(LLVMSPS MODULE
   # List your source files here.
   # HBWMemOpAnalysis.hpp 
   # HBWMemOpAnalysis.cpp
-  Utils.hpp
   sps.cpp
 
   argAnalysis.hpp
@@ -31,20 +30,20 @@ add_library(LLVMSPS MODULE
   # ssCodeGen.hpp
   # ssCodeGen.cpp
 
-  # ssCodeGen_ref.hpp
-  # ssCodeGen_ref.cpp
+  ssCodeGen_ref.hpp
+  ssCodeGen_ref.cpp
 
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
-  # psCodeGen_ref.hpp
-  # psCodeGen_ref.cpp
+  psCodeGen_ref.hpp
+  psCodeGen_ref.cpp
 
-  # riCodeGen_ref.hpp
-  # riCodeGen_ref.cpp
+  riCodeGen_ref.hpp
+  riCodeGen_ref.cpp
 
-  # uiCodeGen_ref.hpp
-  # uiCodeGen_ref.cpp
+  uiCodeGen_ref.hpp
+  uiCodeGen_ref.cpp
 
   # metricCollectGen.hpp
   # metricCollectGen.cpp

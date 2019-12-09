@@ -20,10 +20,8 @@ namespace psCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node == nullptr) { continue; }
-                numberRefToSameArray(node);
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                numberRefToSameArray(*it);
             }
         }
         
@@ -39,26 +37,22 @@ namespace psCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node == nullptr) { continue; }
-                numberLoops(node);
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if ((*it)->isThreadNode) { continue; }
+                numberLoops(*it);
             }
         }
         return;
     }
     
-    void ParallelSamplingCodeGen_ref::initIndvName(TreeNodeBase *LoopRefTree) {
+    void ParallelSamplingCodeGen_ref::initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree == NULL) {
             return;
         }
-
-        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(LoopRefTree);
-        if (node == nullptr) { return; }
         
-        if (node->L != NULL) {
-            for (std::vector<Value *>::iterator it = node->LIS->IDV->begin(), eit = node->LIS->IDV->end(); it != eit; ++it) {
+        if (LoopRefTree->L != NULL) {
+            for (std::vector<Value *>::iterator it = LoopRefTree->LIS->IDV->begin(), eit = LoopRefTree->LIS->IDV->end(); it != eit; ++it) {
                 indvName[*it] = (*it)->getName();
                 if (std::find(indvName[*it].begin(), indvName[*it].end(), '.') != indvName[*it].end()) {
                     indvName[*it].erase(std::find(indvName[*it].begin(), indvName[*it].end(), '.'));
@@ -66,8 +60,8 @@ namespace psCodeGen_ref {
             }
         }
         
-        if (node->next != NULL) {
-            for (std::vector<TreeNodeBase *>::iterator it = node->next->begin(), eit = node->next->end(); it != eit; ++it) {
+        if (LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 initIndvName(*it);
             }
         }
@@ -114,12 +108,10 @@ namespace psCodeGen_ref {
             errs() << "}\n";
             return;
         }
-        
+
         if (LoopRefTree->next != NULL) {
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node == nullptr) { continue; }
-                addrCalFuncGen(node, indvs);
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                addrCalFuncGen(*it, indvs);
             }
         }
         
@@ -741,13 +733,10 @@ namespace psCodeGen_ref {
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopRes;
         
         if (LoopRefTree->next != NULL) {
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node != nullptr) {
-                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(node, refName, useID, loops, enableOPT);
-                    if (loopTmp.size() != 0) {
-                        loopRes = loopTmp;
-                    }
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(*it, refName, useID, loops, enableOPT);
+                if (loopTmp.size() != 0) {
+                    loopRes = loopTmp;
                 }
             }
         }
@@ -872,14 +861,12 @@ namespace psCodeGen_ref {
             if (LoopRefTree == loops.back()) {
                 return GenFlag;
             }
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
                 if (LoopRefTree->L != NULL) {
                     currentLoops_New.push_back(LoopRefTree);
                 }
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node == nullptr) { continue; }
-                GenFlag = searchReuseDifferentLoopsInitGen(node, GenFlag, refName, useID, loops, currentLoops_New, space);
+                GenFlag = searchReuseDifferentLoopsInitGen(*it, GenFlag, refName, useID, loops, currentLoops_New, space);
             }
         }
         
@@ -987,15 +974,12 @@ namespace psCodeGen_ref {
             if (LoopRefTree == loops.back()) {
                 return GenFlag;
             }
-            for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
                 if (LoopRefTree->L != NULL) {
                     currentLoops_New.push_back(LoopRefTree);
                 }
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    GenFlag = searchReuseDifferentLoopsBodyGen(node, GenFlag, refName, useID, loops, currentLoops_New, space);
-                }
+                GenFlag = searchReuseDifferentLoopsBodyGen(*it, GenFlag, refName, useID, loops, currentLoops_New, space);
             }
         }
         
@@ -1008,15 +992,14 @@ namespace psCodeGen_ref {
         
         //errs() << "Search result reuse: (ref name " << refName << " ) ( ID " << useID << " ) ( numOfLoops " << loops.size() << " )\n";
 
-        for (std::vector<TreeNodeBase*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*ait);
-            if (node == nullptr) { continue; }
-            if (node->AA != NULL) {
-                if (arrayName[node->AA] == refName) {
-                    errs() << space + "uint64_t prev_cnt_" + refName + std::to_string(refNumber[node->AA]) + " = -1;\n";
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->isThreadNode) { continue; }
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "uint64_t prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
                     for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
-                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[node->AA]) + " = -1;\n";
-                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName + std::to_string(refNumber[node->AA]) + " = -1;\n";
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName + std::to_string(refNumber[(*ait)->AA]) + " = -1;\n";
                     }
                 }
             }
@@ -1027,20 +1010,19 @@ namespace psCodeGen_ref {
     
     void ParallelSamplingCodeGen_ref::searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
         
-        for (std::vector<TreeNodeBase*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*ait);
-            if (node == nullptr) { continue; }
-            if (node->AA != NULL) {
-                if (arrayName[node->AA] == refName) {
-                    errs() << space + "if ( prev_cnt_" + refName + std::to_string(refNumber[node->AA]) + " != -1) {\n";
-                    errs() << space + "    if ( calAddr" + refName + std::to_string(refNumber[node->AA]) + "( ";
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->isThreadNode) { continue; }
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "if ( prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + " != -1) {\n";
+                    errs() << space + "    if ( calAddr" + refName + std::to_string(refNumber[(*ait)->AA]) + "( ";
                     string tmp = "";
                     for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                         for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
                             
                             tmp += indvName[(*(*it)->LIS->IDV)[i]] + "_Start";
-                            tmp += " - prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_Start_" + refName + std::to_string(refNumber[node->AA]);
-                            tmp += " + prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_End_" + refName + std::to_string(refNumber[node->AA]);
+                            tmp += " - prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_Start_" + refName + std::to_string(refNumber[(*ait)->AA]);
+                            tmp += " + prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_End_" + refName + std::to_string(refNumber[(*ait)->AA]);
                             tmp += ", ";
                         }
                     }
@@ -1072,12 +1054,12 @@ namespace psCodeGen_ref {
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        pred_num++;\n";
                     errs() << space + "        pred_sl_num++;\n";
-                    errs() << space + "        pred = " + "prev_cnt_" + refName + std::to_string(refNumber[node->AA]) + ";\n";
+                    errs() << space + "        pred = " + "prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]) + ";\n";
 #endif
                     
-                    errs() << space + "        rtHistoCal(prev_cnt_" + refName + std::to_string(refNumber[node->AA]);
+                    errs() << space + "        rtHistoCal(prev_cnt_" + refName + std::to_string(refNumber[(*ait)->AA]);
 #ifdef DumpRefLease
-                    errs() << ", " + std::to_string(refNumber[node->AA]);
+                    errs() << ", " + std::to_string(refNumber[(*ait)->AA]);
 #endif
                     errs() << ");\n";
 
@@ -1099,7 +1081,7 @@ namespace psCodeGen_ref {
     
     /* Generating Reuse Search */
     bool ParallelSamplingCodeGen_ref::refRTSearchGen(
-        TreeNodeBase *LoopRefTree, 
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
         bool GenFlag,
         bool isFirstNestLoop, 
         std::string refName, 
@@ -1108,9 +1090,15 @@ namespace psCodeGen_ref {
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> sampleIDVs, 
         string space) {
+#ifdef PSCODEGEN_DEBUG
+        errs() << space + " /* " << loops.size() << " */\n";
+#endif
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
+#ifdef PSCODEGEN_DEBUG
+                errs() << space + " /* GenFlag = true */\n";
+#endif
                 GenFlag = true;
             }
         }
@@ -1122,11 +1110,10 @@ namespace psCodeGen_ref {
 #endif
         if (GenFlag == true) {
 #ifdef PARALLEL
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * loopNode = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(LoopRefTree);
             // This is the LoopRefNode
-            if (loopNode != nullptr) {
+            if (!LoopRefTree->isThreadNode) {
                 // check if is the out-most loops
-                if (find(outloops.begin(), outloops.end(), loopNode) != outloops.end()) {
+                if (find(outloops.begin(), outloops.end(), LoopRefTree) != outloops.end()) {
                     // is out-most loops
                     // compute the per-thread chunk
                     errs() << "#ifdef DEBUG\n";
@@ -1136,31 +1123,31 @@ namespace psCodeGen_ref {
                     errs() << "#ifdef CHUNK_SIZE\n";
                     errs() << space + "chunk_size = CHUNK_SIZE;\n";
                     errs() << space + "chunk_num = ";
-                    if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
-                        errs() << "(" + getBound_Start((*loopNode->LIS->LB)[0].second) + " - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*loopNode->LIS->LB)[0].second) + " - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*loopNode->LIS->LB)[0].second) + " - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) + 1;\n";
-                    } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
-                        errs() << "(" + getBound_Start((*loopNode->LIS->LB)[0].first) + " - " + getBound_Start((*loopNode->LIS->LB)[0].second) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*loopNode->LIS->LB)[0].first) + " - " + getBound_Start((*loopNode->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*loopNode->LIS->LB)[0].first) + " - " + getBound_Start((*loopNode->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) + 1;\n";
+                    if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
+                        errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) + 1;\n";
+                    } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                        errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) + 1;\n";
                     } else {
                         errs() << "\n Error in computing thread local iteration space \n";
                     }
                     errs() << "#else\n";
                     errs() << space + "chunk_num = 1;\n";
                     errs() << space + "chunk_size = ";
-                    if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
-                        errs() << "(" + getBound_Start((*loopNode->LIS->LB)[0].second) + " - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") / THREAD_NUM;\n";
-                    } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
-                        errs() << "(" + getBound_Start((*loopNode->LIS->LB)[0].first) + " - " + getBound_Start((*loopNode->LIS->LB)[0].second) + ") / THREAD_NUM;\n";
+                    if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
+                        errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / THREAD_NUM;\n";
+                    } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                        errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / THREAD_NUM;\n";
                     } else {
                         errs() << "\n Error in computing thread local iteration space \n";
                     }
                     errs() << "#endif\n";
 
                     /* Generate the code to compute the start chunk of the sampler */
-                    string loopNum = std::to_string(loopNumber[loopNode->L]);
+                    string loopNum = std::to_string(loopNumber[LoopRefTree->L]);
                     errs() << space + "/* Compute the number of chunks */\n";
                     if (isFirstNestLoop) {
                         errs() << space + "c_Start = ";
-                        errs() << "(" + indvName[(*loopNode->LIS->IDV)[0]] + "_Start - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size);\n";
+                        errs() << "(" + indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size);\n";
                     } else {
                         errs() << space + "c_Start = 0;\n";
                     }
@@ -1172,8 +1159,8 @@ namespace psCodeGen_ref {
                     errs() << space + "for (int cid = c_Start; cid < chunk_num; cid++) {\n";
                     errs() << space + "    /* Computes bound express for each thread */\n";
                     errs() << space + "    for (int t = 0; t < THREAD_NUM; ++t) {\n";
-                    errs() << space + "        BLIST[t][0] =  " + getBound((*loopNode->LIS->LB)[0].first) + "+ (cid * THREAD_NUM + t) * chunk_size;\n";
-                    errs() << space + "        BLIST[t][1] = min(" + getBound((*loopNode->LIS->LB)[0].first) + " + (cid * THREAD_NUM + t + 1) * chunk_size, " + getBound((*loopNode->LIS->LB)[0].second) + ") - 1;\n";
+                    errs() << space + "        BLIST[t][0] =  " + getBound((*LoopRefTree->LIS->LB)[0].first) + "+ (cid * THREAD_NUM + t) * chunk_size;\n";
+                    errs() << space + "        BLIST[t][1] = min(" + getBound((*LoopRefTree->LIS->LB)[0].first) + " + (cid * THREAD_NUM + t + 1) * chunk_size, " + getBound((*LoopRefTree->LIS->LB)[0].second) + ") - 1;\n";
                     errs() << "#ifdef DEBUG\n";
                     errs() << space + "        cout << \"[Thread \" << t << \"], \" << \"(\" << BLIST[t][0] << \", \"<< BLIST[t][1] << \")\" << endl;\n";
                     errs() << "#endif\n"; 
@@ -1182,32 +1169,32 @@ namespace psCodeGen_ref {
                     if (isFirstNestLoop) {
                         errs() << space + "    ci_Start = 0;\n";
                         errs() << space + "    if (cid == c_Start) {\n";
-                        errs() << space + "        ci_Start = (" + indvName[(*loopNode->LIS->IDV)[0]] + "_Start - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") \% chunk_size;\n";
+                        errs() << space + "        ci_Start = (" + indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") \% chunk_size;\n";
                         errs() << space + "    }\n";
-                        errs() << space + "    int " + indvName[(*loopNode->LIS->IDV)[0]] + "LB" + loopNum + " = " + indvName[(*loopNode->LIS->IDV)[0]] + "_Start;\n";
+                        errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start;\n";
                     } else {
                         errs() << space + "    ci_Start = 0;\n";
-                        errs() << space + "    int " + indvName[(*loopNode->LIS->IDV)[0]] + "LB" + loopNum + " = " + getBound_Start((*loopNode->LIS->LB)[0].first) + ";\n";
+                        errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ";\n";
                     }
                     errs() << space + "    for ( int ci = ci_Start; ci < chunk_size; ci++) {\n";
                     errs() << space + "        if ( cid != c_Start || ci != ci_Start ) {\n";
-                    errs() << space + "            " + indvName[(*loopNode->LIS->IDV)[0]] + "LB" + loopNum + " = cid * (THREAD_NUM * chunk_size) + ci;\n";
+                    errs() << space + "            " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = cid * (THREAD_NUM * chunk_size) + ci;\n";
                     errs() << space + "        }\n";
                 }
 #endif
                 /* Generate loop */
                 /* This is a Loop Node */
-                if (loopNode->L != NULL) {
-                    string loopNum = std::to_string(loopNumber[loopNode->L]);
+                if (LoopRefTree->L != NULL) {
+                    string loopNum = std::to_string(loopNumber[LoopRefTree->L]);
                     /* If this is the sampled loop, the following if-cond will be satisfied and the start points of inner loops will be computed */
-                    if (find(outloops.begin(), outloops.end(), loopNode) == outloops.end()) {
-                        errs() << space + "    int " + indvName[(*loopNode->LIS->IDV)[0]] +  "LB" + loopNum + " = " + getBound_Start((*loopNode->LIS->LB)[0].first) + ";\n";
+                    if (find(outloops.begin(), outloops.end(), LoopRefTree) == outloops.end()) {
+                        errs() << space + "    int " + indvName[(*LoopRefTree->LIS->IDV)[0]] +  "LB" + loopNum + " = " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ";\n";
                     }
-                    if (std::find(loops.begin(), loops.end(), loopNode) != loops.end()) {
-                        if (isFirstNestLoop && loopNode != loops[0]) {
+                    if (std::find(loops.begin(), loops.end(), LoopRefTree) != loops.end()) {
+                        if (isFirstNestLoop && LoopRefTree != loops[0]) {
                             errs() << space + "    if ( ";
                             for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
-                                if (loopNode == *it) {
+                                if (LoopRefTree == *it) {
                                     break;
                                 }
                                 if (it != loops.begin()) {
@@ -1216,53 +1203,50 @@ namespace psCodeGen_ref {
                                 errs() << indvName[(*(*it)->LIS->IDV)[0]] << "LB" + to_string(loopNumber[(*it)->L]) +  " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
                             }
                             errs() << " ) {\n";
-                            errs() << space + "        " + indvName[(*loopNode->LIS->IDV)[0]] + "LB" + loopNum + " = ";
-                            errs() << indvName[(*loopNode->LIS->IDV)[0]] + "_Start;\n";
+                            errs() << space + "        " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = ";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "_Start;\n";
                             errs() << space + "    }\n";
                         }
                     }
                     /* Parallel Interleaving*/
 #ifdef PARALLEL
                     /* Generate the code to compute the iteration space for each thread, the bound should be an expression with respect to the out-most loop induction variable and thread id */
-                    if (find(outloops.begin(), outloops.end(), loopNode) == outloops.end()) {
-                        errs() << space + "    for ( int " + indvName[(*loopNode->LIS->IDV)[0]];
-                        errs() << " = " + indvName[(*loopNode->LIS->IDV)[0]] + "LB" + loopNum;
+                    if (find(outloops.begin(), outloops.end(), LoopRefTree) == outloops.end()) {
+                        errs() << space + "    for ( int " + indvName[(*LoopRefTree->LIS->IDV)[0]];
+                        errs() << " = " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum;
                         errs() << "; ";
-                        errs() << indvName[(*loopNode->LIS->IDV)[0]];
-                        if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
+                        errs() << indvName[(*LoopRefTree->LIS->IDV)[0]];
+                        if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
                             errs() << " <= ";
-                        } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE) {
+                        } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE) {
                             errs() << " >= ";
-                        } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
+                        } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                             errs() << " < ";
-                        } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                        } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                             errs() << " > ";
                         } else {
                             errs() << "\n Error recognizing predicates \n";
                         }
-                        errs() << getBound_Start((*loopNode->LIS->LB)[0].second);
+                        errs() << getBound_Start((*LoopRefTree->LIS->LB)[0].second);
                         errs() << "; ";
                         /* need to take stride into consideration */
-                        if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
+                        if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                             
-                            errs() << indvName[(*loopNode->LIS->IDV)[0]] + "++";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
                             
-                        } else if ((*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*loopNode->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
+                        } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                             
-                            errs() << indvName[(*loopNode->LIS->IDV)[0]] + "--";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "--";
                             
                         } else {
                             errs() << "\n Error in geting stride \n";
                         }
                         errs() << ") {\n";
                     }
-                    if (loopNode->next != NULL) {
-                        for (std::vector<TreeNodeBase*>::iterator it = loopNode->next->begin(), eit = loopNode->next->end(); it != eit; ++it) {
+                    if (LoopRefTree->next != NULL) {
+                        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                             // contains a thread node is the node that contains a array access
-                            loopTreeTransform::ParallelLoopTreeTransform::ThreadNode * node = static_cast<loopTreeTransform::ParallelLoopTreeTransform::ThreadNode*>(*it);
-                            if (node != nullptr) {
-                                hasAA = true;
-                            }
+                            hasAA = (*it)->isThreadNode;
                         }
                     }
 
@@ -1272,8 +1256,8 @@ namespace psCodeGen_ref {
                         errs() << space + "        int ";
                         /* if the reference is enclosed in the out-most loop, currentLoops is empty */
                         if (currentLoops.size() == 0) {
-                            errs() << indvName[(*loopNode->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*loopNode->LIS->LB)[0].first) + ";\n";
-                            errs() << space + "        if(" + indvName[(*loopNode->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*LoopRefTree->LIS->LB)[0].first) + ";\n";
+                            errs() << space + "        if(" + indvName[(*LoopRefTree->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
                         } else {
                             errs() << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " = cid * (THREAD_NUM * chunk_size) + ci + " + getBound((*currentLoops.front()->LIS->LB)[0].first) + ";\n";
                             errs() << space + "        if(" + indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] + " > BLIST[0][1]) { goto EndSample; }\n";
@@ -1312,7 +1296,7 @@ namespace psCodeGen_ref {
                             tmp += (" << " + indvName[(*(*it)->LIS->IDV)[0]] + " << \", \"");
                         }
                         if (currentLoops.size() == 0) {
-                            tmp += " << " + indvName[(*loopNode->LIS->IDV)[0]] + " << ";
+                            tmp += " << " + indvName[(*LoopRefTree->LIS->IDV)[0]] + " << ";
                         }
                         errs() << tmp + "\")\" << endl;\n";
                         errs() << "#endif\n";
@@ -1322,11 +1306,11 @@ namespace psCodeGen_ref {
                         for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(); it != currentLoops.end(); ++it) {
                             tmp += (indvName[(*(*it)->LIS->IDV)[0]] + ", ");
                         }
-                        tmp += indvName[(*loopNode->LIS->IDV)[0]];
+                        tmp += indvName[(*LoopRefTree->LIS->IDV)[0]];
                         errs() << tmp + " };\n";
                         errs() << space + "        /* Interleaving */\n";
                         if (currentLoops.size() == 0) {
-                            errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*loopNode->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
+                            errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
                         } else {
                             errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*currentLoops.front()->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
                         }
@@ -1360,15 +1344,15 @@ namespace psCodeGen_ref {
                 }
 #endif
                 /* Generate addr checking instruction */
-                if (loopNode->AA != NULL) {
-                    if (arrayName[loopNode->AA] == refName) {
+                if (LoopRefTree->AA != NULL) {
+                    if (arrayName[LoopRefTree->AA] == refName) {
                         errs() << space + "        /* Remove those invalid interleaving */\n";
                         errs() << space + "        if (nv[nvi].size() <= 0) { continue; }\n";
                         errs() << space + "        if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
                         errs() << space + "        if (cntStart == true) {\n";
                         errs() << space + "            cnt++;\n";
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout  << \"[" + refName + std::to_string(refNumber[loopNode->AA]) + "]\" << ";
+                        errs() << space + "            cout  << \"[" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             errs() << "nv[nvi][" + std::to_string(i) + "] << ";
                             if (i != currentLoops.size() - 1) {
@@ -1377,7 +1361,7 @@ namespace psCodeGen_ref {
                         }
                         errs() << "\", cnt: \" << cnt << \")\t\";\n";
                         errs() << "#endif\n";                  
-                        errs() << space + "            if ( calAddr" + refName + std::to_string(refNumber[loopNode->AA]) + "( ";
+                        errs() << space + "            if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
                         string tmp = "";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "], ";
@@ -1443,7 +1427,7 @@ namespace psCodeGen_ref {
                         
                         errs() << space + "            }\n";
                         errs() << space + "        }\n";
-                        if (useID == refNumber[loopNode->AA]) {
+                        if (useID == refNumber[LoopRefTree->AA]) {
                             errs() << space + "    if (";
                             for (unsigned i = 0; i < currentLoops.size(); i++) {
                                 if (i != 0) {
@@ -1457,7 +1441,7 @@ namespace psCodeGen_ref {
 #ifdef PARALLEL
                         errs() << "#ifdef DEBUG\n";
                         errs() << space + "    cout << endl;\n";
-                        errs() << space + "    /* useID: " + to_string(useID) + " refNumber[LoopRefTree->AA]: " + to_string(refNumber[loopNode->AA]) + " */\n";
+                        errs() << space + "    /* useID: " + to_string(useID) + " refNumber[LoopRefTree->AA]: " + to_string(refNumber[LoopRefTree->AA]) + " */\n";
                         errs() << "#endif\n";
 #endif
                     } else {
@@ -1466,7 +1450,7 @@ namespace psCodeGen_ref {
                         errs() << space + "        if (cntStart == true) {\n";
                         errs() << space + "            cnt++;\n";
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout  << \"[" + arrayName[loopNode->AA] + std::to_string(refNumber[loopNode->AA]) + "]\" << ";
+                        errs() << space + "            cout  << \"[" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "]\" << ";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             errs() << "nv[nvi][" + std::to_string(i) + "] << ";
                             if (i != currentLoops.size() - 1) {
@@ -1485,41 +1469,36 @@ namespace psCodeGen_ref {
                     }
                 }   
             } else {
-                // check if this is a thread node
-                loopTreeTransform::ParallelLoopTreeTransform::ThreadNode * threadNode = static_cast<loopTreeTransform::ParallelLoopTreeTransform::ThreadNode*>(LoopRefTree);
-                if (threadNode != nullptr) {
-                    // this is a thread node, generate the interleaving loop
+                // this is a thread node, generate the interleaving loop
 #ifdef PARALLEL
-                    errs() << space + "    /* iterate thread local iteration space mapping code after interleaving */\n";
-                    errs() << space + "    for (int nvi = 0; nvi < nv.size(); nvi++) {\n";
+                errs() << space + "    /* iterate thread local iteration space mapping code after interleaving */\n";
+                errs() << space + "    for (int nvi = 0; nvi < nv.size(); nvi++) {\n";
 #endif
-                }
             }
-            if (LoopRefTree->next != NULL) {
-                for (std::vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                    if (node == nullptr) { continue; }
-                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
-                    if (node->L != NULL) {
-                        currentLoops_New.push_back(node);
-                    }
-                    /* isFirstNestLoop will be updated when we meet a out-most loops */
-                    if (find(outloops.begin(), outloops.end(), node) != outloops.end()) {
-                        isFirstNestLoop = (node == loops[0]);
-                        /* Search the new nested loop to check if it contains references that we are currently sampling */
-                        if (findLoops(node, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), true).size() <= 0) {
-                            continue;
-                        }
-                    }
-                    GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, loops, currentLoops_New, sampleIDVs, space + "    ");
+        }
+        if (LoopRefTree->next != NULL) {
+            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
+                if ((*it)->L != NULL) {
+                    currentLoops_New.push_back(*it);
                 }
-                if (loopNode != nullptr && loopNode->L != NULL && GenFlag == true) {
-                    if (find(outloops.begin(), outloops.end(), loopNode) != outloops.end()) {
-                        errs() << space + "    } // end of outer for - ci loops\n";
-                        errs() << space + "} // end of outer for - cid loops\n";
-                    } else {
-                        errs() << space + "} // end of inner for loops\n";
+                /* isFirstNestLoop will be updated when we meet a out-most loops */
+                if (find(outloops.begin(), outloops.end(), *it) != outloops.end()) {
+                    isFirstNestLoop = ((*it) == loops[0]);
+                    /* Search the new nested loop to check if it contains references that we are currently sampling */
+                    if (findLoops(*it, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), true).size() <= 0) {
+                        continue;
                     }
+                }
+                GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, loops, currentLoops_New, sampleIDVs, space + "    ");
+            }
+            if (LoopRefTree->L != NULL && GenFlag == true) {
+                if (find(outloops.begin(), outloops.end(), LoopRefTree) != outloops.end()) {
+                    errs() << space + "    } // end of outer for - ci loops\n";
+                    errs() << space + "} // end of outer for - cid loops\n";
+                } else {
+                    errs() << space + "} // end of inner for loops\n";
+                }
 // #ifdef PARALLEL
 //                 if (find(outloops.begin(), outloops.end(), LoopRefTree) == outloops.end()) {
 //                     errs() << space + "if (cntStart == true) {\n";
@@ -1527,10 +1506,9 @@ namespace psCodeGen_ref {
 //                     errs() << space + "}\n";
 //                 }
 // #endif
-                }
             }
         }
-        
+    
         return GenFlag;
     }
 

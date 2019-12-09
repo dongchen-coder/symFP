@@ -27,10 +27,9 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    numberRefToSameArray(node);
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if (!(*it)->isThreadNode) {
+                    numberRefToSameArray(*it);
                 }
             }
         }
@@ -47,11 +46,8 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    numberLoops(node);
-                }
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                numberLoops(*it);
             }
         }
         return;
@@ -73,12 +69,8 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    initIndvName(node);
-                }
-                
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                initIndvName(*it);
             }
         }
         
@@ -126,11 +118,8 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node != nullptr) {
-                    addrCalFuncGen(node, indvs);
-                }
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                addrCalFuncGen(*it, indvs);
             }
         }
         
@@ -579,13 +568,10 @@ namespace ssCodeGen_ref {
          vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopRes;
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node != nullptr) {
-                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(node, refName, useID, loops);
-                    if (loopTmp.size() != 0) {
-                        loopRes = loopTmp;
-                    }
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(*it, refName, useID, loops);
+                if (loopTmp.size() != 0) {
+                    loopRes = loopTmp;
                 }
             }
         }
@@ -710,14 +696,13 @@ namespace ssCodeGen_ref {
             if (LoopRefTree == loops.back()) {
                 return GenFlag;
             }
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
                 if (LoopRefTree->L != NULL) {
                     currentLoops_New.push_back(LoopRefTree);
                 }
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(*it);
-                if (node == nullptr) { continue; }
-                GenFlag = searchReuseDifferentLoopsInitGen(node, GenFlag, refName, useID, loops, currentLoops_New, space);
+                if ((*it)->isThreadNode) { continue; }
+                GenFlag = searchReuseDifferentLoopsInitGen(*it, GenFlag, refName, useID, loops, currentLoops_New, space);
             }
         }
         
@@ -825,15 +810,12 @@ namespace ssCodeGen_ref {
             if (LoopRefTree == loops.back()) {
                 return GenFlag;
             }
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
                 if (LoopRefTree->L != NULL) {
                     currentLoops_New.push_back(LoopRefTree);
                 }
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    GenFlag = searchReuseDifferentLoopsBodyGen(node, GenFlag, refName, useID, loops, currentLoops_New, space);
-                }
+                GenFlag = searchReuseDifferentLoopsBodyGen(*it, GenFlag, refName, useID, loops, currentLoops_New, space);
             }
         }
         
@@ -846,15 +828,14 @@ namespace ssCodeGen_ref {
         
         //errs() << "Search result reuse: (ref name " << refName << " ) ( ID " << useID << " ) ( numOfLoops " << loops.size() << " )\n";
 
-        for ( vector<TreeNodeBase*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*ait);
-            if (node == nullptr) { continue; }
-            if (node->AA != NULL) {
-                if (arrayName[node->AA] == refName) {
-                    errs() << space + "uint64_t prev_cnt_" + refName +  to_string(refNumber[node->AA]) + " = -1;\n";
+        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->isThreadNode) { continue; }
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "uint64_t prev_cnt_" + refName +  to_string(refNumber[(*ait)->AA]) + " = -1;\n";
                     for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
-                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName +  to_string(refNumber[node->AA]) + " = -1;\n";
-                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName +  to_string(refNumber[node->AA]) + " = -1;\n";
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_Start_" + refName +  to_string(refNumber[(*ait)->AA]) + " = -1;\n";
+                        errs() << space + "uint64_t prev_" + indvName[(*(*it)->LIS->IDV)[0]] + "_End_" + refName +  to_string(refNumber[(*ait)->AA]) + " = -1;\n";
                     }
                 }
             }
@@ -865,20 +846,19 @@ namespace ssCodeGen_ref {
     
     void StaticSamplingCodeGen_ref::searchReuseSameLoopBodyGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
         
-        for ( vector<TreeNodeBase*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*ait);
-            if (node == nullptr) { continue; }
-            if (node->AA != NULL) {
-                if (arrayName[node->AA] == refName) {
-                    errs() << space + "if ( prev_cnt_" + refName +  to_string(refNumber[node->AA]) + " != -1) {\n";
-                    errs() << space + "    if ( calAddr" + refName +  to_string(refNumber[node->AA]) + "( ";
+        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
+            if ((*ait)->isThreadNode) { continue; }
+            if ((*ait)->AA != NULL) {
+                if (arrayName[(*ait)->AA] == refName) {
+                    errs() << space + "if ( prev_cnt_" + refName +  to_string(refNumber[(*ait)->AA]) + " != -1) {\n";
+                    errs() << space + "    if ( calAddr" + refName +  to_string(refNumber[(*ait)->AA]) + "( ";
                     string tmp = "";
                     for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                         for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
                             
                             tmp += indvName[(*(*it)->LIS->IDV)[i]] + "_Start";
-                            tmp += " - prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_Start_" + refName +  to_string(refNumber[node->AA]);
-                            tmp += " + prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_End_" + refName +  to_string(refNumber[node->AA]);
+                            tmp += " - prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_Start_" + refName +  to_string(refNumber[(*ait)->AA]);
+                            tmp += " + prev_" + indvName[(*(*it)->LIS->IDV)[i]] + "_End_" + refName +  to_string(refNumber[(*ait)->AA]);
                             tmp += ", ";
                         }
                     }
@@ -910,12 +890,12 @@ namespace ssCodeGen_ref {
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        pred_num++;\n";
                     errs() << space + "        pred_sl_num++;\n";
-                    errs() << space + "        pred = " + "prev_cnt_" + refName +  to_string(refNumber[node->AA]) + ";\n";
+                    errs() << space + "        pred = " + "prev_cnt_" + refName +  to_string(refNumber[(*ait)->AA]) + ";\n";
 #endif
                     
-                    errs() << space + "        rtHistoCal(prev_cnt_" + refName +  to_string(refNumber[node->AA]);
+                    errs() << space + "        rtHistoCal(prev_cnt_" + refName +  to_string(refNumber[(*ait)->AA]);
 #ifdef DumpRefLease
-                    errs() << ", " +  to_string(refNumber[node->AA]);
+                    errs() << ", " +  to_string(refNumber[(*ait)->AA]);
 #endif
                     errs() << ");\n";
 
@@ -1142,15 +1122,12 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->next != NULL) {
-            for ( vector<TreeNodeBase*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+            for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops_New = currentLoops;
                 if (LoopRefTree->L != NULL) {
                     currentLoops_New.push_back(LoopRefTree);
                 }
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node = static_cast<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(*it);
-                if (node != nullptr) {
-                    GenFlag = refRTSearchGen(node, GenFlag, refName, useID, loops, currentLoops_New, space + "    ");
-                }
+                GenFlag = refRTSearchGen(*it, GenFlag, refName, useID, loops, currentLoops_New, space + "    ");
             }
             if (LoopRefTree->L != NULL && GenFlag == true) {
                 errs() << space + "}\n";
