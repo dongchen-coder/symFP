@@ -59,7 +59,7 @@ set_target_properties(LLVMSPS PROPERTIES
 )
 
 # Comment this out to disable PLUM and switch it to SPS
-add_definitions(-DPARALLEL)
+# add_definitions(-DPARALLEL)
 
 # Define the interleaving pattern of PLUM. 
 # All these macro will work if and only if its in PLUM mode (-DPARALLEL is defined)

@@ -73,6 +73,9 @@ namespace loopAnalysis {
                         } else if (isa<LoadInst>(v)) {
                             LoadInst* ldTmp = dyn_cast<LoadInst>(v);
                             ub = ldTmp->getOperand(0);
+                        } else {
+                            // the upper bound is an expression
+                            ub = v;
                         }
                     }
                 }
@@ -500,7 +503,7 @@ namespace loopAnalysis {
         
         /* decroate the loop tree with references */
         LTroot = LoopTreeConstructionRef(LTroot, getBasicBlocks(F));
-        
+
         LoopRefTree = LTroot;
         
         /* dump loopRef tree */

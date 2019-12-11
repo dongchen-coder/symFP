@@ -25,7 +25,7 @@ using namespace std;
 
 //#define PROFILE_SEARCH_REUSE
 
-#define SEARCH_REUSE_SAME_LOOP
+// #define SEARCH_REUSE_SAME_LOOP
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
 // #define DumpRTMR
