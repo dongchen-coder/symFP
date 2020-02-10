@@ -17,7 +17,7 @@ TEST_DIR=.
 #LIB_DIR=/Users/dchen/tools/llvm-8.0.0/build/lib
 LIB_DIR=../build/lib
 
-SPSRATE?=1.00
+SPSRATE?=0.1
 
 SRC_DIR=$(TEST_DIR)/ss_src
 BC_DIR=$(TEST_DIR)/ss_bc
@@ -52,10 +52,10 @@ cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_
 
 test_bench = test1 test2 # test3 test4 test5
 
-#check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k doitgen stencil# 
-#check_bench = stencil
+check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k stencil# 
+# check_bench = stencil convolution2d convolution3d
 #check_bench = atax
-check_bench = mm mm_tile
+# check_bench = gesummv
 #check_bench = heat_3d
 #check_bench = cholesky
 #check_bench = correlation
@@ -70,7 +70,7 @@ check_bench = mm mm_tile
 #check_bench = trisolv
 #check_bench = trmm
 #check_bench = 3mm
-
+#check_bench = mm
 
 all_gen:
 	$(foreach name, $(all_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
@@ -94,7 +94,7 @@ constant_gen:
 	$(foreach name, $(constant_bound_bench), g++ -std=c++11 $(SS_DIR)/sequential/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/sequential/$(name)_staticSampling ;)
 
 constant_parallel_gen:
-	$(foreach name, $(constant_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(constant_bound_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(constant_bound_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(constant_bound_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/parallel/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(constant_bound_bench), g++ -std=c++11 $(SS_DIR)/parallel/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/parallel/$(name)_staticSampling ;)
@@ -123,10 +123,10 @@ cl_gen:
 	$(foreach name, $(cl_bench), g++ -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 check_gen:
-	$(foreach name, $(check_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(check_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
-	$(foreach name, $(check_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -DBIN_SIZE=64 -DTHREAD_NUM=8 -DCHUNK_SIZE=$(CHK_SIZE) -o $(BIN_DIR)/$(name)_staticSampling ;)
+	$(foreach name, $(check_bench), g++ -g -std=c++11 -lpthread $(SS_DIR)/$(name)_staticSampling.cpp -O0 -DBIN_SIZE=64 -DTHREAD_NUM=8 -DCHUNK_SIZE=$(CHK_SIZE) -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 check_run:
 	$(foreach name, $(check_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt ;)

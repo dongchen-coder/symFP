@@ -17,28 +17,20 @@ namespace loopTreeTransform {
     static RegisterPass<ParallelLoopTreeTransform> X("loopTreeTransform", "loop tree transform for parallel program Pass", false, false);
     
     ParallelLoopTreeTransform::ParallelLoopTreeTransform() : FunctionPass(ID) {}
+    /* local helper function declaration */
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel);
 
-    bool containsAANode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
-    bool isLastLevelLoopNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
 
-    /* Check if the node contains an Array Access Node */
-    bool containsAANode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node) {
-        for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = node->next->begin(); it != node->next->end(); ++it) {
-            if ((*it)->AA != NULL) {
-                return true;
-            }
-        }
-        return false;
-    }
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel) {
+        
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * thread_node = (loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *) malloc(sizeof(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode));
 
-    /* Check if the node is the last level loop node */
-    bool isLastLevelLoopNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node) {
-        for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = node->next->begin(); it != node->next->end(); ++it) {
-            if ((*it)->L != NULL) {
-                return false;
-            }
-        }
-        return true;
+        thread_node->isThreadNode = true;
+        thread_node->L = NULL;
+        thread_node->AA = NULL;
+        thread_node->LIS = NULL;
+        thread_node->LoopLevel = parentLoopLevel;   
+        return thread_node;
     }
 
     /* Get all the out loops */
@@ -56,29 +48,57 @@ namespace loopTreeTransform {
         return;
     }
 
-    void ParallelLoopTreeTransform::insertThreadNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
-
-        vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>* thread_node_vec = new vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>;
-
-        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * thread_node = (loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *) malloc(sizeof(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode));
-
-        thread_node->isThreadNode = true;
-        thread_node->L = NULL;
-        thread_node->AA = NULL;
-        thread_node->LIS = NULL;
-        thread_node->LoopLevel = -1;
-        thread_node->next = LoopRefTree->next;
-        thread_node_vec->push_back(thread_node);
-        LoopRefTree->next = thread_node_vec;
-    }
-
-#if defined(RANDOM_INTERLEAVING)
-    void ParallelLoopTreeTransform::RandomLoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
-
-    }
-#else
+#if defined(ITER_LEVEL_INTERLEAVING)
     /* 
-     * Call when reach the last level loop node: loop node whose childen are all reference node 
+     * Connect all consecutive reference node with a thread node
+     * All thread nodes will be assgined as the child of the last loop node
+    */
+    void ParallelLoopTreeTransform::LoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+        vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nextIter = LoopRefTree->next->begin();
+        // contains the thread node and the loop node
+        vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> * thread_node_vec = new vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>;
+        /* Check if the transform is required
+         * if didTransform is false: no extra thread node is added
+         * -> no need to switch the LoopRefTree->next
+         * else
+         * -> have to replace LoopRefTRee->next with thread_node_vec
+         */
+        while (nextIter != LoopRefTree->next->end()) {
+            if ((*nextIter)->AA != NULL) {
+                // this is a reference node
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>* thread_node_next = new vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>;
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator refNodeIter = nextIter + 1;
+                /* iterate the node after this reference node
+                 * if it's also a reference node, append it under the same thread node
+                 * until it meets an loop node or reach the end of the children list
+                 */
+                thread_node_next->push_back(*nextIter);
+                while (refNodeIter != LoopRefTree->next->end()) {
+                    if ((*refNodeIter)->AA == NULL) { break; }
+                    thread_node_next->push_back(*refNodeIter);
+                    refNodeIter ++;
+                }
+
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * thread_node = initThreadNode(LoopRefTree->LoopLevel);
+                thread_node->next = thread_node_next;
+
+
+                thread_node_vec->push_back(thread_node);
+
+                nextIter = refNodeIter;
+            }
+            else if ((*nextIter)->L != NULL) { // loop node
+                thread_node_vec->push_back(*nextIter);
+                nextIter ++;
+            }
+        }
+        // if loop tree has been transformed
+        if (!thread_node_vec->empty()) { 
+            LoopRefTree->next = thread_node_vec;
+        }
+    }
+#elif defined(ACC_LEVEL_INTERLEAVING)
+    /* 
      * For each reference node, connect it with a thread node
      * All thread nodes will be assgined as the child of the last loop node
     */
@@ -96,12 +116,7 @@ namespace loopTreeTransform {
             if ((*nextIter)->AA != NULL) { // this is a RefNode
                 didTransform = true;
                 // create the thread node
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * thread_node = (loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *) malloc(sizeof(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode));
-                thread_node->isThreadNode = true;
-                thread_node->L = NULL;
-                thread_node->AA = NULL;
-                thread_node->LIS = NULL;
-                thread_node->LoopLevel = -1;
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * thread_node = initThreadNode(LoopRefTree->LoopLevel);
                 // each thread node connects to a array access node
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> * thread_node_next = new vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>;
                 thread_node_next->push_back(*nextIter);
@@ -122,17 +137,9 @@ namespace loopTreeTransform {
         if (node != NULL) {
             // this is an loop node, do the transformation
             if (node->L != NULL) {
-                errs() << node->L->getName();
+                errs() << "\t" << node->L->getName() << "\n";
                 vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>* subnodes = node->next;
-#if defined(UNIFORM_INTERLEAVING)
-                if (containsAANode(node)) {
-                    insertThreadNode(node);
-                }
-#elif defined(RANDOM_INTERLEAVING)
-
-#else
                 LoopTreeTransform(node);
-#endif
                 for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nit=subnodes->begin(), neit=subnodes->end(); nit!=neit; ++nit) {
                     tranverseLoopRefTree(*nit);
                 }
@@ -213,5 +220,4 @@ namespace loopTreeTransform {
         AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
         return;
     }
-    
 }

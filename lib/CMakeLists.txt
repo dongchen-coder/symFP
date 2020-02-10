@@ -36,14 +36,17 @@ add_library(LLVMSPS MODULE
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
-  psCodeGen_ref.hpp
-  psCodeGen_ref.cpp
+  riIterCodeGen_ref.hpp
+  riIterCodeGen_ref.cpp
 
-  riCodeGen_ref.hpp
-  riCodeGen_ref.cpp
+  riAccCodeGen_ref.hpp
+  riAccCodeGen_ref.cpp
 
-  uiCodeGen_ref.hpp
-  uiCodeGen_ref.cpp
+  uiIterCodeGen_ref.hpp
+  uiIterCodeGen_ref.cpp
+
+  uiAccCodeGen_ref.hpp
+  uiAccCodeGen_ref.cpp
 
   # metricCollectGen.hpp
   # metricCollectGen.cpp
@@ -59,7 +62,7 @@ set_target_properties(LLVMSPS PROPERTIES
 )
 
 # Comment this out to disable PLUM and switch it to SPS
-# add_definitions(-DPARALLEL)
+add_definitions(-DPARALLEL)
 
 # Define the interleaving pattern of PLUM. 
 # All these macro will work if and only if its in PLUM mode (-DPARALLEL is defined)
@@ -67,9 +70,23 @@ set_target_properties(LLVMSPS PROPERTIES
 # - DRANDOM_INTERLEAVING:
 #     Random Interleaving
 # - DUNIFORM_INTERLEAVING:
-#     1:1 Interleaving in iteration granularity
-# By default is 1:1 interleaving in data granularity
+#     Uniform Interleaving
+# By default is uniform interleaving
 # add_definitions(-DRANDOM_INTERLEAVING)
-# add_definitions(-DUNIFORM_INTERLEAVING)
+add_definitions(-DUNIFORM_INTERLEAVING)
+
+# - DACC_LEVEL_INTERLEAVING:
+#     Do Interleaving per each access
+# - DITER_LEVEL_INTERLEAVING:
+#     Do Interleaving per each iteration
+# By default is 1:1 interleaving in data granularity
+# add_definitions(-DITER_LEVEL_INTERLEAVING)
+add_definitions(-DACC_LEVEL_INTERLEAVING)
+
+# - DCALIBRATION:
+#     Do the RI calibration
+add_definitions(-DCALIBRATION)
+
+
 
 

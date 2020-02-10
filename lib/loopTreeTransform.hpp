@@ -29,15 +29,10 @@ namespace loopTreeTransform {
 
         void findAllOutMostLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 
-        void insertThreadNode(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void tranverseLoopRefTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node);
-#if defined(UNIFORM_INTERLEAVING)
-        void UniformLoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
-#elif defined(RANDOM_INTERLEAVING)
-        void RandomLoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
-#else
+
         void LoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
-#endif
+        
         void DumpLoopTree(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LTroot, string prefix);
         bool runOnFunction(Function &F) override;
         void getAnalysisUsage(AnalysisUsage &AU) const override;

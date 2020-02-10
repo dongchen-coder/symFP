@@ -1,5 +1,5 @@
-#ifndef psCodeGen_ref_hpp
-#define psCodeGen_ref_hpp
+#ifndef uiAccCodeGen_ref_hpp
+#define uiAccCodeGen_ref_hpp
 
 #include <map>
 
@@ -31,10 +31,10 @@ using namespace llvm;
 // #define DumpRefLease
 #define PSCODEGEN_DEBUG
 
-namespace psCodeGen_ref {
-    struct ParallelSamplingCodeGen_ref : public FunctionPass {
+namespace uiAccCodeGen_ref {
+    struct AccLevelUISamplingCodeGen_ref : public FunctionPass {
         static char ID;
-        ParallelSamplingCodeGen_ref();
+        AccLevelUISamplingCodeGen_ref();
         
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
@@ -80,10 +80,12 @@ namespace psCodeGen_ref {
         void initOutLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         /* Convert the per-ref rtHist to whole-prog rtHist*/
         void rtMergeGen();
+#ifdef CALIBRATION
         /* Distribute the UI RT based on Gaussian Distribution*/
         void GaussianDistrGen();
         /* Distribute the UI RT uniformly */
         void UniformDistrGen();
+#endif
 #endif 
         
         string getBound(Value* bound);

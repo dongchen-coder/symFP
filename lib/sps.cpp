@@ -28,13 +28,12 @@
 #   include "loopTreeTransform.hpp"
 #   if defined(UNIFORM_INTERLEAVING)
         /* parallel 1:1 interleaving static sampling gen */
-#       include "uiCodeGen_ref.hpp"
+#       include "uiAccCodeGen_ref.hpp"
+#       include "uiIterCodeGen_ref.hpp"
 #   elif defined(RANDOM_INTERLEAVING)
         /* parallel random interleaving static sampling gen */
-        #include "riCodeGen_ref.hpp"
-#   else
-        /* parallel 1:1 interleaving static sampling gen */
-#       include "psCodeGen_ref.hpp"
+#       include "riAccCodeGen_ref.hpp"
+#       include "riIterCodeGen_ref.hpp"
 #   endif
 #endif
 
@@ -59,14 +58,16 @@ namespace symFP {
 
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
-#if defined(PARALLEL)
+#if defined(PARALLEL) 
             AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
-#   if defined(UNIFORM_INTERLEAVING)
-            AU.addRequired<uiCodeGen_ref::UniformInterleavingCodeGen_ref>();
-#   elif defined(RANDOM_INTERLEAVING)
-            AU.addRequired<riCodeGen_ref::RandomInterleavingCodeGen_ref>();
-#   else
-            AU.addRequired<psCodeGen_ref::ParallelSamplingCodeGen_ref>();
+#   if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
+            AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
+#   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
+            AU.addRequired<uiAccCodeGen_ref::AccLevelUISamplingCodeGen_ref>();
+#   elif defined(RANDOM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
+            AU.addRequired<riIterCodeGen_ref::IterLevelRICodeGen_ref>();
+#   elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
+            AU.addRequired<riAccCodeGen_ref::AccLevelRICodeGen_ref>();
 #   endif
 #elif defined(REF_PAIR)
             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();

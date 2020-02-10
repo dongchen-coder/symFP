@@ -10,9 +10,9 @@
     #define NK 32
 #endif
 #ifdef SMALL_DATASET
-    #define NI 256
-    #define NJ 256
-    #define NK 256
+    #define NI 128
+    #define NJ 128
+    #define NK 128
 #endif
 #ifdef STANDARD_DATASET
     #define NI 1024
