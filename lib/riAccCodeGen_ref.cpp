@@ -225,6 +225,10 @@ namespace riAccCodeGen_ref {
     void AccLevelRICodeGen_ref::subBlkRTGen() {
         string space = "    ";
         errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt) {\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "unique_lock< mutex> lck (mtx, defer_lock);\n";
+        errs() << space + "lck.lock();\n";
+#endif
         errs() << space + "int msb = 0;\n";
         errs() << space + "int tmp_rt = rt;\n";
         errs() << space + "while(tmp_rt != 0) {\n";
@@ -243,6 +247,9 @@ namespace riAccCodeGen_ref {
         errs() << space + "else {\n";
         errs() << space + "    rtHistoCal(rth, pow(2, msb-1), 1);\n";
         errs() << space + "}\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "lck.unlock();\n";
+#endif
         errs() << space + "return;\n";
         errs() << "}\n";
 #ifdef REFERENCE_GROUP  

@@ -134,6 +134,8 @@ namespace uiAccCodeGen_ref {
         errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
         errs() << "#include <cmath>\n";
+        errs() << "#include <numeric>\n";
+        errs() << "#include <utility>\n";
 #ifdef PARALLEL_CXX_THREAD
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
@@ -158,8 +160,6 @@ namespace uiAccCodeGen_ref {
 #ifdef REFERENCE_GROUP
         errs() << "std::map<string, map<uint64_t, double>> refRT;\n";
 #endif
-        errs() << "std::map<uint64_t, double> interThread_RT;\n";
-        errs() << "std::map<uint64_t, double> intraThread_RT;\n";
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
         return;
@@ -167,7 +167,7 @@ namespace uiAccCodeGen_ref {
 
 #ifdef DumpRTMR
     void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
-        errs() << "void rtHistoCal( map<uint64_t, double> &rth, int rt, int val ) {\n";
+        errs() << "void rtHistoCal( map<uint64_t, double> &rth, int rt, double val ) {\n";
         errs() << "    if ( val <= 0) {\n;";
         errs() << "        return;\n";
         errs() << "    }\n";
@@ -200,7 +200,7 @@ namespace uiAccCodeGen_ref {
         errs() << "}\n";
 #ifdef REFERENCE_GROUP   
         errs() << "\n";    
-        errs() << "void refRTHistoCal(map<uint64_t, double> &rth, int rt, int val, string ref ) {\n";
+        errs() << "void refRTHistoCal(map<string, map<uint64_t, double>> &rth, int rt, int val, string ref ) {\n";
         errs() << "    if ( val <= 0) {\n;";
         errs() << "        return;\n";
         errs() << "    }\n";
@@ -251,7 +251,11 @@ namespace uiAccCodeGen_ref {
     /* Generate the function to calculate the bins */
     void AccLevelUISamplingCodeGen_ref::subBlkRTGen() {
         string space = "    ";
-        errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, int cnt) {\n";
+        errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "unique_lock< mutex> lck (mtx, defer_lock);\n";
+        errs() << space + "lck.lock();\n";
+#endif
         errs() << space + "int msb = 0;\n";
         errs() << space + "int tmp_rt = rt;\n";
         errs() << space + "while(tmp_rt != 0) {\n";
@@ -270,11 +274,18 @@ namespace uiAccCodeGen_ref {
         errs() << space + "else {\n";
         errs() << space + "    rtHistoCal(rth, pow(2, msb-1), cnt);\n";
         errs() << space + "}\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "lck.unlock();\n";
+#endif
         errs() << space + "return;\n";
         errs() << "}\n";
 #ifdef REFERENCE_GROUP  
         errs() << "\n";
-        errs() << "void refSubBlkRT(map<uint64_t, double> &rth, int rt, int cnt, string ref) {\n";
+        errs() << "void refSubBlkRT(map<string, map<uint64_t, double>> &rth, int rt, double cnt, string ref) {\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "unique_lock< mutex> lck (mtx, defer_lock);\n";
+        errs() << space + "lck.lock();\n";
+#endif
         errs() << space + "int msb = 0;\n";
         errs() << space + "int tmp_rt = rt;\n";
         errs() << space + "while(tmp_rt != 0) {\n";
@@ -293,6 +304,9 @@ namespace uiAccCodeGen_ref {
         errs() << space + "else {\n";
         errs() << space + "    refRTHistoCal(rth, pow(2, msb-1), cnt, ref);\n";
         errs() << space + "}\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << space + "lck.unlock();\n";
+#endif
         errs() << space + "return;\n";
         errs() << "}\n";
 #endif
@@ -308,14 +322,6 @@ namespace uiAccCodeGen_ref {
         errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
         errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
         errs() << "    }\n";
-        // errs() << "    cout << \"Intra Thread Reuse Interval Histogram\" << endl;\n";
-        // errs() << "    for (map<uint64_t, double>::iterator it = intraThread_RT.begin(), eit = intraThread_RT.end(); it != eit; ++it) {\n";
-        // errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
-        // errs() << "    }\n";
-        // errs() << "    cout << \"Inter Thread Reuse Interval Histogram\" << endl;\n";
-        // errs() << "    for (map<uint64_t, double>::iterator it = interThread_RT.begin(), eit = interThread_RT.end(); it != eit; ++it) {\n";
-        // errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
-        // errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
 #ifdef REFERENCE_GROUP
@@ -584,42 +590,11 @@ namespace uiAccCodeGen_ref {
         errs() << "}\n";
         return;
     }
-
-    void AccLevelUISamplingCodeGen_ref::GaussianDistrGen() {
-        errs() << "/* Distribute the per-reference RTHisto based on Gasussian */\n";
-        errs() << "void gaussian_distr() {\n";
-        errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
-        errs() << "        map<uint64_t, double> tmp = it->second;\n";
-        errs() << "        for (map<uint64_t, double>::iterator iit = tmp.begin(); iit != tmp.end(); ++iit) {\n"; 
-        errs() << "            uint64_t mu = iit->first;\n";
-        errs() << "            uint64_t Y = iit->second;\n";
-        errs() << "            double sigma = 3 * (double)mu / 7;\n";
-        errs() << "            uint64_t start_b = log2(mu) <= log2(THREAD_NUM) ? 0 : (log2(mu) - log2(THREAD_NUM));\n";
-        errs() << "            uint64_t end_b = log2(mu) + log2(THREAD_NUM);\n";
-        errs() << "            /* Clear the original refRT[ref]. Make sure that this will be done only once */\n";
-        errs() << "            if (iit == tmp.begin()) {\n";
-        errs() << "                refRT[it->first].clear();\n";
-        errs() << "            }\n";
-        errs() << "            for(int b = start_b; b <= end_b; b++) {\n";
-        errs() << "                if (b >= 0) {\n";
-        errs() << "                    double val = 0.0;\n";
-        errs() << "                    val = (1 /  (sqrt(2 * M_PI) * sigma))* exp( -1 * pow((pow(2.0,(double)b) - mu), 2.0) / (2 * pow(sigma, 2.0)));\n";
-        errs() << "                    cout << pow(2.0,(double)b) << \", \" << (val * Y) << endl;\n";
-        errs() << "                    refRTHistoCal(pow(2.0,(double)b), (val * Y), it->first);\n";
-        errs() << "                }\n";
-        errs() << "            }\n";
-        errs() << "        }\n";
-        errs() << "    }\n";
-        errs() << "    return;\n";
-        errs() << "}\n";
-        return;
-        
-    }
 #endif
 #ifdef CALIBRATION
     void AccLevelUISamplingCodeGen_ref::UniformDistrGen() {
-        errs() << "/* Distribute the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
-        errs() << "void uniform_distr() {\n";
+        errs() << "/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
+        errs() << "void uniform_smoothing() {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
         // errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
         // errs() << "        uint64_t mu = it->first;\n";
@@ -639,17 +614,26 @@ namespace uiAccCodeGen_ref {
         // errs() << "    }\n";
         // errs() << "    return;\n";
         // errs() << "}\n";
+        errs() << "    uint64_t sum = accumulate(begin(RT), end(RT), 0, [](const uint64_t previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
+        errs() << "    double sum_P = 0.0;\n";
         errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
         errs() << "        uint64_t mu = it->first;\n";
+        errs() << "        sum_P += it->second;\n";
         errs() << "        /* Do uniform distribution for all ri, distribute from ri / THREAD_NUM to ri * THREAD_NUM  */\n";
-         errs() << "       if (it->second <= 0.0) { continue; }\n";
-        errs() << "        uint64_t start = mu / THREAD_NUM;\n";
+        errs() << "        if (it->second <= 0.0) { continue; }\n";
+        errs() << "        if (sum_P >= 0.9 * sum ) { \n";
+        errs() << "            rtHistoCal(tmp, mu, it->second);\n";
+        errs() << "            continue;\n";
+        errs() << "        }\n";
+        errs() << "        mu = mu * THREAD_NUM;\n";
+        errs() << "        uint64_t start = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
         errs() << "        uint64_t end = mu * THREAD_NUM;\n";
         errs() << "        double split_val = it->second / (end - start + 1);\n";
         errs() << "        for (int b = start; b <= end; b++) {\n";
         errs() << "            rtHistoCal(tmp, b, split_val);\n";
         errs() << "        }\n";
         errs() << "    }\n";
+        errs() << "    RT.clear();\n";
         errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
         errs() << "        subBlkRT(RT, it->first, it->second);\n";
         // errs() << "        RT[it->first] = it->second;\n";
@@ -657,6 +641,41 @@ namespace uiAccCodeGen_ref {
         errs() << "    return;\n";
         errs() << "}\n";
         return;
+    }
+
+    void AccLevelUISamplingCodeGen_ref::GaussianDistrGen() {
+        errs() << "/* Smoothing the per-reference RTHisto based on Gasussian */\n";
+        errs() << "void gaussian_smoothing(double sigma) {\n";
+        errs() << "    map<uint64_t, double> tmp;\n";
+        errs() << "    uint64_t sum = accumulate(begin(RT), end(RT), 0, [](const uint64_t previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
+        errs() << "    uint64_t sum_P = 0.0;\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
+        errs() << "        sum_P += it->second;\n";
+        errs() << "        uint64_t mu = it->first;\n";
+        errs() << "        if (sum_P >= 0.9 * sum) {\n";
+        errs() << "            rtHistoCal(tmp, mu, it->second);\n";
+        errs() << "            continue;\n";
+        errs() << "        }\n";
+        errs() << "        if (mu == 1) {\n";
+        errs() << "            mu = mu * THREAD_NUM;\n";
+        errs() << "        }\n";
+        errs() << "        uint64_t start_b = ( mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
+        errs() << "        uint64_t end_b = mu * THREAD_NUM;\n";
+        errs() << "        for(int b = start_b; b <= end_b; b++) {\n";
+        errs() << "            double c =  (1 /  (sqrt(2 * M_PI) * sigma));\n";
+        errs() << "            double val = it->second * c * exp( -1 * pow((b - mu), 2.0) / (2 * pow(sigma, 2.0)));\n";
+        errs() << "            rtHistoCal(tmp, b, val);\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    RT.clear();\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
+        errs() << "        subBlkRT(RT, it->first, it->second);\n";
+        // errs() << "        RT[it->first] = it->second;\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        return;
+        
     }
 #endif
     string AccLevelUISamplingCodeGen_ref::getBound(Value *bound) {
@@ -1444,28 +1463,16 @@ namespace uiAccCodeGen_ref {
                             }
                         }
                         errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1);\n";
+                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
                         errs() << "#else\n";
 
 #ifdef REFERENCE_GROUP
-                        errs() << space + "            refSubBlkRT(cnt, \"" + refName + std::to_string(useID) + "\");\n";
+                        errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
 #else
-                        errs() << space + "            subBlkRT(RT, cnt, 1);\n";
+                        // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
+                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
 #endif
                         errs() << "#endif\n";
-                        errs() << space + "            if ( nvi == t_Start) {\n";
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "                rtHistoCal(intraThread_RT, cnt, 1);\n";
-                        errs() << "#else\n";
-                        errs() << space + "                subBlkRT(intraThread_RT, cnt, 1);\n";
-                        errs() << "#endif\n";
-                        errs() << space + "            } else {\n";
-                          errs() << "#ifdef DEBUG\n";
-                        errs() << space + "                rtHistoCal(interThread_RT, cnt, 1);\n";
-                        errs() << "#else\n";
-                        errs() << space + "                subBlkRT(interThread_RT, cnt, 1);\n";
-                        errs() << "#endif\n";
-                        errs() << space + "            }\n";
                         errs() << space + "            goto EndSample;\n";
                         
                         errs() << space + "        }\n";
@@ -1783,15 +1790,13 @@ namespace uiAccCodeGen_ref {
 #endif
 
 #ifdef CALIBRATION
-        // errs() << "    gaussian_distr();\n";
-        errs() << "    uniform_distr();\n";
+        // errs() << "    gaussian_smoothing(2.0);\n";
+        errs() << "    uniform_smoothing();\n";
 #endif
         
 
 #ifdef DumpRTMR
 #ifdef REFERENCE_GROUP
-        
-        errs() << "    refRTDump();\n";
         errs() << "    refRTDump();\n";  
         errs() << "    rtMerge();\n";
 #endif
@@ -1841,7 +1846,7 @@ namespace uiAccCodeGen_ref {
 #endif
 
 #if defined(CALIBRATION)
-        // GaussianDistrGen();
+        GaussianDistrGen();
         UniformDistrGen();
 #endif
 

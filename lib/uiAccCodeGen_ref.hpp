@@ -20,12 +20,9 @@ using namespace llvm;
 
 #define SAMPLING 2
 
-//#define PARALLEL_CXX_THREAD
+// #define PARALLEL_CXX_THREAD
 
-//#define PROFILE_SEARCH_REUSE
-
-//#define SEARCH_REUSE_SAME_LOOP
-//#define SEARCH_REUSE_DIFFERENT_LOOPS
+// #define REFERENCE_GROUP
 
 #define DumpRTMR
 // #define DumpRefLease
