@@ -76,7 +76,7 @@ namespace idxAnalysis {
        1. Pushing all related instructions into stack by calling instStackInit()
        2. Scanning instruction stack to get a prefix expression 
        3. Convert prefix expression to infix expression */
-    std::string IndexAnalysis::computeExpression(Instruction *inst) {
+    std::string IndexAnalysis::computeExpression(Instruction *inst, std::vector<std::string>& idvs) {
         
         std::vector<Instruction*> instStack = instStackInit(inst);
         
@@ -113,6 +113,7 @@ namespace idxAnalysis {
                 } else if (isa<LoadInst>(instStackEntry->getOperand(i))) {
                     LoadInst* ld = dyn_cast<LoadInst>(instStackEntry->getOperand(i));
                     opExprs.push_back(ld->getOperand(0)->getName());
+                    idvs.push_back(ld->getOperand(0)->getName());
                 } else if (isa<PHINode>(instStackEntry->getOperand(i))) {
                     if (instStackEntry->getOperand(i)->hasName()) {
                         opExprs.push_back(instStackEntry->getOperand(i)->getName());
@@ -222,11 +223,10 @@ namespace idxAnalysis {
     
     /* Scan all IR instructions in function to find load/stores accessing arrays */
     void IndexAnalysis::findAllArrayAccesses(Function &F) {
-        
         /* Using instruction iterator to interating through all the IR instructions in the functions */
         for (inst_iterator it = inst_begin(F), eit = inst_end(F); it != eit; ++it) {
-            
             if (isa<LoadInst>(*it)) {
+                std::vector<std::string> idvTmp;
                 if (isa<GetElementPtrInst>(it->getOperand(0))) {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(0));
                     
@@ -244,7 +244,8 @@ namespace idxAnalysis {
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
-                            arrayExpression[accessInst] = computeExpression(indexInst);
+                            arrayExpression[accessInst] = computeExpression(indexInst, idvTmp);
+                            arrayAccessVariable[accessInst] = idvTmp;
                         } else if (isa<Argument>(gepTmp->getOperand(OperandToAnalysis))) {
                             Argument* argTmp = dyn_cast<Argument>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
@@ -263,6 +264,7 @@ namespace idxAnalysis {
             }
             
             if (isa<StoreInst>(*it)) {
+                std::vector<std::string> idvTmp;
                 if (isa<GetElementPtrInst>(it->getOperand(1))) {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(1));
                     
@@ -276,11 +278,11 @@ namespace idxAnalysis {
                     } else {
                         Instruction* accessInst = dyn_cast<Instruction>(&(*it));
                         std::string nameTmp = getArrayName(gepTmp);
-                        
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
-                            arrayExpression[accessInst] = computeExpression(indexInst);
+                            arrayExpression[accessInst] = computeExpression(indexInst, idvTmp);
+                            arrayAccessVariable[accessInst] = idvTmp;
                         } else if (isa<Argument>(gepTmp->getOperand(OperandToAnalysis))) {
                             Argument* argTmp = dyn_cast<Argument>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;

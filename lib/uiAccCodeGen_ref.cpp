@@ -140,6 +140,9 @@ namespace uiAccCodeGen_ref {
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
 #endif
+#ifdef REFERENCE_GROUP
+        errs() << "#include <algorithm>\n";
+#endif
 #ifdef PARALLEL
         errs() << "#ifndef THREAD_NUM\n";
         errs() << "#    define THREAD_NUM   4\n";
@@ -167,7 +170,7 @@ namespace uiAccCodeGen_ref {
 
 #ifdef DumpRTMR
     void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
-        errs() << "void rtHistoCal( map<uint64_t, double> &rth, int rt, double val ) {\n";
+        errs() << "void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {\n";
         errs() << "    if ( val <= 0) {\n;";
         errs() << "        return;\n";
         errs() << "    }\n";
@@ -183,27 +186,27 @@ namespace uiAccCodeGen_ref {
 #elif defined(PARALLEL_CXX_THREAD)
         errs() << "    std::unique_lock<std::mutex> lck (mtx,std::defer_lock);\n";
         errs() << "    lck.lock();\n";
-        errs() << "    if (rth.find(rt) == rth.end()) { \n";
-        errs() << "        rth[rt] = 1;\n";
-        errs() << "    } else {\n";
-        errs() << "        rth[rt] += 1;\n";
-        errs() << "    }\n";
-        errs() << "    lck.unlock();\n";
-#else
+#endif
         errs() << "    if (rth.find(rt) == rth.end()) { \n";
         errs() << "        rth[rt] = val;\n";
         errs() << "    } else {\n";
         errs() << "        rth[rt] += val;\n";
         errs() << "    }\n";
+#if defined(PARALLEL_CXX_THREAD)
+        errs() << "    lck.unlock();\n";
 #endif
         errs() << "    return;\n";
         errs() << "}\n";
 #ifdef REFERENCE_GROUP   
         errs() << "\n";    
-        errs() << "void refRTHistoCal(map<string, map<uint64_t, double>> &rth, int rt, int val, string ref ) {\n";
+        errs() << "void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double val, string ref ) {\n";
         errs() << "    if ( val <= 0) {\n;";
         errs() << "        return;\n";
         errs() << "    }\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "    unique_lock< mutex> lck (mtx, defer_lock);\n";
+        errs() << "    lck.lock();\n";
+#endif
         errs() << "    if (rth.find(ref) == rth.end()) { \n";
         errs() << "        rth[ref][rt] = val;\n";
         errs() << "    }\n";
@@ -214,10 +217,13 @@ namespace uiAccCodeGen_ref {
         errs() << "            rth[ref][rt] += val;\n";
         errs() << "        }\n";
         errs() << "    }\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "    lck.unlock();\n";
+#endif
         errs() << "    return;\n";
         errs() << "}\n";
-#endif
     }
+#endif
 #elif defined(DumpRefLease)
     void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
         errs() << "map<uint64_t, map<uint64_t, uint64_t>* > RI;\n";
@@ -252,10 +258,6 @@ namespace uiAccCodeGen_ref {
     void AccLevelUISamplingCodeGen_ref::subBlkRTGen() {
         string space = "    ";
         errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
-#ifdef PARALLEL_CXX_THREAD
-        errs() << space + "unique_lock< mutex> lck (mtx, defer_lock);\n";
-        errs() << space + "lck.lock();\n";
-#endif
         errs() << space + "int msb = 0;\n";
         errs() << space + "int tmp_rt = rt;\n";
         errs() << space + "while(tmp_rt != 0) {\n";
@@ -274,18 +276,11 @@ namespace uiAccCodeGen_ref {
         errs() << space + "else {\n";
         errs() << space + "    rtHistoCal(rth, pow(2, msb-1), cnt);\n";
         errs() << space + "}\n";
-#ifdef PARALLEL_CXX_THREAD
-        errs() << space + "lck.unlock();\n";
-#endif
         errs() << space + "return;\n";
         errs() << "}\n";
 #ifdef REFERENCE_GROUP  
         errs() << "\n";
-        errs() << "void refSubBlkRT(map<string, map<uint64_t, double>> &rth, int rt, double cnt, string ref) {\n";
-#ifdef PARALLEL_CXX_THREAD
-        errs() << space + "unique_lock< mutex> lck (mtx, defer_lock);\n";
-        errs() << space + "lck.lock();\n";
-#endif
+        errs() << "void refSubBlkRT(map<string, map<uint64_t, double>> &rth, uint64_t rt, double cnt, string ref) {\n";
         errs() << space + "int msb = 0;\n";
         errs() << space + "int tmp_rt = rt;\n";
         errs() << space + "while(tmp_rt != 0) {\n";
@@ -304,9 +299,6 @@ namespace uiAccCodeGen_ref {
         errs() << space + "else {\n";
         errs() << space + "    refRTHistoCal(rth, pow(2, msb-1), cnt, ref);\n";
         errs() << space + "}\n";
-#ifdef PARALLEL_CXX_THREAD
-        errs() << space + "lck.unlock();\n";
-#endif
         errs() << space + "return;\n";
         errs() << "}\n";
 #endif
@@ -583,7 +575,7 @@ namespace uiAccCodeGen_ref {
         errs() << "void rtMerge() {\n";
         errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
         errs() << "        for (map<uint64_t, double>::iterator iit = it->second.begin(); iit != it->second.end(); ++iit) {\n"; 
-        errs() << "            rtHistoCal(iit->first, iit->second);\n";
+        errs() << "            rtHistoCal(RT, iit->first, iit->second);\n";
         errs() << "        }\n";
         errs() << "    }\n";
         errs() << "    return;\n";
@@ -592,9 +584,34 @@ namespace uiAccCodeGen_ref {
     }
 #endif
 #ifdef CALIBRATION
+    void AccLevelUISamplingCodeGen_ref::filterArrayAccesses() {
+        for(map<Instruction*, vector<string>>::iterator mit = arrayAccessVariable.begin(); mit != arrayAccessVariable.end(); ++mit) {
+            errs() << "/* Array " << arrayName[mit->first] << "\t";
+            for(vector<string>::iterator vit = (mit->second).begin(); vit != (mit->second).end(); ++vit) {
+                errs() << *vit << " ";
+            }
+            errs() << "*/ \n";
+            bool done = true;
+            for(vector<string>::iterator vit = (mit->second).begin(); vit != (mit->second).end(); ++vit) {
+                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outloops.begin(); it != outloops.end(); ++it) {
+                    // if all induction variable is outermost loop independent
+                    // those references should be special considered.
+                    if (indvName[(*(*it)->LIS->IDV)[0]] == *vit) {
+                        done = false;
+                        break;
+                    }
+                }
+                if (!done) { 
+                    break;
+                }
+            }
+            if (done) { outMostIndependentArrayRef.push_back(mit->first); }
+        }
+        return;
+    }
     void AccLevelUISamplingCodeGen_ref::UniformDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
-        errs() << "void uniform_smoothing() {\n";
+        errs() << "void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
         // errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
         // errs() << "        uint64_t mu = it->first;\n";
@@ -614,9 +631,9 @@ namespace uiAccCodeGen_ref {
         // errs() << "    }\n";
         // errs() << "    return;\n";
         // errs() << "}\n";
-        errs() << "    uint64_t sum = accumulate(begin(RT), end(RT), 0, [](const uint64_t previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
+        errs() << "    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
         errs() << "    double sum_P = 0.0;\n";
-        errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
         errs() << "        uint64_t mu = it->first;\n";
         errs() << "        sum_P += it->second;\n";
         errs() << "        /* Do uniform distribution for all ri, distribute from ri / THREAD_NUM to ri * THREAD_NUM  */\n";
@@ -625,7 +642,7 @@ namespace uiAccCodeGen_ref {
         errs() << "            rtHistoCal(tmp, mu, it->second);\n";
         errs() << "            continue;\n";
         errs() << "        }\n";
-        errs() << "        mu = mu * THREAD_NUM;\n";
+        errs() << "        if (scale) { mu = mu * THREAD_NUM; }\n";
         errs() << "        uint64_t start = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
         errs() << "        uint64_t end = mu * THREAD_NUM;\n";
         errs() << "        double split_val = it->second / (end - start + 1);\n";
@@ -633,43 +650,40 @@ namespace uiAccCodeGen_ref {
         errs() << "            rtHistoCal(tmp, b, split_val);\n";
         errs() << "        }\n";
         errs() << "    }\n";
-        errs() << "    RT.clear();\n";
+        errs() << "    rth.clear();\n";
         errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
-        errs() << "        subBlkRT(RT, it->first, it->second);\n";
+        errs() << "        subBlkRT(rth, it->first, it->second);\n";
         // errs() << "        RT[it->first] = it->second;\n";
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
         return;
     }
-
     void AccLevelUISamplingCodeGen_ref::GaussianDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto based on Gasussian */\n";
-        errs() << "void gaussian_smoothing(double sigma) {\n";
+        errs() << "void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
-        errs() << "    uint64_t sum = accumulate(begin(RT), end(RT), 0, [](const uint64_t previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
-        errs() << "    uint64_t sum_P = 0.0;\n";
-        errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
+        errs() << "    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
+        errs() << "    double sum_P = 0.0;\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
         errs() << "        sum_P += it->second;\n";
         errs() << "        uint64_t mu = it->first;\n";
         errs() << "        if (sum_P >= 0.9 * sum) {\n";
         errs() << "            rtHistoCal(tmp, mu, it->second);\n";
         errs() << "            continue;\n";
         errs() << "        }\n";
-        errs() << "        if (mu == 1) {\n";
-        errs() << "            mu = mu * THREAD_NUM;\n";
-        errs() << "        }\n";
+        errs() << "        if (scale) { mu = mu * THREAD_NUM; }\n";
         errs() << "        uint64_t start_b = ( mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
         errs() << "        uint64_t end_b = mu * THREAD_NUM;\n";
-        errs() << "        for(int b = start_b; b <= end_b; b++) {\n";
+        errs() << "        for(uint64_t b = start_b; b <= end_b; b++) {\n";
         errs() << "            double c =  (1 /  (sqrt(2 * M_PI) * sigma));\n";
         errs() << "            double val = it->second * c * exp( -1 * pow((b - mu), 2.0) / (2 * pow(sigma, 2.0)));\n";
         errs() << "            rtHistoCal(tmp, b, val);\n";
         errs() << "        }\n";
         errs() << "    }\n";
-        errs() << "    RT.clear();\n";
+        errs() << "    rth.clear();\n";
         errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
-        errs() << "        subBlkRT(RT, it->first, it->second);\n";
+        errs() << "        subBlkRT(rth, it->first, it->second);\n";
         // errs() << "        RT[it->first] = it->second;\n";
         errs() << "    }\n";
         errs() << "    return;\n";
@@ -677,6 +691,43 @@ namespace uiAccCodeGen_ref {
         return;
         
     }
+#ifdef REFERENCE_GROUP
+    void AccLevelUISamplingCodeGen_ref::GroupUniformDistrGen(string space) {
+        filterArrayAccesses();
+        errs() << "void group_uniform_smoothing() {\n";
+        double sensitive_ratio = (double)outMostIndependentArrayRef.size() / refNumber.size();
+        if (sensitive_ratio < 0.375 && sensitive_ratio > 0.0) {
+            errs() << space << "vector<string> vec = {";
+            for(vector<Instruction*>::iterator it = outMostIndependentArrayRef.begin(); it != outMostIndependentArrayRef.end(); ++it) {
+                errs() << "\"" << arrayName[*it] + std::to_string(refNumber[*it]) << "\"";
+                if (it != outMostIndependentArrayRef.end()-1) { errs() << ", "; }
+            }
+            errs() << " };\n";
+        }
+        errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
+        /* Cold Program */ 
+        if (outMostIndependentArrayRef.size() == 0) {
+            errs() << space << "/* Cold Program - No scaling */\n";
+            errs() << space << space << "uniform_smoothing(it->second, false);\n";
+        } else if (sensitive_ratio < 0.375) {
+            errs() << space << "/* Low Sensitive Program - Scaling outmost independent array references only */\n";
+            errs() << space << space << "uniform_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end());\n";
+        } else {
+            errs() << space << "/* High Sensitive Program - Scaling all */\n";
+            errs() << space << space << "uniform_smoothing(it->second, true);\n";
+        }
+        errs() << space << "}\n";
+        errs() << "}\n";
+    }
+        void AccLevelUISamplingCodeGen_ref::GroupGaussianDistrGen(string space) {
+        errs() << "void group_gaussian_smoothing(double sigma) {\n";
+        errs() << space << "vector<string> vec = { \"\", \"\" };\n";
+        errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
+        errs() << space << space << "gaussian_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), sigma);\n";
+        errs() << space << "}\n";
+        errs() << "}\n";
+    }
+#endif
 #endif
     string AccLevelUISamplingCodeGen_ref::getBound(Value *bound) {
         
@@ -1123,7 +1174,6 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    
     /* Generating Reuse Search */
     bool AccLevelUISamplingCodeGen_ref::refRTSearchGen(
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
@@ -1467,7 +1517,8 @@ namespace uiAccCodeGen_ref {
                         errs() << "#else\n";
 
 #ifdef REFERENCE_GROUP
-                        errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+                        // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+                        errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
 #else
                         // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
                         errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
@@ -1757,6 +1808,7 @@ namespace uiAccCodeGen_ref {
         for (std::map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
          */
+        errs() << space + "/* " << refNumber.size() << " */\n";
         for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 
 #ifdef PARALLEL_CXX_THREAD
@@ -1790,14 +1842,14 @@ namespace uiAccCodeGen_ref {
 #endif
 
 #ifdef CALIBRATION
-        // errs() << "    gaussian_smoothing(2.0);\n";
-        errs() << "    uniform_smoothing();\n";
+        // errs() << "    group_gaussian_smoothing(2.0);\n";
+        errs() << "    group_uniform_smoothing();\n";
 #endif
         
 
 #ifdef DumpRTMR
 #ifdef REFERENCE_GROUP
-        errs() << "    refRTDump();\n";  
+        // errs() << "    refRTDump();\n";  
         errs() << "    rtMerge();\n";
 #endif
         errs() << "    rtDump();\n";
@@ -1821,6 +1873,7 @@ namespace uiAccCodeGen_ref {
         /* reading info from previous passes */
         arrayName = getAnalysis<idxAnalysis::IndexAnalysis>().arrayName;
         arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
+        arrayAccessVariable= getAnalysis<idxAnalysis::IndexAnalysis>().arrayAccessVariable;
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().PTLoopRefTree;
         sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
 
@@ -1848,6 +1901,10 @@ namespace uiAccCodeGen_ref {
 #if defined(CALIBRATION)
         GaussianDistrGen();
         UniformDistrGen();
+#if defined(REFERENCE_GROUP)
+        GroupGaussianDistrGen("    ");
+        GroupUniformDistrGen("    ");
+#endif
 #endif
 
 

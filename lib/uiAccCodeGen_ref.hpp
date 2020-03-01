@@ -20,13 +20,13 @@ using namespace llvm;
 
 #define SAMPLING 2
 
-// #define PARALLEL_CXX_THREAD
+#define PARALLEL_CXX_THREAD
 
-// #define REFERENCE_GROUP
+#define REFERENCE_GROUP
 
 #define DumpRTMR
 // #define DumpRefLease
-#define PSCODEGEN_DEBUG
+// #define PSCODEGEN_DEBUG
 
 namespace uiAccCodeGen_ref {
     struct AccLevelUISamplingCodeGen_ref : public FunctionPass {
@@ -35,6 +35,8 @@ namespace uiAccCodeGen_ref {
         
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
+        std::map<Instruction*, std::vector<std::string>> arrayAccessVariable;
+        std::vector<Instruction*> outMostIndependentArrayRef;
         
         uint64_t refGlobalNumber = 0;
         std::map<Instruction*, int> refNumber;
@@ -45,7 +47,8 @@ namespace uiAccCodeGen_ref {
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> outloops;
         
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
-        
+
+        void filterArrayAccesses();
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
@@ -78,6 +81,10 @@ namespace uiAccCodeGen_ref {
         /* Convert the per-ref rtHist to whole-prog rtHist*/
         void rtMergeGen();
 #ifdef CALIBRATION
+#ifdef REFERENCE_GROUP
+        void GroupGaussianDistrGen(string space);
+        void GroupUniformDistrGen(string space);
+#endif
         /* Distribute the UI RT based on Gaussian Distribution*/
         void GaussianDistrGen();
         /* Distribute the UI RT uniformly */

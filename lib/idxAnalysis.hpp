@@ -35,10 +35,11 @@ namespace idxAnalysis {
         /* Using hash table to associating the load/store instructions with the array names and expression */
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
+        std::map<Instruction*, std::vector<std::string>> arrayAccessVariable;
         
         /* Extracting array index expression from load/store instruction */
         std::vector<Instruction*> instStackInit(Instruction* inst);
-        std::string computeExpression(Instruction* inst);
+        std::string computeExpression(Instruction* inst, std::vector<std::string>& idvs);
         
         /* Extracting array name from load/store instruction */
         std::string getArrayName(GetElementPtrInst* inst);

@@ -101,6 +101,8 @@ Dump tree:
 #include <cmath>
 #include <numeric>
 #include <utility>
+#include <thread>
+#include <mutex>
 #include <algorithm>
 #ifndef THREAD_NUM
 #    define THREAD_NUM   4
@@ -112,6 +114,7 @@ Dump tree:
 #    define CHUNK_SIZE   4
 #endif
 using namespace std;
+std::mutex mtx;
 std::map<string, map<uint64_t, double>> refRT;
 std::map<uint64_t, double> RT;
 std::map<uint64_t, double> MR;
@@ -119,11 +122,14 @@ void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {
     if ( val <= 0) {
 ;        return;
     }
+    std::unique_lock<std::mutex> lck (mtx,std::defer_lock);
+    lck.lock();
     if (rth.find(rt) == rth.end()) { 
         rth[rt] = val;
     } else {
         rth[rt] += val;
     }
+    lck.unlock();
     return;
 }
 
@@ -131,6 +137,8 @@ void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double 
     if ( val <= 0) {
 ;        return;
     }
+    unique_lock< mutex> lck (mtx, defer_lock);
+    lck.lock();
     if (rth.find(ref) == rth.end()) { 
         rth[ref][rt] = val;
     }
@@ -141,6 +149,7 @@ void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double 
             rth[ref][rt] += val;
         }
     }
+    lck.unlock();
     return;
 }
 void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {
@@ -194,6 +203,79 @@ void rtMerge() {
         }
     }
     return;
+}
+/* Smoothing the per-reference RTHisto based on Gasussian */
+void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma) {
+    map<uint64_t, double> tmp;
+    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });
+    double sum_P = 0.0;
+    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {
+        sum_P += it->second;
+        uint64_t mu = it->first;
+        if (sum_P >= 0.9 * sum) {
+            rtHistoCal(tmp, mu, it->second);
+            continue;
+        }
+        if (scale) { mu = mu * THREAD_NUM; }
+        uint64_t start_b = ( mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;
+        uint64_t end_b = mu * THREAD_NUM;
+        for(uint64_t b = start_b; b <= end_b; b++) {
+            double c =  (1 /  (sqrt(2 * M_PI) * sigma));
+            double val = it->second * c * exp( -1 * pow((b - mu), 2.0) / (2 * pow(sigma, 2.0)));
+            rtHistoCal(tmp, b, val);
+        }
+    }
+    rth.clear();
+    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+        subBlkRT(rth, it->first, it->second);
+    }
+    return;
+}
+/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */
+void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {
+    map<uint64_t, double> tmp;
+    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });
+    double sum_P = 0.0;
+    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {
+        uint64_t mu = it->first;
+        sum_P += it->second;
+        /* Do uniform distribution for all ri, distribute from ri / THREAD_NUM to ri * THREAD_NUM  */
+        if (it->second <= 0.0) { continue; }
+        if (sum_P >= 0.9 * sum ) { 
+            rtHistoCal(tmp, mu, it->second);
+            continue;
+        }
+        if (scale) { mu = mu * THREAD_NUM; }
+        uint64_t start = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;
+        uint64_t end = mu * THREAD_NUM;
+        double split_val = it->second / (end - start + 1);
+        for (int b = start; b <= end; b++) {
+            rtHistoCal(tmp, b, split_val);
+        }
+    }
+    rth.clear();
+    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {
+        subBlkRT(rth, it->first, it->second);
+    }
+    return;
+}
+void group_gaussian_smoothing(double sigma) {
+    vector<string> vec = { "", "" };
+    for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {
+        gaussian_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), sigma);
+    }
+}
+/* Array a_addr	i j */ 
+/* Array a_addr	i j */ 
+/* Array b_addr	i j */ 
+/* Array a_addr	i j */ 
+/* Array a_addr	i j */ 
+/* Array a_addr	i j */ 
+void group_uniform_smoothing() {
+    for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {
+    /* Cold Program - No scaling */
+        uniform_smoothing(it->second, false);
+    }
 }
 void RTtoMR_AET() {
     std::map<uint64_t, double> P;
@@ -330,9 +412,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -369,14 +448,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -411,10 +487,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -439,10 +513,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -466,10 +538,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 0 refNumber[LoopRefTree->AA]: 1 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -493,10 +563,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 0 refNumber[LoopRefTree->AA]: 2 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -520,10 +588,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 0 refNumber[LoopRefTree->AA]: 3 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -547,10 +613,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 0 refNumber[LoopRefTree->AA]: 4 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -599,9 +663,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -638,14 +699,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -680,10 +738,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -707,10 +763,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 1 refNumber[LoopRefTree->AA]: 0 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -735,10 +789,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 1 refNumber[LoopRefTree->AA]: 1 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -762,10 +814,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 1 refNumber[LoopRefTree->AA]: 2 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -789,10 +839,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 1 refNumber[LoopRefTree->AA]: 3 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -816,10 +864,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 1 refNumber[LoopRefTree->AA]: 4 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -868,9 +914,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -907,14 +950,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -949,10 +989,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -965,10 +1003,8 @@ SAMPLE:
 #ifdef DEBUG
                     cout << endl;
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -981,10 +1017,8 @@ SAMPLE:
 #ifdef DEBUG
                     cout << endl;
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -997,10 +1031,8 @@ SAMPLE:
 #ifdef DEBUG
                     cout << endl;
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -1013,10 +1045,8 @@ SAMPLE:
 #ifdef DEBUG
                     cout << endl;
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -1029,10 +1059,8 @@ SAMPLE:
 #ifdef DEBUG
                     cout << endl;
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1093,9 +1121,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -1132,14 +1157,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -1174,10 +1196,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1201,10 +1221,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 2 refNumber[LoopRefTree->AA]: 0 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1228,10 +1246,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 2 refNumber[LoopRefTree->AA]: 1 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1256,10 +1272,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 2 refNumber[LoopRefTree->AA]: 2 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1283,10 +1297,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 2 refNumber[LoopRefTree->AA]: 3 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1310,10 +1322,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 2 refNumber[LoopRefTree->AA]: 4 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -1362,9 +1372,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -1401,14 +1408,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -1443,10 +1447,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1470,10 +1472,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 3 refNumber[LoopRefTree->AA]: 0 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1497,10 +1497,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 3 refNumber[LoopRefTree->AA]: 1 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1524,10 +1522,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 3 refNumber[LoopRefTree->AA]: 2 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1552,10 +1548,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 3 refNumber[LoopRefTree->AA]: 3 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1579,10 +1573,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 3 refNumber[LoopRefTree->AA]: 4 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -1631,9 +1623,6 @@ SAMPLE:
         /* Vector that contains the interleaved iteration, avoid duplicate declaration */
         vector<vector<int>> nv(THREAD_NUM);
         int chunk_size, chunk_num, c_Start, ci_Start;
-     /* 2 */
-         /* 2 */
-         /* GenFlag = true */
 #ifdef DEBUG
         cout << "Count: " << cnt << endl;
 #endif
@@ -1670,14 +1659,11 @@ SAMPLE:
                 if ( cid != c_Start || ci != ci_Start ) {
                     iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
                 }
-        /* Loop: for.condhasAA: 0 */
-             /* 2 */
                 int jLB1 = 1;
                 if ( iLB0 == i_Start ) {
                     jLB1 = j_Start;
                 }
                 for ( int j = jLB1; j < 1025; j++) {
-            /* Loop: for.cond1hasAA: 1 */
                     int i = cid * (THREAD_NUM * chunk_size) + ci + 1;
                     if(i > BLIST[0][1]) { goto EndSample; }
 #ifdef DEBUG
@@ -1712,10 +1698,8 @@ SAMPLE:
                         cout << ")" << endl;
 #endif
                     }
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1739,10 +1723,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 4 refNumber[LoopRefTree->AA]: 0 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1766,10 +1748,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 4 refNumber[LoopRefTree->AA]: 1 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1793,10 +1773,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 4 refNumber[LoopRefTree->AA]: 2 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1820,10 +1798,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 4 refNumber[LoopRefTree->AA]: 3 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         /* Remove those invalid interleaving */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
@@ -1848,10 +1824,8 @@ SAMPLE:
                         cout << endl;
                         /* useID: 4 refNumber[LoopRefTree->AA]: 4 */
 #endif
-                 /* 2 */
                     /* iterate thread local iteration space mapping code after interleaving */
                     for (int nvi = 0; nvi < nv.size(); nvi++) {
-                     /* 2 */
                         if (nv[nvi].size() <= 0) { continue; }
                         if (nv[nvi][0] > BLIST[nvi][1]) { break; }
                         if (cntStart == true) {
@@ -1873,12 +1847,19 @@ EndSample:
 }
 int main() {
     /* 6 */
-    ref_a_addr0();
-    ref_a_addr1();
-    ref_b_addr0();
-    ref_a_addr2();
-    ref_a_addr3();
-    ref_a_addr4();
+    std::thread t_a_addr_0(ref_a_addr0);
+    std::thread t_a_addr_1(ref_a_addr1);
+    std::thread t_b_addr_0(ref_b_addr0);
+    std::thread t_a_addr_2(ref_a_addr2);
+    std::thread t_a_addr_3(ref_a_addr3);
+    std::thread t_a_addr_4(ref_a_addr4);
+    t_a_addr_0.join();
+    t_a_addr_1.join();
+    t_b_addr_0.join();
+    t_a_addr_2.join();
+    t_a_addr_3.join();
+    t_a_addr_4.join();
+    group_uniform_smoothing();
     rtMerge();
     rtDump();
     RTtoMR_AET();
