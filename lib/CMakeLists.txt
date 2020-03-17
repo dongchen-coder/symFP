@@ -83,9 +83,12 @@ add_definitions(-DUNIFORM_INTERLEAVING)
 # add_definitions(-DITER_LEVEL_INTERLEAVING)
 add_definitions(-DACC_LEVEL_INTERLEAVING)
 
-# - DCALIBRATION:
-#     Do the RI calibration
-add_definitions(-DCALIBRATION)
+# - DUNIFORM_SMOOTHING
+#     Do the RI calibration in uniform distribution
+# - DGAUSSIAN_SMOOTHING #     Do the RI calibration in gaussian distribution
+# By default is uniform smoothing
+# add_definitions(-DGAUSSIAN_SMOOTHING)
+add_definitions(-DUNIFORM_SMOOTHING)
 
 
 

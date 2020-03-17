@@ -741,7 +741,6 @@ namespace riAccCodeGen_ref {
                     errs() << space + "}\n";
                     errs() << space + "while ( !candidate_thread_pool_" << LoopRefTree->LoopLevel << ".empty()) {\n";
                 }
-#endif
             } else { // Thread Node
                 // find reuses for each ref node
                 for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
@@ -793,6 +792,7 @@ namespace riAccCodeGen_ref {
                     }
                 }
             }
+#endif
         }
         if (LoopRefTree->next != NULL) {
             if (!LoopRefTree->isThreadNode) {

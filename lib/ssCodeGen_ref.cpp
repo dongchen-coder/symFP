@@ -157,43 +157,71 @@ namespace ssCodeGen_ref {
 #ifdef PARALLEL_CXX_THREAD
         errs() << " mutex mtx;\n";
 #endif
-        
+        errs() << " map<uint64_t, double> RT;\n";
+        errs() << " map<uint64_t, double> MR;\n";
+#ifdef REFERENCE_GROUP
+        errs() << " map<string, map<uint64_t, double>> refRT;\n";
+#endif
         return;
     }
 
 #ifdef DumpRTMR
     void StaticSamplingCodeGen_ref::rtHistoGen() {
         
-        errs() << " map<uint64_t, double> RT;\n";
-        errs() << " map<uint64_t, double> MR;\n";
-        errs() << "void rtHistoCal( int rt) {\n";
-    #ifdef PARALLEL_OMP
+        errs() << "void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {\n";
+#ifdef PARALLEL_OMP
         errs() << "    #pragma omp critical\n";
         errs() << "    {";
-        errs() << "        if (RT.find(rt) == RT.end()) { \n";
-        errs() << "            RT[rt] = 1;\n";
+        errs() << "        if (rth.find(rt) == rth.end()) { \n";
+        errs() << "            rth[rt] = val;\n";
         errs() << "        } else {\n";
-        errs() << "            RT[rt] += 1;\n";
+        errs() << "            rth[rt] += val;\n";
         errs() << "        }\n";
         errs() << "    }";
-    #elif defined(PARALLEL_CXX_THREAD)
+#elif defined(PARALLEL_CXX_THREAD)
         errs() << "     unique_lock< mutex> lck (mtx, defer_lock);\n";
         errs() << "    lck.lock();\n";
-        errs() << "    if (RT.find(rt) == RT.end()) { \n";
-        errs() << "        RT[rt] = 1;\n";
+        errs() << "    if (rth.find(rt) == rth.end()) { \n";
+        errs() << "        rth[rt] = val;\n";
         errs() << "    } else {\n";
-        errs() << "        RT[rt] += 1;\n";
+        errs() << "        rth[rt] += val;\n";
         errs() << "    }\n";
         errs() << "    lck.unlock();\n";
-    #else
-        errs() << "    if (RT.find(rt) == RT.end()) { \n";
-        errs() << "        RT[rt] = 1;\n";
+#else
+        errs() << "    if (rth.find(rt) == rth.end()) { \n";
+        errs() << "        rth[rt] = val;\n";
         errs() << "    } else {\n";
-        errs() << "        RT[rt] += 1;\n";
+        errs() << "        rth[rt] += val;\n";
         errs() << "    }\n";
-    #endif
+#endif
         errs() << "    return;\n";
         errs() << "}\n";
+#ifdef REFERENCE_GROUP   
+        errs() << "\n";    
+        errs() << "void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double val, string ref ) {\n";
+        errs() << "    if ( val <= 0) {\n;";
+        errs() << "        return;\n";
+        errs() << "    }\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "    unique_lock< mutex> lck (mtx, defer_lock);\n";
+        errs() << "    lck.lock();\n";
+#endif
+        errs() << "    if (rth.find(ref) == rth.end()) { \n";
+        errs() << "        rth[ref][rt] = val;\n";
+        errs() << "    }\n";
+        errs() << "    else {\n";
+        errs() << "        if (rth[ref].find(rt) == rth[ref].end()) { \n";
+        errs() << "            rth[ref][rt] = val;\n";
+        errs() << "        } else {\n";
+        errs() << "            rth[ref][rt] += val;\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "    lck.unlock();\n";
+#endif
+        errs() << "    return;\n";
+        errs() << "}\n";
+#endif
     }
 #elif defined(DumpRefLease)
     void StaticSamplingCodeGen_ref::rtHistoGen() {
@@ -224,26 +252,86 @@ namespace ssCodeGen_ref {
         errs() << "}\n";
     }
 #endif
+
+     /* Generate the function to calculate the bins */
+    void StaticSamplingCodeGen_ref::subBlkRTGen() {
+        string space = "    ";
+        errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
+        errs() << space + "int msb = 0;\n";
+        errs() << space + "int tmp_rt = rt;\n";
+        errs() << space + "while(tmp_rt != 0) {\n";
+        errs() << space + "    tmp_rt = tmp_rt / 2;\n";
+        errs() << space + "    ++msb;\n";
+        errs() << space + "}\n";
+        errs() << space + "if (msb >= BIN_SIZE) {\n";
+        errs() << space + "    int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;\n";
+        errs() << space + "    for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {\n";
+        errs() << space + "        if (rt < b) {\n";
+        errs() << space + "            rtHistoCal(rth, b - diff, cnt);\n";
+        errs() << space + "            break;\n";
+        errs() << space + "        }\n";
+        errs() << space + "    }\n";
+        errs() << space + "}\n";
+        errs() << space + "else {\n";
+        errs() << space + "    rtHistoCal(rth, pow(2, msb-1), cnt);\n";
+        errs() << space + "}\n";
+        errs() << space + "return;\n";
+        errs() << "}\n";
+#ifdef REFERENCE_GROUP  
+        errs() << "\n";
+        errs() << "void refSubBlkRT(map<string, map<uint64_t, double>> &rth, uint64_t rt, double cnt, string ref) {\n";
+        errs() << space + "int msb = 0;\n";
+        errs() << space + "int tmp_rt = rt;\n";
+        errs() << space + "while(tmp_rt != 0) {\n";
+        errs() << space + "    tmp_rt = tmp_rt / 2;\n";
+        errs() << space + "    ++msb;\n";
+        errs() << space + "}\n";
+        errs() << space + "if (msb >= BIN_SIZE) {\n";
+        errs() << space + "    int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;\n";
+        errs() << space + "    for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {\n";
+        errs() << space + "        if (rt < b) {\n";
+        errs() << space + "            refRTHistoCal(rth, b - diff, cnt, ref);\n";
+        errs() << space + "            break;\n";
+        errs() << space + "        }\n";
+        errs() << space + "    }\n";
+        errs() << space + "}\n";
+        errs() << space + "else {\n";
+        errs() << space + "    refRTHistoCal(rth, pow(2, msb-1), cnt, ref);\n";
+        errs() << space + "}\n";
+        errs() << space + "return;\n";
+        errs() << "}\n";
+#endif
+        return;
+    }
     
     
 #ifdef DumpRTMR
     void StaticSamplingCodeGen_ref::rtDumpGen() {
-        
         errs() << "void rtDump() {\n";
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
         errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
-        errs() << "        cout << it->first << \" \" << it->second << \"\\n\";\n";
+        errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
-        
+#ifdef REFERENCE_GROUP
+        errs() << "\n";
+        errs() << "void refRTDump() {\n";
+        errs() << "    for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
+        errs() << "        cout << \"Start to dump reuse time histogram for \" << it->first << \"\\n\";\n";
+        errs() << "        for (map<uint64_t, double>::iterator iit = it->second.begin(), eiit = it->second.end(); iit != eiit; ++iit) {\n";
+        errs() << "            cout << it->first << \",\" << iit->first << \",\" << iit->second << endl;\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+#endif  
         return;
     }
     
     void StaticSamplingCodeGen_ref::rtToMRGen() {
         
         errs() << "void RTtoMR_AET() {\n";
-        
         string space = "    ";
         errs() << space + " map<uint64_t, double> P;\n";
         errs() << space + "double total_num_RT = 0;\n";
@@ -314,9 +402,9 @@ namespace ssCodeGen_ref {
         errs() << "                break;\n";
         errs() << "            }\n";
         errs() << "        }\n";
-        errs() << "        cout << it1->first << \" \" << it1->second << endl;\n";
+        errs() << "        cout << it1->first << \", \" << it1->second << endl;\n";
         errs() << "        if (it1 != it2) {\n";
-        errs() << "            cout << it2->first << \" \" << it2->second << endl;\n";
+        errs() << "            cout << it2->first << \", \" << it2->second << endl;\n";
         errs() << "        }\n";
         errs() << "        it1 = ++it2;\n";
         errs() << "        it2 = it1;\n";
@@ -477,6 +565,22 @@ namespace ssCodeGen_ref {
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
+    }
+#endif
+
+#if defined(REFERENCE_GROUP)
+    void StaticSamplingCodeGen_ref::rtMergeGen() {
+        errs() << "/* Merge the refRT to RT */\n";
+        errs() << "void rtMerge() {\n";
+        errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
+        errs() << "        for (map<uint64_t, double>::iterator iit = it->second.begin(); iit != it->second.end(); ++iit) {\n"; 
+        errs() << "            rtHistoCal(RT, iit->first, iit->second);\n";
+        // errs() << "            subBlkRT(RT, iit->first, iit->second);\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        return;
     }
 #endif
 
@@ -1037,8 +1141,14 @@ namespace ssCodeGen_ref {
                         tmp.pop_back();
                     }
                     errs() << tmp + ")) {\n";
-                    
-                    errs() << space + "        rtHistoCal(cnt";
+#ifdef REFERENCE_GROUP
+                        // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+                        errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\"";
+#else
+                        // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
+                        errs() << space + "            rtHistoCal(RT, cnt, 1.0";
+#endif
+                    // errs() << space + "        subBlkRT(RT, cnt, 1.0";
 #ifdef DumpRefLease
                     errs() << ", " +  to_string(useID);
 #endif
@@ -1406,6 +1516,10 @@ namespace ssCodeGen_ref {
         
 
 #ifdef DumpRTMR
+#ifdef REFERENCE_GROUP
+        errs() << "    rtMerge();\n";
+        errs() << "    refRTDump();\n";
+#endif
         errs() << "    rtDump();\n";
         errs() << "    RTtoMR_AET();\n";
         errs() << "    dumpMR();\n";
@@ -1457,7 +1571,6 @@ namespace ssCodeGen_ref {
         errs() << "    cout << \"Time taken by SPS:  \" << duration.count() << endl; \n";
         errs() << "#endif\n";
 #endif
-        
         errs() << "    return 0;\n";
         errs() << "}\n";
         
@@ -1486,6 +1599,13 @@ namespace ssCodeGen_ref {
 
         /* generate rtHistoCal function */
         rtHistoGen();
+
+        /* generate subBlkRT function */
+        subBlkRTGen();
+
+#if defined(REFERENCE_GROUP)
+        rtMergeGen();
+#endif
         
 #ifdef DumpRTMR
         /* generate rtToMR function */

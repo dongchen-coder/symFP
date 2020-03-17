@@ -575,7 +575,11 @@ namespace uiAccCodeGen_ref {
         errs() << "void rtMerge() {\n";
         errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
         errs() << "        for (map<uint64_t, double>::iterator iit = it->second.begin(); iit != it->second.end(); ++iit) {\n"; 
+#if defined(UNIFORM_SMOOTHING) || defined(GAUSSIAN_SMOOTHING)
         errs() << "            rtHistoCal(RT, iit->first, iit->second);\n";
+#else
+        errs() << "            subBlkRT(RT, iit->first, iit->second);\n";
+#endif
         errs() << "        }\n";
         errs() << "    }\n";
         errs() << "    return;\n";
@@ -583,7 +587,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
 #endif
-#ifdef CALIBRATION
+#if defined(UNIFORM_SMOOTHING) || defined(GAUSSIAN_SMOOTHING)
     void AccLevelUISamplingCodeGen_ref::filterArrayAccesses() {
         for(map<Instruction*, vector<string>>::iterator mit = arrayAccessVariable.begin(); mit != arrayAccessVariable.end(); ++mit) {
             errs() << "/* Array " << arrayName[mit->first] << "\t";
@@ -609,9 +613,11 @@ namespace uiAccCodeGen_ref {
         }
         return;
     }
+#endif
+#if defined(UNIFORM_SMOOTHING)
     void AccLevelUISamplingCodeGen_ref::UniformDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
-        errs() << "void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {\n";
+        errs() << "void uniform_smoothing(map<uint64_t, double> &rth, bool enable, bool scale) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
         // errs() << "    for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
         // errs() << "        uint64_t mu = it->first;\n";
@@ -631,50 +637,98 @@ namespace uiAccCodeGen_ref {
         // errs() << "    }\n";
         // errs() << "    return;\n";
         // errs() << "}\n";
+        // errs() << "    if (!enable) {\n";
+        // errs() << "        for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
+        // errs() << "            rtHistoCal(rth, it->first, it->second);\n";
+        // // errs() << "            subBlkRT(rth, it->first, it->second);\n";
+        // // errs() << "        RT[it->first] = it->second;\n";
+        // errs() << "        }\n";
+        // errs() << "        return;\n";
+        // errs() << "    }\n";
         errs() << "    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
         errs() << "    double sum_P = 0.0;\n";
         errs() << "    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
+        // errs() << "        if (!enable) {\n";
+        // errs() << "            rtHistoCal(tmp, it->first, it->second);\n";
+        // errs() << "            continue;\n";
+        // errs() << "        }\n";
         errs() << "        uint64_t mu = it->first;\n";
         errs() << "        sum_P += it->second;\n";
         errs() << "        /* Do uniform distribution for all ri, distribute from ri / THREAD_NUM to ri * THREAD_NUM  */\n";
         errs() << "        if (it->second <= 0.0) { continue; }\n";
-        errs() << "        if (sum_P >= 0.9 * sum ) { \n";
-        errs() << "            rtHistoCal(tmp, mu, it->second);\n";
-        errs() << "            continue;\n";
-        errs() << "        }\n";
-        errs() << "        if (scale) { mu = mu * THREAD_NUM; }\n";
-        errs() << "        uint64_t start = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
-        errs() << "        uint64_t end = mu * THREAD_NUM;\n";
-        errs() << "        double split_val = it->second / (end - start + 1);\n";
-        errs() << "        for (int b = start; b <= end; b++) {\n";
+        // errs() << "        if (sum_P >= 0.9 * sum ) { \n";
+        // errs() << "            rtHistoCal(tmp, mu, it->second);\n";
+        // errs() << "            continue;\n";
+        // errs() << "        }\n";
+        errs() << "        if (mu < THREAD_NUM) { mu = mu * THREAD_NUM; }\n";
+        errs() << "        uint64_t start_b = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
+        errs() << "        uint64_t end_b = mu * THREAD_NUM;\n";
+        errs() << "        double split_val = it->second / (end_b - start_b + 1);\n";
+        errs() << "        for (int b = start_b; b <= end_b; b++) {\n";
         errs() << "            rtHistoCal(tmp, b, split_val);\n";
         errs() << "        }\n";
         errs() << "    }\n";
         errs() << "    rth.clear();\n";
         errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
         errs() << "        subBlkRT(rth, it->first, it->second);\n";
+        // errs() << "        rtHistoCal(rth, it->first, it->second);\n";
         // errs() << "        RT[it->first] = it->second;\n";
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
         return;
     }
+#ifdef REFERENCE_GROUP
+    void AccLevelUISamplingCodeGen_ref::GroupUniformDistrGen(string space) {
+        filterArrayAccesses();
+        errs() << "void group_uniform_smoothing() {\n";
+        double sensitive_ratio = (double)outMostIndependentArrayRef.size() / refNumber.size();
+        if (sensitive_ratio >= 0.375) {
+            errs() << space << "vector<string> vec = {";
+            for(vector<Instruction*>::iterator it = outMostIndependentArrayRef.begin(); it != outMostIndependentArrayRef.end(); ++it) {
+                errs() << "\"" << arrayName[*it] + std::to_string(refNumber[*it]) << "\"";
+                if (it != outMostIndependentArrayRef.end()-1) { errs() << ", "; }
+            }
+            errs() << " };\n";
+        } 
+        errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
+        /* Cold Program */
+        errs() << space << "    uniform_smoothing(it->second, true, true);
+        /*
+        if (sensitive_ratio == 0.0) {
+            errs() << space << "uniform_smoothing(it->second, false, false);\n";
+        } else if (sensitive_ratio < 0.375) {
+            errs() << space << "uniform_smoothing(it->second, true, true);\n";
+        } else {
+            errs() << space << "uniform_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), true);\n";
+        }
+        */
+        errs() << space << "}\n";
+        errs() << "}\n";
+    }
+#endif
+#elif defined(GAUSSIAN_SMOOTHING)
     void AccLevelUISamplingCodeGen_ref::GaussianDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto based on Gasussian */\n";
-        errs() << "void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma) {\n";
+        errs() << "void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma, bool enable) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
         errs() << "    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });\n";
         errs() << "    double sum_P = 0.0;\n";
         errs() << "    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
+        // errs() << "        if (!enable) {\n";
+        // errs() << "            rtHistoCal(tmp, it->first, it->second);\n";
+        // errs() << "            continue;\n";
+        // errs() << "        }\n";
         errs() << "        sum_P += it->second;\n";
         errs() << "        uint64_t mu = it->first;\n";
         errs() << "        if (sum_P >= 0.9 * sum) {\n";
         errs() << "            rtHistoCal(tmp, mu, it->second);\n";
         errs() << "            continue;\n";
         errs() << "        }\n";
-        errs() << "        if (scale) { mu = mu * THREAD_NUM; }\n";
+        errs() << "        if (scale && mu > THREAD_NUM) { mu = mu * THREAD_NUM; }\n";
         errs() << "        uint64_t start_b = ( mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;\n";
-        errs() << "        uint64_t end_b = mu * THREAD_NUM;\n";
+        errs() << "        uint64_t end_b = mu;\n";
+        errs() << "        if (enable) { end_b = mu * THREAD_NUM; }\n";
         errs() << "        for(uint64_t b = start_b; b <= end_b; b++) {\n";
         errs() << "            double c =  (1 /  (sqrt(2 * M_PI) * sigma));\n";
         errs() << "            double val = it->second * c * exp( -1 * pow((b - mu), 2.0) / (2 * pow(sigma, 2.0)));\n";
@@ -683,20 +737,20 @@ namespace uiAccCodeGen_ref {
         errs() << "    }\n";
         errs() << "    rth.clear();\n";
         errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
+        // errs() << "        rtHistoCal(rth, it->first, it->second);\n";
         errs() << "        subBlkRT(rth, it->first, it->second);\n";
         // errs() << "        RT[it->first] = it->second;\n";
         errs() << "    }\n";
         errs() << "    return;\n";
         errs() << "}\n";
         return;
-        
     }
 #ifdef REFERENCE_GROUP
-    void AccLevelUISamplingCodeGen_ref::GroupUniformDistrGen(string space) {
+    void AccLevelUISamplingCodeGen_ref::GroupGaussianDistrGen(string space) {
         filterArrayAccesses();
-        errs() << "void group_uniform_smoothing() {\n";
+        errs() << "void group_gaussian_smoothing(double sigma) {\n";
         double sensitive_ratio = (double)outMostIndependentArrayRef.size() / refNumber.size();
-        if (sensitive_ratio < 0.375 && sensitive_ratio > 0.0) {
+        if (sensitive_ratio >= 0.375) {
             errs() << space << "vector<string> vec = {";
             for(vector<Instruction*>::iterator it = outMostIndependentArrayRef.begin(); it != outMostIndependentArrayRef.end(); ++it) {
                 errs() << "\"" << arrayName[*it] + std::to_string(refNumber[*it]) << "\"";
@@ -708,22 +762,14 @@ namespace uiAccCodeGen_ref {
         /* Cold Program */ 
         if (outMostIndependentArrayRef.size() == 0) {
             errs() << space << "/* Cold Program - No scaling */\n";
-            errs() << space << space << "uniform_smoothing(it->second, false);\n";
-        } else if (sensitive_ratio < 0.375) {
+            errs() << space << space << "gaussian_smoothing(it->second, false, sigma, true);\n";
+        } else if (sensitive_ratio >= 0.375) {
             errs() << space << "/* Low Sensitive Program - Scaling outmost independent array references only */\n";
-            errs() << space << space << "uniform_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end());\n";
+            errs() << space << space << "gaussian_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), sigma, true);\n";
         } else {
             errs() << space << "/* High Sensitive Program - Scaling all */\n";
-            errs() << space << space << "uniform_smoothing(it->second, true);\n";
+            errs() << space << space << "gaussian_smoothing(it->second, true, sigma, true);\n";
         }
-        errs() << space << "}\n";
-        errs() << "}\n";
-    }
-        void AccLevelUISamplingCodeGen_ref::GroupGaussianDistrGen(string space) {
-        errs() << "void group_gaussian_smoothing(double sigma) {\n";
-        errs() << space << "vector<string> vec = { \"\", \"\" };\n";
-        errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
-        errs() << space << space << "gaussian_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), sigma);\n";
         errs() << space << "}\n";
         errs() << "}\n";
     }
@@ -1841,9 +1887,10 @@ namespace uiAccCodeGen_ref {
         }
 #endif
 
-#ifdef CALIBRATION
-        // errs() << "    group_gaussian_smoothing(2.0);\n";
+#ifdef UNIFORM_SMOOTHING
         errs() << "    group_uniform_smoothing();\n";
+#elif defined(GAUSSIAN_SMOOTHING)
+        errs() << "    group_gaussian_smoothing(8.0);\n";   
 #endif
         
 
@@ -1898,11 +1945,16 @@ namespace uiAccCodeGen_ref {
         rtMergeGen();
 #endif
 
-#if defined(CALIBRATION)
-        GaussianDistrGen();
+#if defined(UNIFORM_SMOOTHING)
         UniformDistrGen();
-#if defined(REFERENCE_GROUP)
+#elif defined(GAUSSIAN_SMOOTHING)
+        GaussianDistrGen();
+#endif
+        
+#if defined(REFERENCE_GROUP) 
+#if defined(GAUSSIAN_SMOOTHING)
         GroupGaussianDistrGen("    ");
+#elif defined(UNIFORM_SMOOTHING)
         GroupUniformDistrGen("    ");
 #endif
 #endif

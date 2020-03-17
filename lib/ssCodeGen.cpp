@@ -1601,6 +1601,57 @@ namespace ssCodeGen {
         
         return;
     }
+
+    /* Generate the function to calculate the bins */
+    void AccLevelUISamplingCodeGen_ref::subBlkRTGen() {
+        string space = "    ";
+        errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
+        errs() << space + "int msb = 0;\n";
+        errs() << space + "int tmp_rt = rt;\n";
+        errs() << space + "while(tmp_rt != 0) {\n";
+        errs() << space + "    tmp_rt = tmp_rt / 2;\n";
+        errs() << space + "    ++msb;\n";
+        errs() << space + "}\n";
+        errs() << space + "if (msb >= BIN_SIZE) {\n";
+        errs() << space + "    int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;\n";
+        errs() << space + "    for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {\n";
+        errs() << space + "        if (rt < b) {\n";
+        errs() << space + "            rtHistoCal(rth, b - diff, cnt);\n";
+        errs() << space + "            break;\n";
+        errs() << space + "        }\n";
+        errs() << space + "    }\n";
+        errs() << space + "}\n";
+        errs() << space + "else {\n";
+        errs() << space + "    rtHistoCal(rth, pow(2, msb-1), cnt);\n";
+        errs() << space + "}\n";
+        errs() << space + "return;\n";
+        errs() << "}\n";
+#ifdef REFERENCE_GROUP  
+        errs() << "\n";
+        errs() << "void refSubBlkRT(map<string, map<uint64_t, double>> &rth, uint64_t rt, double cnt, string ref) {\n";
+        errs() << space + "int msb = 0;\n";
+        errs() << space + "int tmp_rt = rt;\n";
+        errs() << space + "while(tmp_rt != 0) {\n";
+        errs() << space + "    tmp_rt = tmp_rt / 2;\n";
+        errs() << space + "    ++msb;\n";
+        errs() << space + "}\n";
+        errs() << space + "if (msb >= BIN_SIZE) {\n";
+        errs() << space + "    int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;\n";
+        errs() << space + "    for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {\n";
+        errs() << space + "        if (rt < b) {\n";
+        errs() << space + "            refRTHistoCal(rth, b - diff, cnt, ref);\n";
+        errs() << space + "            break;\n";
+        errs() << space + "        }\n";
+        errs() << space + "    }\n";
+        errs() << space + "}\n";
+        errs() << space + "else {\n";
+        errs() << space + "    refRTHistoCal(rth, pow(2, msb-1), cnt, ref);\n";
+        errs() << space + "}\n";
+        errs() << space + "return;\n";
+        errs() << "}\n";
+#endif
+        return;
+    }
     
     void StaticSamplingCodeGen::rtDumpGen() {
         

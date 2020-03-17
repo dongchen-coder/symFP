@@ -667,7 +667,7 @@ namespace riIterCodeGen_ref {
                     errs() << space + "    map<int, vector<int>> progress;\n";
                     errs() << space + "    vector<int> thread_pool;\n";
                 }
-#endif
+
             } else { // Thread Node
 
                 errs() << space + "/* Generate the Random Interleaving process */\n";
@@ -732,6 +732,7 @@ namespace riIterCodeGen_ref {
                 errs() << space + "    }\n";
                 errs() << space + "}\n";
             }
+#endif
         }
         
         if (LoopRefTree->next != NULL) {

@@ -28,8 +28,9 @@ using namespace std;
 // #define SEARCH_REUSE_SAME_LOOP
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
-// #define DumpRTMR
-#define DumpRefLease
+#define DumpRTMR
+#define REFERENCE_GROUP
+// #define DumpRefLease
 
 namespace ssCodeGen_ref {
     struct StaticSamplingCodeGen_ref : public FunctionPass {
@@ -57,6 +58,7 @@ namespace ssCodeGen_ref {
         void addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
 
         void rtHistoGen();
+        void subBlkRTGen(); 
 #ifdef DumpRTMR
         void rtDumpGen();
         void rtToMRGen();
@@ -68,6 +70,9 @@ namespace ssCodeGen_ref {
         void getMaxPPUCGen();
         void DumpRIGen();
         void RLGen();
+#endif
+#ifdef REFERENCE_GROUP
+        void rtMergeGen();
 #endif
         void headerGen();
 

@@ -246,8 +246,6 @@ Dump tree:
 #include <cmath>
 #include <numeric>
 #include <utility>
-#include <thread>
-#include <mutex>
 #include <algorithm>
 #ifndef THREAD_NUM
 #    define THREAD_NUM   4
@@ -259,7 +257,6 @@ Dump tree:
 #    define CHUNK_SIZE   4
 #endif
 using namespace std;
-std::mutex mtx;
 std::map<string, map<uint64_t, double>> refRT;
 std::map<uint64_t, double> RT;
 std::map<uint64_t, double> MR;
@@ -267,14 +264,11 @@ void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {
     if ( val <= 0) {
 ;        return;
     }
-    std::unique_lock<std::mutex> lck (mtx,std::defer_lock);
-    lck.lock();
     if (rth.find(rt) == rth.end()) { 
         rth[rt] = val;
     } else {
         rth[rt] += val;
     }
-    lck.unlock();
     return;
 }
 
@@ -282,8 +276,6 @@ void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double 
     if ( val <= 0) {
 ;        return;
     }
-    unique_lock< mutex> lck (mtx, defer_lock);
-    lck.lock();
     if (rth.find(ref) == rth.end()) { 
         rth[ref][rt] = val;
     }
@@ -294,7 +286,6 @@ void refRTHistoCal(map<string, map<uint64_t, double>> &rth, uint64_t rt, double 
             rth[ref][rt] += val;
         }
     }
-    lck.unlock();
     return;
 }
 void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {
@@ -349,35 +340,8 @@ void rtMerge() {
     }
     return;
 }
-/* Smoothing the per-reference RTHisto based on Gasussian */
-void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma) {
-    map<uint64_t, double> tmp;
-    double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });
-    double sum_P = 0.0;
-    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {
-        sum_P += it->second;
-        uint64_t mu = it->first;
-        if (sum_P >= 0.9 * sum) {
-            rtHistoCal(tmp, mu, it->second);
-            continue;
-        }
-        if (scale) { mu = mu * THREAD_NUM; }
-        uint64_t start_b = ( mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;
-        uint64_t end_b = mu * THREAD_NUM;
-        for(uint64_t b = start_b; b <= end_b; b++) {
-            double c =  (1 /  (sqrt(2 * M_PI) * sigma));
-            double val = it->second * c * exp( -1 * pow((b - mu), 2.0) / (2 * pow(sigma, 2.0)));
-            rtHistoCal(tmp, b, val);
-        }
-    }
-    rth.clear();
-    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-        subBlkRT(rth, it->first, it->second);
-    }
-    return;
-}
 /* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */
-void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {
+void uniform_smoothing(map<uint64_t, double> &rth, bool enable, bool scale) {
     map<uint64_t, double> tmp;
     double sum = accumulate(begin(rth), end(rth), 0.0, [](const double previous, const pair<uint64_t, double>& p) { return previous + p.second; });
     double sum_P = 0.0;
@@ -386,15 +350,11 @@ void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {
         sum_P += it->second;
         /* Do uniform distribution for all ri, distribute from ri / THREAD_NUM to ri * THREAD_NUM  */
         if (it->second <= 0.0) { continue; }
-        if (sum_P >= 0.9 * sum ) { 
-            rtHistoCal(tmp, mu, it->second);
-            continue;
-        }
-        if (scale) { mu = mu * THREAD_NUM; }
-        uint64_t start = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;
-        uint64_t end = mu * THREAD_NUM;
-        double split_val = it->second / (end - start + 1);
-        for (int b = start; b <= end; b++) {
+        if (mu < THREAD_NUM) { mu = mu * THREAD_NUM; }
+        uint64_t start_b = (mu / THREAD_NUM) >= 1 ? mu / THREAD_NUM : 1;
+        uint64_t end_b = mu * THREAD_NUM;
+        double split_val = it->second / (end_b - start_b + 1);
+        for (int b = start_b; b <= end_b; b++) {
             rtHistoCal(tmp, b, split_val);
         }
     }
@@ -403,12 +363,6 @@ void uniform_smoothing(map<uint64_t, double> &rth, bool scale) {
         subBlkRT(rth, it->first, it->second);
     }
     return;
-}
-void group_gaussian_smoothing(double sigma) {
-    vector<string> vec = { "", "" };
-    for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {
-        gaussian_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end(), sigma);
-    }
 }
 /* Array E_addr	i j */ 
 /* Array E_addr	i j */ 
@@ -426,10 +380,9 @@ void group_gaussian_smoothing(double sigma) {
 /* Array G_addr	i j */ 
 /* Array G_addr	i j */ 
 void group_uniform_smoothing() {
-    vector<string> vec = {"D_addr0", "B_addr0", "F_addr3" };
     for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {
-    /* Low Sensitive Program - Scaling outmost independent array references only */
-        uniform_smoothing(it->second, find(vec.begin(), vec.end(), it->first) != vec.end());
+    /* Low Sensitive Program - Scaling all */
+    uniform_smoothing(it->second, true, true);
     }
 }
 void RTtoMR_AET() {
@@ -5457,36 +5410,21 @@ EndSample:
 }
 int main() {
     /* 15 */
-    std::thread t_E_addr_1(ref_E_addr1);
-    std::thread t_E_addr_2(ref_E_addr2);
-    std::thread t_E_addr_0(ref_E_addr0);
-    std::thread t_C_addr_0(ref_C_addr0);
-    std::thread t_D_addr_0(ref_D_addr0);
-    std::thread t_A_addr_0(ref_A_addr0);
-    std::thread t_B_addr_0(ref_B_addr0);
-    std::thread t_G_addr_0(ref_G_addr0);
-    std::thread t_E_addr_3(ref_E_addr3);
-    std::thread t_F_addr_3(ref_F_addr3);
-    std::thread t_F_addr_0(ref_F_addr0);
-    std::thread t_F_addr_1(ref_F_addr1);
-    std::thread t_F_addr_2(ref_F_addr2);
-    std::thread t_G_addr_1(ref_G_addr1);
-    std::thread t_G_addr_2(ref_G_addr2);
-    t_E_addr_1.join();
-    t_E_addr_2.join();
-    t_E_addr_0.join();
-    t_C_addr_0.join();
-    t_D_addr_0.join();
-    t_A_addr_0.join();
-    t_B_addr_0.join();
-    t_G_addr_0.join();
-    t_E_addr_3.join();
-    t_F_addr_3.join();
-    t_F_addr_0.join();
-    t_F_addr_1.join();
-    t_F_addr_2.join();
-    t_G_addr_1.join();
-    t_G_addr_2.join();
+    ref_E_addr1();
+    ref_E_addr2();
+    ref_E_addr0();
+    ref_C_addr0();
+    ref_D_addr0();
+    ref_A_addr0();
+    ref_B_addr0();
+    ref_G_addr0();
+    ref_E_addr3();
+    ref_F_addr3();
+    ref_F_addr0();
+    ref_F_addr1();
+    ref_F_addr2();
+    ref_G_addr1();
+    ref_G_addr2();
     group_uniform_smoothing();
     rtMerge();
     rtDump();

@@ -20,7 +20,7 @@ using namespace llvm;
 
 #define SAMPLING 2
 
-#define PARALLEL_CXX_THREAD
+// #define PARALLEL_CXX_THREAD
 
 #define REFERENCE_GROUP
 
@@ -73,25 +73,26 @@ namespace uiAccCodeGen_ref {
 #endif
         void headerGen();
 
-#ifdef PARALLEL
         //*********************************************************************
         // Function to handle parallel excution 
         //*********************************************************************
         void initOutLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         /* Convert the per-ref rtHist to whole-prog rtHist*/
         void rtMergeGen();
-#ifdef CALIBRATION
+
+/* Distribute the UI RT based on Gaussian Distribution*/
+#if defined(GAUSSIAN_SMOOTHING)
 #ifdef REFERENCE_GROUP
         void GroupGaussianDistrGen(string space);
+#endif
+        void GaussianDistrGen();
+/* Distribute the UI RT uniformly */
+#elif defined(UNIFORM_SMOOTHING)
+#ifdef REFERENCE_GROUP
         void GroupUniformDistrGen(string space);
 #endif
-        /* Distribute the UI RT based on Gaussian Distribution*/
-        void GaussianDistrGen();
-        /* Distribute the UI RT uniformly */
         void UniformDistrGen();
-#endif
-#endif 
-        
+#endif // end of SMOOTHING Macro   
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
         
