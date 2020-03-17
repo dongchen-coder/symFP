@@ -1,18 +1,22 @@
 
  /* Start to analysis array index
-Array index info: Total number of references: 6
-a.addr ((1026 * i) + j)
-a.addr (((1026 * i) + j) + 1)
-b.addr ((1026 * i) + j)
-a.addr (((1026 * i) + j) - 1)
-a.addr ((1026 * (i - 1)) + j)
-a.addr ((1026 * (i + 1)) + j)
+Array index info: Total number of references: 10
+A.addr (((i - 1) * 1024) + (j + 0))
+A.addr (((i - 1) * 1024) + (j - 1))
+A.addr (((i + 0) * 1024) + (j - 1))
+A.addr (((i - 1) * 1024) + (j + 1))
+A.addr (((i + 1) * 1024) + (j - 1))
+A.addr (((i + 1) * 1024) + (j + 1))
+B.addr ((i * 1024) + j)
+A.addr (((i + 0) * 1024) + (j + 0))
+A.addr (((i + 1) * 1024) + (j + 0))
+A.addr (((i + 0) * 1024) + (j + 1))
 
  Finish to analysis array index */ 
 
  /* Start to analyze argument
-double* %a
-double* %b
+double* %A
+double* %B
 
  Start to analysis argument */ 
 
@@ -22,19 +26,23 @@ double* %b
 
  /* Start analysis loops
 --i
---Loop Bound: (1, 1025)
+--Loop Bound: (1, 1023)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----j
-----Loop Bound: (1, 1025)
+----Loop Bound: (1, 1023)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
-------array access a.addr ((1026 * i) + j)
-------array access a.addr (((1026 * i) + j) + 1)
-------array access a.addr (((1026 * i) + j) - 1)
-------array access a.addr ((1026 * (i - 1)) + j)
-------array access a.addr ((1026 * (i + 1)) + j)
-------array access b.addr ((1026 * i) + j)
+------array access A.addr (((i - 1) * 1024) + (j - 1))
+------array access A.addr (((i + 0) * 1024) + (j - 1))
+------array access A.addr (((i + 1) * 1024) + (j - 1))
+------array access A.addr (((i - 1) * 1024) + (j + 0))
+------array access A.addr (((i + 0) * 1024) + (j + 0))
+------array access A.addr (((i + 1) * 1024) + (j + 0))
+------array access A.addr (((i - 1) * 1024) + (j + 1))
+------array access A.addr (((i + 0) * 1024) + (j + 1))
+------array access A.addr (((i + 1) * 1024) + (j + 1))
+------array access B.addr ((i * 1024) + j)
 
 Finish analysis loops */ 
 /* # of Out-most Loops: 1 */ 
@@ -84,13 +92,37 @@ Finish analysis loops */
 ----------------------
 --------| AccessNode |
 ----------------------
+--------------------
+------| ThreadNode |
+--------------------
+----------------------
+--------| AccessNode |
+----------------------
+--------------------
+------| ThreadNode |
+--------------------
+----------------------
+--------| AccessNode |
+----------------------
+--------------------
+------| ThreadNode |
+--------------------
+----------------------
+--------| AccessNode |
+----------------------
+--------------------
+------| ThreadNode |
+--------------------
+----------------------
+--------| AccessNode |
+----------------------
 
 Finish transform loop tree */ 
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
 ----Sample number: 102
-------Sample number: 10485
+------Sample number: 10444
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
 #include <map>
@@ -212,40 +244,60 @@ void dumpMR() {
     }
     return;
 }
-/* a_addr ((1026 * i) + j) 0 */
-int calAddra_addr0( int i, int j) {
-    int result = (((1026 * i) + j)) * 8 / 64;
+/* A_addr (((i - 1) * 1024) + (j - 1)) 0 */
+int calAddrA_addr0( int i, int j) {
+    int result = ((((i - 1) * 1024) + (j - 1))) * 8 / 64;
     return result;
 }
-/* a_addr (((1026 * i) + j) + 1) 1 */
-int calAddra_addr1( int i, int j) {
-    int result = ((((1026 * i) + j) + 1)) * 8 / 64;
+/* A_addr (((i + 0) * 1024) + (j - 1)) 1 */
+int calAddrA_addr1( int i, int j) {
+    int result = ((((i + 0) * 1024) + (j - 1))) * 8 / 64;
     return result;
 }
-/* a_addr (((1026 * i) + j) - 1) 2 */
-int calAddra_addr2( int i, int j) {
-    int result = ((((1026 * i) + j) - 1)) * 8 / 64;
+/* A_addr (((i + 1) * 1024) + (j - 1)) 2 */
+int calAddrA_addr2( int i, int j) {
+    int result = ((((i + 1) * 1024) + (j - 1))) * 8 / 64;
     return result;
 }
-/* a_addr ((1026 * (i - 1)) + j) 3 */
-int calAddra_addr3( int i, int j) {
-    int result = (((1026 * (i - 1)) + j)) * 8 / 64;
+/* A_addr (((i - 1) * 1024) + (j + 0)) 3 */
+int calAddrA_addr3( int i, int j) {
+    int result = ((((i - 1) * 1024) + (j + 0))) * 8 / 64;
     return result;
 }
-/* a_addr ((1026 * (i + 1)) + j) 4 */
-int calAddra_addr4( int i, int j) {
-    int result = (((1026 * (i + 1)) + j)) * 8 / 64;
+/* A_addr (((i + 0) * 1024) + (j + 0)) 4 */
+int calAddrA_addr4( int i, int j) {
+    int result = ((((i + 0) * 1024) + (j + 0))) * 8 / 64;
     return result;
 }
-/* b_addr ((1026 * i) + j) 0 */
-int calAddrb_addr0( int i, int j) {
-    int result = (((1026 * i) + j)) * 8 / 64;
+/* A_addr (((i + 1) * 1024) + (j + 0)) 5 */
+int calAddrA_addr5( int i, int j) {
+    int result = ((((i + 1) * 1024) + (j + 0))) * 8 / 64;
     return result;
 }
-void ref_a_addr0() {
-    cout << " ref_a_addr0 " << endl;
-/* for (i, 1, 1025) */
-/* for (j, 1, 1025) */
+/* A_addr (((i - 1) * 1024) + (j + 1)) 6 */
+int calAddrA_addr6( int i, int j) {
+    int result = ((((i - 1) * 1024) + (j + 1))) * 8 / 64;
+    return result;
+}
+/* A_addr (((i + 0) * 1024) + (j + 1)) 7 */
+int calAddrA_addr7( int i, int j) {
+    int result = ((((i + 0) * 1024) + (j + 1))) * 8 / 64;
+    return result;
+}
+/* A_addr (((i + 1) * 1024) + (j + 1)) 8 */
+int calAddrA_addr8( int i, int j) {
+    int result = ((((i + 1) * 1024) + (j + 1))) * 8 / 64;
+    return result;
+}
+/* B_addr ((i * 1024) + j) 0 */
+int calAddrB_addr0( int i, int j) {
+    int result = (((i * 1024) + j)) * 8 / 64;
+    return result;
+}
+void ref_A_addr3() {
+    cout << " ref_A_addr3 " << endl;
+/* for (i, 1, 1023) */
+/* for (j, 1, 1023) */
     uint64_t cnt = 0;
 
     /* Variable used to compute thread-local iteration space (out-most-loops) */
@@ -265,10 +317,10 @@ void ref_a_addr0() {
     /* Compute the chunk size. */
 #ifdef CHUNK_SIZE
     chunk_size = CHUNK_SIZE;
-    chunk_num = (1025 - 1) % (THREAD_NUM * chunk_size) == 0 ? (1025 - 1) / (THREAD_NUM * chunk_size) : (1025 - 1) / (THREAD_NUM * chunk_size) + 1;
+    chunk_num = (1023 - 1) % (THREAD_NUM * chunk_size) == 0 ? (1023 - 1) / (THREAD_NUM * chunk_size) : (1023 - 1) / (THREAD_NUM * chunk_size) + 1;
 #else
     chunk_num = 1;
-    chunk_size = (1025 - 1) / THREAD_NUM;
+    chunk_size = (1023 - 1) / THREAD_NUM;
 #endif
     /* Compute the number of chunks */
     /* Generating thread local iteration space mapping code */
@@ -276,7 +328,7 @@ void ref_a_addr0() {
         /* Computes bound express for each thread */
         for (int t = 0; t < THREAD_NUM; ++t) {
             BLIST[t][0] =  1+ (cid * THREAD_NUM + t) * chunk_size;
-            BLIST[t][1] = min(1 + (cid * THREAD_NUM + t + 1) * chunk_size, 1025) - 1;
+            BLIST[t][1] = min(1 + (cid * THREAD_NUM + t + 1) * chunk_size, 1023) - 1;
 #ifdef DEBUG
             // cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
 #endif
@@ -300,7 +352,7 @@ void ref_a_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddra_addr0( progress[t_select][0], progress[t_select][1]);
+                access = calAddrA_addr0( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -322,7 +374,7 @@ void ref_a_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddra_addr1( progress[t_select][0], progress[t_select][1]);
+                access = calAddrA_addr1( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -344,7 +396,7 @@ void ref_a_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddra_addr2( progress[t_select][0], progress[t_select][1]);
+                access = calAddrA_addr2( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -366,7 +418,7 @@ void ref_a_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddra_addr3( progress[t_select][0], progress[t_select][1]);
+                access = calAddrA_addr3( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -388,7 +440,95 @@ void ref_a_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddra_addr4( progress[t_select][0], progress[t_select][1]);
+                access = calAddrA_addr4( progress[t_select][0], progress[t_select][1]);
+                if (LAT.find(access) != LAT.end()) {
+#ifdef DEBUG
+                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
+#endif
+                    subBlkRT(RT, cnt - get<0>(LAT[access]));
+                }
+                LAT[access] = make_tuple(cnt, cid);
+                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
+#ifdef DEBUG
+                // cout << "Remove thread " << t_select << " from the pool" << endl;
+#endif
+            }
+            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
+                    thread_pool.push_back(*it);
+#ifdef DEBUG
+                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
+#endif
+            }
+            while ( !thread_pool.empty()) {
+                int t_select = thread_pool[rand() % thread_pool.size()];
+                cnt++;
+                access = calAddrA_addr5( progress[t_select][0], progress[t_select][1]);
+                if (LAT.find(access) != LAT.end()) {
+#ifdef DEBUG
+                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
+#endif
+                    subBlkRT(RT, cnt - get<0>(LAT[access]));
+                }
+                LAT[access] = make_tuple(cnt, cid);
+                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
+#ifdef DEBUG
+                // cout << "Remove thread " << t_select << " from the pool" << endl;
+#endif
+            }
+            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
+                    thread_pool.push_back(*it);
+#ifdef DEBUG
+                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
+#endif
+            }
+            while ( !thread_pool.empty()) {
+                int t_select = thread_pool[rand() % thread_pool.size()];
+                cnt++;
+                access = calAddrA_addr6( progress[t_select][0], progress[t_select][1]);
+                if (LAT.find(access) != LAT.end()) {
+#ifdef DEBUG
+                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
+#endif
+                    subBlkRT(RT, cnt - get<0>(LAT[access]));
+                }
+                LAT[access] = make_tuple(cnt, cid);
+                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
+#ifdef DEBUG
+                // cout << "Remove thread " << t_select << " from the pool" << endl;
+#endif
+            }
+            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
+                    thread_pool.push_back(*it);
+#ifdef DEBUG
+                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
+#endif
+            }
+            while ( !thread_pool.empty()) {
+                int t_select = thread_pool[rand() % thread_pool.size()];
+                cnt++;
+                access = calAddrA_addr7( progress[t_select][0], progress[t_select][1]);
+                if (LAT.find(access) != LAT.end()) {
+#ifdef DEBUG
+                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
+#endif
+                    subBlkRT(RT, cnt - get<0>(LAT[access]));
+                }
+                LAT[access] = make_tuple(cnt, cid);
+                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
+#ifdef DEBUG
+                // cout << "Remove thread " << t_select << " from the pool" << endl;
+#endif
+            }
+            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
+                    thread_pool.push_back(*it);
+#ifdef DEBUG
+                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
+#endif
+            }
+            while ( !thread_pool.empty()) {
+                int t_select = thread_pool[rand() % thread_pool.size()];
+                cnt++;
+                access = calAddrA_addr8( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -408,8 +548,8 @@ void ref_a_addr0() {
             for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
                 /* Iteration incrementation 1 */
                 progress[t_select][1] = progress[t_select][1] + 1; 
-                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 1025);
-                progress[t_select][1] = progress[t_select][1] % 1025;
+                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 1023);
+                progress[t_select][1] = progress[t_select][1] % 1023;
 #ifdef DEBUG
                 // cout <<  "[Thread " << t_select << "] next iteration: ";
                 for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
@@ -428,10 +568,10 @@ void ref_a_addr0() {
         } // end of while loop
     } // end of outer for - cid loops
 }
-void ref_b_addr0() {
-    cout << " ref_b_addr0 " << endl;
-/* for (i, 1, 1025) */
-/* for (j, 1, 1025) */
+void ref_B_addr0() {
+    cout << " ref_B_addr0 " << endl;
+/* for (i, 1, 1023) */
+/* for (j, 1, 1023) */
     uint64_t cnt = 0;
 
     /* Variable used to compute thread-local iteration space (out-most-loops) */
@@ -451,10 +591,10 @@ void ref_b_addr0() {
     /* Compute the chunk size. */
 #ifdef CHUNK_SIZE
     chunk_size = CHUNK_SIZE;
-    chunk_num = (1025 - 1) % (THREAD_NUM * chunk_size) == 0 ? (1025 - 1) / (THREAD_NUM * chunk_size) : (1025 - 1) / (THREAD_NUM * chunk_size) + 1;
+    chunk_num = (1023 - 1) % (THREAD_NUM * chunk_size) == 0 ? (1023 - 1) / (THREAD_NUM * chunk_size) : (1023 - 1) / (THREAD_NUM * chunk_size) + 1;
 #else
     chunk_num = 1;
-    chunk_size = (1025 - 1) / THREAD_NUM;
+    chunk_size = (1023 - 1) / THREAD_NUM;
 #endif
     /* Compute the number of chunks */
     /* Generating thread local iteration space mapping code */
@@ -462,7 +602,7 @@ void ref_b_addr0() {
         /* Computes bound express for each thread */
         for (int t = 0; t < THREAD_NUM; ++t) {
             BLIST[t][0] =  1+ (cid * THREAD_NUM + t) * chunk_size;
-            BLIST[t][1] = min(1 + (cid * THREAD_NUM + t + 1) * chunk_size, 1025) - 1;
+            BLIST[t][1] = min(1 + (cid * THREAD_NUM + t + 1) * chunk_size, 1023) - 1;
 #ifdef DEBUG
             // cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
 #endif
@@ -482,6 +622,10 @@ void ref_b_addr0() {
             cnt += THREAD_NUM;
             cnt += THREAD_NUM;
             cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
             for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
                     thread_pool.push_back(*it);
 #ifdef DEBUG
@@ -491,7 +635,7 @@ void ref_b_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddrb_addr0( progress[t_select][0], progress[t_select][1]);
+                access = calAddrB_addr0( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -510,8 +654,8 @@ void ref_b_addr0() {
             for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
                 /* Iteration incrementation 1 */
                 progress[t_select][1] = progress[t_select][1] + 1; 
-                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 1025);
-                progress[t_select][1] = progress[t_select][1] % 1025;
+                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 1023);
+                progress[t_select][1] = progress[t_select][1] % 1023;
 #ifdef DEBUG
                 // cout <<  "[Thread " << t_select << "] next iteration: ";
                 for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
@@ -531,13 +675,13 @@ void ref_b_addr0() {
     } // end of outer for - cid loops
 }
 int main() {
-    ref_a_addr0();
+    ref_A_addr3();
     LAT.clear();
-    ref_b_addr0();
+    ref_B_addr0();
     LAT.clear();
     rtDump();
     RTtoMR_AET();
     dumpMR();
     return 0;
 }
- /* Analyze function: stencil */ 
+ /* Analyze function: conv2D_trace */ 

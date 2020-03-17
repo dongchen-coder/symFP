@@ -72,8 +72,8 @@ add_definitions(-DPARALLEL)
 # - DUNIFORM_INTERLEAVING:
 #     Uniform Interleaving
 # By default is uniform interleaving
-# add_definitions(-DRANDOM_INTERLEAVING)
-add_definitions(-DUNIFORM_INTERLEAVING)
+add_definitions(-DRANDOM_INTERLEAVING)
+# add_definitions(-DUNIFORM_INTERLEAVING)
 
 # - DACC_LEVEL_INTERLEAVING:
 #     Do Interleaving per each access
@@ -88,7 +88,7 @@ add_definitions(-DACC_LEVEL_INTERLEAVING)
 # - DGAUSSIAN_SMOOTHING #     Do the RI calibration in gaussian distribution
 # By default is uniform smoothing
 # add_definitions(-DGAUSSIAN_SMOOTHING)
-add_definitions(-DUNIFORM_SMOOTHING)
+# add_definitions(-DUNIFORM_SMOOTHING)
 
 
 

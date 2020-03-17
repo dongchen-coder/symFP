@@ -1,28 +1,24 @@
 
  /* Start to analysis array index
-Array index info: Total number of references: 11
-tmp.addr ((i * 128) + j)
+Array index info: Total number of references: 6
+C.addr ((i * 128) + j)
+C.addr ((i * 128) + j)
+C.addr ((i * 128) + j)
+C.addr ((i * 128) + j)
 A.addr ((i * 128) + k)
-C.addr ((k * 128) + j)
-D.addr ((i * 128) + j)
-D.addr ((i * 128) + j)
 B.addr ((k * 128) + j)
-tmp.addr ((i * 128) + j)
-tmp.addr ((i * 128) + j)
-D.addr ((i * 128) + j)
-D.addr ((i * 128) + j)
-tmp.addr ((i * 128) + k)
 
  Finish to analysis array index */ 
 
  /* Start to analyze argument
-double* %tmp
+i32 %ni
+i32 %nj
+i32 %nk
+double %alpha
+double %beta
 double* %A
 double* %B
 double* %C
-double* %D
-double %alpha
-double %beta
 
  Start to analysis argument */ 
 
@@ -39,83 +35,24 @@ double %beta
 ----Loop Bound: (0, 128)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
-------array access tmp.addr ((i * 128) + j)
+------array access C.addr ((i * 128) + j)
+------array access C.addr ((i * 128) + j)
 ------k
 ------Loop Bound: (0, 128)
 ------Loop inc: (k + 1)
 ------Loop predicate: <
 --------array access A.addr ((i * 128) + k)
 --------array access B.addr ((k * 128) + j)
---------array access tmp.addr ((i * 128) + j)
---------array access tmp.addr ((i * 128) + j)
---i
---Loop Bound: (0, 128)
---Loop inc: (i + 1)
---Loop predicate: <
-----j
-----Loop Bound: (0, 128)
-----Loop inc: (j + 1)
-----Loop predicate: <
-------array access D.addr ((i * 128) + j)
-------array access D.addr ((i * 128) + j)
-------k
-------Loop Bound: (0, 128)
-------Loop inc: (k + 1)
-------Loop predicate: <
---------array access tmp.addr ((i * 128) + k)
---------array access C.addr ((k * 128) + j)
---------array access D.addr ((i * 128) + j)
---------array access D.addr ((i * 128) + j)
+--------array access C.addr ((i * 128) + j)
+--------array access C.addr ((i * 128) + j)
 
 Finish analysis loops */ 
-/* # of Out-most Loops: 2 */ 
+/* # of Out-most Loops: 1 */ 
 
  /* Start transform loop tree
 	for.cond
 	for.cond1
-	for.cond4
-	for.cond28
-	for.cond31
-	for.cond39
-----------------
---|  LoopNode  |
-----------------
-------------------
-----|  LoopNode  |
-------------------
---------------------
-------| ThreadNode |
---------------------
-----------------------
---------| AccessNode |
-----------------------
---------------------
-------|  LoopNode  |
---------------------
-----------------------
---------| ThreadNode |
-----------------------
-------------------------
-----------| AccessNode |
-------------------------
-----------------------
---------| ThreadNode |
-----------------------
-------------------------
-----------| AccessNode |
-------------------------
-----------------------
---------| ThreadNode |
-----------------------
-------------------------
-----------| AccessNode |
-------------------------
-----------------------
---------| ThreadNode |
-----------------------
-------------------------
-----------| AccessNode |
-------------------------
+	for.cond5
 ----------------
 --|  LoopNode  |
 ----------------
@@ -166,9 +103,6 @@ Finish transform loop tree */
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 12
-------Sample number: 163
---------Sample number: 2097
 ----Sample number: 12
 ------Sample number: 163
 --------Sample number: 2097
@@ -293,8 +227,13 @@ void dumpMR() {
     }
     return;
 }
-/* tmp_addr ((i * 128) + j) 0 */
-int calAddrtmp_addr0( int i, int j) {
+/* C_addr ((i * 128) + j) 0 */
+int calAddrC_addr0( int i, int j) {
+    int result = (((i * 128) + j)) * 8 / 64;
+    return result;
+}
+/* C_addr ((i * 128) + j) 1 */
+int calAddrC_addr1( int i, int j) {
     int result = (((i * 128) + j)) * 8 / 64;
     return result;
 }
@@ -308,59 +247,31 @@ int calAddrB_addr0( int i, int j, int k) {
     int result = (((k * 128) + j)) * 8 / 64;
     return result;
 }
-/* tmp_addr ((i * 128) + j) 1 */
-int calAddrtmp_addr1( int i, int j, int k) {
+/* C_addr ((i * 128) + j) 2 */
+int calAddrC_addr2( int i, int j, int k) {
     int result = (((i * 128) + j)) * 8 / 64;
     return result;
 }
-/* tmp_addr ((i * 128) + j) 2 */
-int calAddrtmp_addr2( int i, int j, int k) {
+/* C_addr ((i * 128) + j) 3 */
+int calAddrC_addr3( int i, int j, int k) {
     int result = (((i * 128) + j)) * 8 / 64;
     return result;
 }
-/* D_addr ((i * 128) + j) 0 */
-int calAddrD_addr0( int i, int j) {
-    int result = (((i * 128) + j)) * 8 / 64;
-    return result;
-}
-/* D_addr ((i * 128) + j) 1 */
-int calAddrD_addr1( int i, int j) {
-    int result = (((i * 128) + j)) * 8 / 64;
-    return result;
-}
-/* tmp_addr ((i * 128) + k) 3 */
-int calAddrtmp_addr3( int i, int j, int k) {
-    int result = (((i * 128) + k)) * 8 / 64;
-    return result;
-}
-/* C_addr ((k * 128) + j) 0 */
-int calAddrC_addr0( int i, int j, int k) {
-    int result = (((k * 128) + j)) * 8 / 64;
-    return result;
-}
-/* D_addr ((i * 128) + j) 2 */
-int calAddrD_addr2( int i, int j, int k) {
-    int result = (((i * 128) + j)) * 8 / 64;
-    return result;
-}
-/* D_addr ((i * 128) + j) 3 */
-int calAddrD_addr3( int i, int j, int k) {
-    int result = (((i * 128) + j)) * 8 / 64;
-    return result;
-}
-void ref_tmp_addr0() {
-    cout << " ref_tmp_addr0 " << endl;
+void ref_C_addr2() {
+    cout << " ref_C_addr2 " << endl;
 /* for (i, 0, 128) */
 /* for (j, 0, 128) */
+/* for (k, 0, 128) */
     uint64_t cnt = 0;
 
     /* Variable used to compute thread-local iteration space (out-most-loops) */
     auto BLIST = new int[THREAD_NUM][2];
     int t_Start = 0;
     /* Generating reuse search code */
-    /* Sampled IDVs 2  */
+    /* Sampled IDVs 3  */
     /* Sampled IDV: i  */
     /* Sampled IDV: j  */
+    /* Sampled IDV: k  */
     /* Vector that contains the interleaved iteration, avoid duplicate declaration */
     vector<vector<int>> nv(THREAD_NUM);
     int chunk_size, chunk_num;
@@ -406,7 +317,29 @@ void ref_tmp_addr0() {
             while ( !thread_pool.empty()) {
                 int t_select = thread_pool[rand() % thread_pool.size()];
                 cnt++;
-                access = calAddrtmp_addr0( progress[t_select][0], progress[t_select][1]);
+                access = calAddrC_addr0( progress[t_select][0], progress[t_select][1]);
+                if (LAT.find(access) != LAT.end()) {
+#ifdef DEBUG
+                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
+#endif
+                    subBlkRT(RT, cnt - get<0>(LAT[access]));
+                }
+                LAT[access] = make_tuple(cnt, cid);
+                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
+#ifdef DEBUG
+                // cout << "Remove thread " << t_select << " from the pool" << endl;
+#endif
+            }
+            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
+                    thread_pool.push_back(*it);
+#ifdef DEBUG
+                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
+#endif
+            }
+            while ( !thread_pool.empty()) {
+                int t_select = thread_pool[rand() % thread_pool.size()];
+                cnt++;
+                access = calAddrC_addr1( progress[t_select][0], progress[t_select][1]);
                 if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                     cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
@@ -438,7 +371,7 @@ void ref_tmp_addr0() {
                 while ( !thread_pool.empty()) {
                     int t_select = thread_pool[rand() % thread_pool.size()];
                     cnt++;
-                    access = calAddrtmp_addr1( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
+                    access = calAddrC_addr2( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
                     if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                         cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
@@ -460,7 +393,7 @@ void ref_tmp_addr0() {
                 while ( !thread_pool.empty()) {
                     int t_select = thread_pool[rand() % thread_pool.size()];
                     cnt++;
-                    access = calAddrtmp_addr2( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
+                    access = calAddrC_addr3( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
                     if (LAT.find(access) != LAT.end()) {
 #ifdef DEBUG
                         cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
@@ -523,123 +456,6 @@ void ref_tmp_addr0() {
             }
         } // end of while loop
     } // end of outer for - cid loops
-#ifdef DEBUG
-        // cout << "Count: " << cnt << endl;
-#endif
-        /* Compute the chunk size. */
-#ifdef CHUNK_SIZE
-        chunk_size = CHUNK_SIZE;
-        chunk_num = (128 - 0) % (THREAD_NUM * chunk_size) == 0 ? (128 - 0) / (THREAD_NUM * chunk_size) : (128 - 0) / (THREAD_NUM * chunk_size) + 1;
-#else
-        chunk_num = 1;
-        chunk_size = (128 - 0) / THREAD_NUM;
-#endif
-        /* Compute the number of chunks */
-        /* Generating thread local iteration space mapping code */
-        for (int cid = 0; cid < chunk_num; cid++) {
-            /* Computes bound express for each thread */
-            for (int t = 0; t < THREAD_NUM; ++t) {
-                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
-                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 128) - 1;
-#ifdef DEBUG
-                // cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
-#endif
-            }
-            vector<int> thread_pool;
-            map<int, vector<int>> progress;
-            /* Generate the Random Interleaving process */
-            vector<int> candidate_thread_pool_2;
-            for (int tid = 0; tid < THREAD_NUM; tid++) {
-                candidate_thread_pool_2.push_back(tid);
-                /* init the progress vector for each thread (1) */
-                progress[tid] = {cid * (THREAD_NUM * chunk_size) + 0 + chunk_size * tid, 0 };
-            }
-            while ( !candidate_thread_pool_2.empty()) {
-                cnt += THREAD_NUM;
-                cnt += THREAD_NUM;
-                /* Generate the Random Interleaving process */
-                vector<int> candidate_thread_pool_3;
-                for (int tid = 0; tid < THREAD_NUM; tid++) {
-                    candidate_thread_pool_3.push_back(tid);
-                    /* init the progress vector for each thread (2) */
-                    progress[tid].push_back(0);
-                }
-                while ( !candidate_thread_pool_3.empty()) {
-                    for(vector<int>::iterator it = candidate_thread_pool_3.begin(); it != candidate_thread_pool_3.end(); ++it) {
-                            thread_pool.push_back(*it);
-#ifdef DEBUG
-                        cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " << progress[*it][2] << " " <<  endl;
-#endif
-                    }
-                    while ( !thread_pool.empty()) {
-                        int t_select = thread_pool[rand() % thread_pool.size()];
-                        cnt++;
-                        access = calAddrtmp_addr3( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
-                        if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                            cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
-#endif
-                            subBlkRT(RT, cnt - get<0>(LAT[access]));
-                        }
-                        LAT[access] = make_tuple(cnt, cid);
-                        thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                        // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-                    }
-                    cnt += THREAD_NUM;
-                    cnt += THREAD_NUM;
-                    cnt += THREAD_NUM;
-                    /* hasTNLoop: True */
-                    /* containsFirstTN: True */
-                    /* !containsFirstTN && hasTNLoop: False */
-                    for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                        /* Iteration incrementation 2 */
-                        progress[t_select][2] = progress[t_select][2] + 1; 
-#ifdef DEBUG
-                        // cout <<  "[Thread " << t_select << "] next iteration: ";
-                        for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                            // cout << *it << " ";
-                        }
-                        // cout << endl;
-#endif
-                        if (progress[t_select][2] >= 128) {
-                            // remove t_select from the thread pool
-                            candidate_thread_pool_3.erase(remove(candidate_thread_pool_3.begin(), candidate_thread_pool_3.end(), t_select), candidate_thread_pool_3.end());
-#ifdef DEBUG
-                            cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                        }
-                    }
-                } // end of while loop
-                for (int tid = 0; tid < THREAD_NUM; tid++) {
-                    progress[tid].pop_back();
-                }
-                /* hasTNLoop: True */
-                /* containsFirstTN: False */
-                /* !containsFirstTN && hasTNLoop: True */
-                for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                    /* Iteration incrementation 1 */
-                    progress[t_select][1] = progress[t_select][1] + 1; 
-                    progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 128);
-                    progress[t_select][1] = progress[t_select][1] % 128;
-#ifdef DEBUG
-                    // cout <<  "[Thread " << t_select << "] next iteration: ";
-                    for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                        // cout << *it << " ";
-                    }
-                    // cout << endl;
-#endif
-                    if (progress[t_select][0] > BLIST[t_select][1]) {
-                        // remove t_select from the thread pool
-                        candidate_thread_pool_2.erase(remove(candidate_thread_pool_2.begin(), candidate_thread_pool_2.end(), t_select), candidate_thread_pool_2.end());
-#ifdef DEBUG
-                        cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                    }
-                }
-            } // end of while loop
-        } // end of outer for - cid loops
 }
 void ref_A_addr0() {
     cout << " ref_A_addr0 " << endl;
@@ -693,6 +509,7 @@ void ref_A_addr0() {
         }
         while ( !candidate_thread_pool_2.empty()) {
             cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
             /* Generate the Random Interleaving process */
             vector<int> candidate_thread_pool_3;
             for (int tid = 0; tid < THREAD_NUM; tid++) {
@@ -726,343 +543,6 @@ void ref_A_addr0() {
                 cnt += THREAD_NUM;
                 cnt += THREAD_NUM;
                 cnt += THREAD_NUM;
-                /* hasTNLoop: True */
-                /* containsFirstTN: True */
-                /* !containsFirstTN && hasTNLoop: False */
-                for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                    /* Iteration incrementation 2 */
-                    progress[t_select][2] = progress[t_select][2] + 1; 
-#ifdef DEBUG
-                    // cout <<  "[Thread " << t_select << "] next iteration: ";
-                    for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                        // cout << *it << " ";
-                    }
-                    // cout << endl;
-#endif
-                    if (progress[t_select][2] >= 128) {
-                        // remove t_select from the thread pool
-                        candidate_thread_pool_3.erase(remove(candidate_thread_pool_3.begin(), candidate_thread_pool_3.end(), t_select), candidate_thread_pool_3.end());
-#ifdef DEBUG
-                        cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                    }
-                }
-            } // end of while loop
-            for (int tid = 0; tid < THREAD_NUM; tid++) {
-                progress[tid].pop_back();
-            }
-            /* hasTNLoop: True */
-            /* containsFirstTN: False */
-            /* !containsFirstTN && hasTNLoop: True */
-            for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                /* Iteration incrementation 1 */
-                progress[t_select][1] = progress[t_select][1] + 1; 
-                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 128);
-                progress[t_select][1] = progress[t_select][1] % 128;
-#ifdef DEBUG
-                // cout <<  "[Thread " << t_select << "] next iteration: ";
-                for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                    // cout << *it << " ";
-                }
-                // cout << endl;
-#endif
-                if (progress[t_select][0] > BLIST[t_select][1]) {
-                    // remove t_select from the thread pool
-                    candidate_thread_pool_2.erase(remove(candidate_thread_pool_2.begin(), candidate_thread_pool_2.end(), t_select), candidate_thread_pool_2.end());
-#ifdef DEBUG
-                    cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                }
-            }
-        } // end of while loop
-    } // end of outer for - cid loops
-}
-void ref_C_addr0() {
-    cout << " ref_C_addr0 " << endl;
-/* for (i, 0, 128) */
-/* for (j, 0, 128) */
-/* for (k, 0, 128) */
-    uint64_t cnt = 0;
-
-    /* Variable used to compute thread-local iteration space (out-most-loops) */
-    auto BLIST = new int[THREAD_NUM][2];
-    int t_Start = 0;
-    /* Generating reuse search code */
-    /* Sampled IDVs 3  */
-    /* Sampled IDV: i  */
-    /* Sampled IDV: j  */
-    /* Sampled IDV: k  */
-    /* Vector that contains the interleaved iteration, avoid duplicate declaration */
-    vector<vector<int>> nv(THREAD_NUM);
-    int chunk_size, chunk_num;
-    uint64_t access;
-#ifdef DEBUG
-    // cout << "Count: " << cnt << endl;
-#endif
-    /* Compute the chunk size. */
-#ifdef CHUNK_SIZE
-    chunk_size = CHUNK_SIZE;
-    chunk_num = (128 - 0) % (THREAD_NUM * chunk_size) == 0 ? (128 - 0) / (THREAD_NUM * chunk_size) : (128 - 0) / (THREAD_NUM * chunk_size) + 1;
-#else
-    chunk_num = 1;
-    chunk_size = (128 - 0) / THREAD_NUM;
-#endif
-    /* Compute the number of chunks */
-    /* Generating thread local iteration space mapping code */
-    for (int cid = 0; cid < chunk_num; cid++) {
-        /* Computes bound express for each thread */
-        for (int t = 0; t < THREAD_NUM; ++t) {
-            BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
-            BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 128) - 1;
-#ifdef DEBUG
-            // cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
-#endif
-        }
-        vector<int> thread_pool;
-        map<int, vector<int>> progress;
-        /* Generate the Random Interleaving process */
-        vector<int> candidate_thread_pool_2;
-        for (int tid = 0; tid < THREAD_NUM; tid++) {
-            candidate_thread_pool_2.push_back(tid);
-            /* init the progress vector for each thread (1) */
-            progress[tid] = {cid * (THREAD_NUM * chunk_size) + 0 + chunk_size * tid, 0 };
-        }
-        while ( !candidate_thread_pool_2.empty()) {
-            cnt += THREAD_NUM;
-            cnt += THREAD_NUM;
-            /* Generate the Random Interleaving process */
-            vector<int> candidate_thread_pool_3;
-            for (int tid = 0; tid < THREAD_NUM; tid++) {
-                candidate_thread_pool_3.push_back(tid);
-                /* init the progress vector for each thread (2) */
-                progress[tid].push_back(0);
-            }
-            while ( !candidate_thread_pool_3.empty()) {
-                cnt += THREAD_NUM;
-                for(vector<int>::iterator it = candidate_thread_pool_3.begin(); it != candidate_thread_pool_3.end(); ++it) {
-                        thread_pool.push_back(*it);
-#ifdef DEBUG
-                    cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " << progress[*it][2] << " " <<  endl;
-#endif
-                }
-                while ( !thread_pool.empty()) {
-                    int t_select = thread_pool[rand() % thread_pool.size()];
-                    cnt++;
-                    access = calAddrC_addr0( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
-                    if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                        cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
-#endif
-                        subBlkRT(RT, cnt - get<0>(LAT[access]));
-                    }
-                    LAT[access] = make_tuple(cnt, cid);
-                    thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                    // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-                }
-                cnt += THREAD_NUM;
-                cnt += THREAD_NUM;
-                /* hasTNLoop: True */
-                /* containsFirstTN: True */
-                /* !containsFirstTN && hasTNLoop: False */
-                for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                    /* Iteration incrementation 2 */
-                    progress[t_select][2] = progress[t_select][2] + 1; 
-#ifdef DEBUG
-                    // cout <<  "[Thread " << t_select << "] next iteration: ";
-                    for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                        // cout << *it << " ";
-                    }
-                    // cout << endl;
-#endif
-                    if (progress[t_select][2] >= 128) {
-                        // remove t_select from the thread pool
-                        candidate_thread_pool_3.erase(remove(candidate_thread_pool_3.begin(), candidate_thread_pool_3.end(), t_select), candidate_thread_pool_3.end());
-#ifdef DEBUG
-                        cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                    }
-                }
-            } // end of while loop
-            for (int tid = 0; tid < THREAD_NUM; tid++) {
-                progress[tid].pop_back();
-            }
-            /* hasTNLoop: True */
-            /* containsFirstTN: False */
-            /* !containsFirstTN && hasTNLoop: True */
-            for (int t_select = 0; t_select < THREAD_NUM; t_select++) {
-                /* Iteration incrementation 1 */
-                progress[t_select][1] = progress[t_select][1] + 1; 
-                progress[t_select][0] = progress[t_select][0] + (progress[t_select][1] / 128);
-                progress[t_select][1] = progress[t_select][1] % 128;
-#ifdef DEBUG
-                // cout <<  "[Thread " << t_select << "] next iteration: ";
-                for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {
-                    // cout << *it << " ";
-                }
-                // cout << endl;
-#endif
-                if (progress[t_select][0] > BLIST[t_select][1]) {
-                    // remove t_select from the thread pool
-                    candidate_thread_pool_2.erase(remove(candidate_thread_pool_2.begin(), candidate_thread_pool_2.end(), t_select), candidate_thread_pool_2.end());
-#ifdef DEBUG
-                    cout << "Remove thread " << t_select << " from the candidate thread pool" << endl;
-#endif
-                }
-            }
-        } // end of while loop
-    } // end of outer for - cid loops
-}
-void ref_D_addr2() {
-    cout << " ref_D_addr2 " << endl;
-/* for (i, 0, 128) */
-/* for (j, 0, 128) */
-/* for (k, 0, 128) */
-    uint64_t cnt = 0;
-
-    /* Variable used to compute thread-local iteration space (out-most-loops) */
-    auto BLIST = new int[THREAD_NUM][2];
-    int t_Start = 0;
-    /* Generating reuse search code */
-    /* Sampled IDVs 3  */
-    /* Sampled IDV: i  */
-    /* Sampled IDV: j  */
-    /* Sampled IDV: k  */
-    /* Vector that contains the interleaved iteration, avoid duplicate declaration */
-    vector<vector<int>> nv(THREAD_NUM);
-    int chunk_size, chunk_num;
-    uint64_t access;
-#ifdef DEBUG
-    // cout << "Count: " << cnt << endl;
-#endif
-    /* Compute the chunk size. */
-#ifdef CHUNK_SIZE
-    chunk_size = CHUNK_SIZE;
-    chunk_num = (128 - 0) % (THREAD_NUM * chunk_size) == 0 ? (128 - 0) / (THREAD_NUM * chunk_size) : (128 - 0) / (THREAD_NUM * chunk_size) + 1;
-#else
-    chunk_num = 1;
-    chunk_size = (128 - 0) / THREAD_NUM;
-#endif
-    /* Compute the number of chunks */
-    /* Generating thread local iteration space mapping code */
-    for (int cid = 0; cid < chunk_num; cid++) {
-        /* Computes bound express for each thread */
-        for (int t = 0; t < THREAD_NUM; ++t) {
-            BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
-            BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 128) - 1;
-#ifdef DEBUG
-            // cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
-#endif
-        }
-        vector<int> thread_pool;
-        map<int, vector<int>> progress;
-        /* Generate the Random Interleaving process */
-        vector<int> candidate_thread_pool_2;
-        for (int tid = 0; tid < THREAD_NUM; tid++) {
-            candidate_thread_pool_2.push_back(tid);
-            /* init the progress vector for each thread (1) */
-            progress[tid] = {cid * (THREAD_NUM * chunk_size) + 0 + chunk_size * tid, 0 };
-        }
-        while ( !candidate_thread_pool_2.empty()) {
-            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
-                    thread_pool.push_back(*it);
-#ifdef DEBUG
-                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
-#endif
-            }
-            while ( !thread_pool.empty()) {
-                int t_select = thread_pool[rand() % thread_pool.size()];
-                cnt++;
-                access = calAddrD_addr0( progress[t_select][0], progress[t_select][1]);
-                if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
-#endif
-                    subBlkRT(RT, cnt - get<0>(LAT[access]));
-                }
-                LAT[access] = make_tuple(cnt, cid);
-                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-            }
-            for(vector<int>::iterator it = candidate_thread_pool_2.begin(); it != candidate_thread_pool_2.end(); ++it) {
-                    thread_pool.push_back(*it);
-#ifdef DEBUG
-                cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " <<  endl;
-#endif
-            }
-            while ( !thread_pool.empty()) {
-                int t_select = thread_pool[rand() % thread_pool.size()];
-                cnt++;
-                access = calAddrD_addr1( progress[t_select][0], progress[t_select][1]);
-                if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                    cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< ")" << endl;
-#endif
-                    subBlkRT(RT, cnt - get<0>(LAT[access]));
-                }
-                LAT[access] = make_tuple(cnt, cid);
-                thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-            }
-            /* Generate the Random Interleaving process */
-            vector<int> candidate_thread_pool_3;
-            for (int tid = 0; tid < THREAD_NUM; tid++) {
-                candidate_thread_pool_3.push_back(tid);
-                /* init the progress vector for each thread (2) */
-                progress[tid].push_back(0);
-            }
-            while ( !candidate_thread_pool_3.empty()) {
-                cnt += THREAD_NUM;
-                cnt += THREAD_NUM;
-                for(vector<int>::iterator it = candidate_thread_pool_3.begin(); it != candidate_thread_pool_3.end(); ++it) {
-                        thread_pool.push_back(*it);
-#ifdef DEBUG
-                    cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " << progress[*it][2] << " " <<  endl;
-#endif
-                }
-                while ( !thread_pool.empty()) {
-                    int t_select = thread_pool[rand() % thread_pool.size()];
-                    cnt++;
-                    access = calAddrD_addr2( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
-                    if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                        cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
-#endif
-                        subBlkRT(RT, cnt - get<0>(LAT[access]));
-                    }
-                    LAT[access] = make_tuple(cnt, cid);
-                    thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                    // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-                }
-                for(vector<int>::iterator it = candidate_thread_pool_3.begin(); it != candidate_thread_pool_3.end(); ++it) {
-                        thread_pool.push_back(*it);
-#ifdef DEBUG
-                    cout << "[" << *it << "] Iteration " << progress[*it][0] << " " << progress[*it][1] << " " << progress[*it][2] << " " <<  endl;
-#endif
-                }
-                while ( !thread_pool.empty()) {
-                    int t_select = thread_pool[rand() % thread_pool.size()];
-                    cnt++;
-                    access = calAddrD_addr3( progress[t_select][0], progress[t_select][1], progress[t_select][2]);
-                    if (LAT.find(access) != LAT.end()) {
-#ifdef DEBUG
-                        cout << "[REUSE of Addr " << access << "] " << cnt - get<0>(LAT[access]) << " find @(" << progress[t_select][0] << " "<< progress[t_select][1] << " "<< progress[t_select][2] << " "<< ")" << endl;
-#endif
-                        subBlkRT(RT, cnt - get<0>(LAT[access]));
-                    }
-                    LAT[access] = make_tuple(cnt, cid);
-                    thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());
-#ifdef DEBUG
-                    // cout << "Remove thread " << t_select << " from the pool" << endl;
-#endif
-                }
                 /* hasTNLoop: True */
                 /* containsFirstTN: True */
                 /* !containsFirstTN && hasTNLoop: False */
@@ -1166,6 +646,7 @@ void ref_B_addr0() {
         }
         while ( !candidate_thread_pool_2.empty()) {
             cnt += THREAD_NUM;
+            cnt += THREAD_NUM;
             /* Generate the Random Interleaving process */
             vector<int> candidate_thread_pool_3;
             for (int tid = 0; tid < THREAD_NUM; tid++) {
@@ -1251,13 +732,9 @@ void ref_B_addr0() {
     } // end of outer for - cid loops
 }
 int main() {
-    ref_tmp_addr0();
+    ref_C_addr2();
     LAT.clear();
     ref_A_addr0();
-    LAT.clear();
-    ref_C_addr0();
-    LAT.clear();
-    ref_D_addr2();
     LAT.clear();
     ref_B_addr0();
     LAT.clear();
@@ -1266,4 +743,4 @@ int main() {
     dumpMR();
     return 0;
 }
- /* Analyze function: mm2 */ 
+ /* Analyze function: gemm */ 
