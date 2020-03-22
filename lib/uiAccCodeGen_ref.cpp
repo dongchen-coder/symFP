@@ -693,7 +693,7 @@ namespace uiAccCodeGen_ref {
         } 
         errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
         /* Cold Program */
-        errs() << space << "    uniform_smoothing(it->second, true, true);
+        errs() << space << "    uniform_smoothing(it->second, true, true);\n";
         /*
         if (sensitive_ratio == 0.0) {
             errs() << space << "uniform_smoothing(it->second, false, false);\n";

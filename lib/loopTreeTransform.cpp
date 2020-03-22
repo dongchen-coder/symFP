@@ -20,6 +20,9 @@ namespace loopTreeTransform {
     /* local helper function declaration */
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel);
 
+    /* compute loop iteration space */
+    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+
 
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel) {
         
@@ -31,6 +34,21 @@ namespace loopTreeTransform {
         thread_node->LIS = NULL;
         thread_node->LoopLevel = parentLoopLevel;   
         return thread_node;
+    }
+
+    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+        uint64_t iterSpace = 0;
+        if (LoopRefTree->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if ((*it)->L == NULL) {
+                    iterSpace += 1;
+                } else {
+                    iterSpace += computeIterSpace(*it);
+                }
+            }
+            iterSpace *= (loopAnalysis::LoopIndvBoundAnalysis::getBound((*it).second) - loopAnalysis::LoopIndvBoundAnalysis::getBound((*it).first));        
+        }
+        return iterSpace;
     }
 
     /* Get all the out loops */
@@ -48,10 +66,38 @@ namespace loopTreeTransform {
         return;
     }
 
+    void iterateArrayInstr(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node, vector<Instruction*> & arrayVec) {
+        if (node->L == NULL) {
+            arrayVec.push_back(node->AA);
+            return;
+        } else if (node->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = node->next->begin(); lit != node->next->end(); ++lit) {
+                iterateArrayInstr(*lit, arrayVec);
+            }
+        }
+    }
+
+    void ParallelLoopTreeTransform::computePerIterationSpace() {
+        for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outMostLoops.begin(), eit = outMostLoops.end(); it != eit; ++it) {
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* omloop = *it;
+            // go over this outermost loop
+            // compute the iteration space for each reference within this outermost loop
+            uint64_t IS = computeIterSpace(*it);
+            if (omloop->L != NULL) {
+                vector<Instruction*> arrayVec;
+                iterateArrayInstr(omloop, arrayVec);
+                for(vector<Instruction*>::iterator ait = arrayVec.begin(); ait != arrayVec.end(); ++ait) {
+                    outMostLoopPerIterationSpace[*ait] = IS;
+                }
+            }
+        }
+        return;
+    }
+
 #if defined(ITER_LEVEL_INTERLEAVING)
     /* 
      * Connect all consecutive reference node with a thread node
-     * All thread nodes will be assgined as the child of the last loop node
+     * All thread nodes will be assigned as the child of the last loop node
     */
     void ParallelLoopTreeTransform::LoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nextIter = LoopRefTree->next->begin();
@@ -197,6 +243,7 @@ namespace loopTreeTransform {
 
         PTLoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         findAllOutMostLoops(PTLoopRefTree);
+        computePerIterationSpace();
         errs() << "\n /* Start transform loop tree\n";
         
         tranverseLoopRefTree(PTLoopRefTree);

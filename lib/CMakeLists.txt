@@ -48,6 +48,8 @@ add_library(LLVMSPS MODULE
   uiAccCodeGen_ref.hpp
   uiAccCodeGen_ref.cpp
 
+  modelCodeGen_ref.hpp
+  modelCodeGen_ref.cpp
   # metricCollectGen.hpp
   # metricCollectGen.cpp
 )
@@ -62,7 +64,7 @@ set_target_properties(LLVMSPS PROPERTIES
 )
 
 # Comment this out to disable PLUM and switch it to SPS
-add_definitions(-DPARALLEL)
+# add_definitions(-DPARALLEL)
 
 # Define the interleaving pattern of PLUM. 
 # All these macro will work if and only if its in PLUM mode (-DPARALLEL is defined)
@@ -72,7 +74,7 @@ add_definitions(-DPARALLEL)
 # - DUNIFORM_INTERLEAVING:
 #     Uniform Interleaving
 # By default is uniform interleaving
-add_definitions(-DRANDOM_INTERLEAVING)
+# add_definitions(-DRANDOM_INTERLEAVING)
 # add_definitions(-DUNIFORM_INTERLEAVING)
 
 # - DACC_LEVEL_INTERLEAVING:
@@ -81,7 +83,7 @@ add_definitions(-DRANDOM_INTERLEAVING)
 #     Do Interleaving per each iteration
 # By default is 1:1 interleaving in data granularity
 # add_definitions(-DITER_LEVEL_INTERLEAVING)
-add_definitions(-DACC_LEVEL_INTERLEAVING)
+# add_definitions(-DACC_LEVEL_INTERLEAVING)
 
 # - DUNIFORM_SMOOTHING
 #     Do the RI calibration in uniform distribution
