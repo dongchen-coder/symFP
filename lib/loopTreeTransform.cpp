@@ -23,6 +23,8 @@ namespace loopTreeTransform {
     /* compute loop iteration space */
     uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 
+    string getBound(Value *bound);
+
 
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel) {
         
@@ -36,6 +38,69 @@ namespace loopTreeTransform {
         return thread_node;
     }
 
+    string getLoopInc(Value *inc) {
+        if (isa<Instruction>(inc)) {
+            Instruction *inst = cast<Instruction>(inc);
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                case Instruction::Sub:
+                case Instruction::Mul:
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    if (isa<ConstantInt>(inst->getOperand(0))) {
+                        return getLoopInc(inst->getOperand(0));
+                    } else {
+                        return getLoopInc(inst->getOperand(1));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(inc)) {
+            return to_string(dyn_cast<ConstantInt>(inc)->getValue().getSExtValue());
+        }
+        return "";
+    }
+
+    string getBound(Value *bound) {
+        
+        if (isa<Instruction>(bound)) {
+            
+            Instruction *inst = cast<Instruction>(bound);
+            
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                    return "(" + getBound(inst->getOperand(0)) + " + " + getBound(inst->getOperand(1)) + ")";
+                    break;
+                case Instruction::Sub:
+                    return "(" + getBound(inst->getOperand(0)) + " - " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Mul:
+                    return "(" + getBound(inst->getOperand(0)) + " * " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    return "(" + getBound(inst->getOperand(0)) + " / " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Load:
+                    return inst->getOperand(0)->getName().str();
+                    break;
+                case Instruction::Alloca:
+                    return inst->getName();
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(bound)) {
+            return to_string(dyn_cast<ConstantInt>(bound)->getValue().getSExtValue());
+        }
+        return "";
+    }
+
     uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
         uint64_t iterSpace = 0;
         if (LoopRefTree->next != NULL) {
@@ -46,7 +111,7 @@ namespace loopTreeTransform {
                     iterSpace += computeIterSpace(*it);
                 }
             }
-            iterSpace *= (loopAnalysis::LoopIndvBoundAnalysis::getBound((*it).second) - loopAnalysis::LoopIndvBoundAnalysis::getBound((*it).first));        
+            iterSpace *= ((uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*LoopRefTree->LIS->INC)[0]));        
         }
         return iterSpace;
     }
@@ -244,15 +309,18 @@ namespace loopTreeTransform {
         PTLoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         findAllOutMostLoops(PTLoopRefTree);
         computePerIterationSpace();
+
+#if defined(ACC_LEVEL_INTERLEAVING) || defined(ITER_LEVEL_INTERLEAVING)
         errs() << "\n /* Start transform loop tree\n";
         
         tranverseLoopRefTree(PTLoopRefTree);
-
 // #ifdef DEBUG
         DumpLoopTree(PTLoopRefTree, "");
 // #endif
-        
         errs() << "\nFinish transform loop tree */ \n";
+#endif
+
+        
         
         return false;
     }

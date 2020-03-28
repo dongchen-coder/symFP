@@ -33,6 +33,9 @@ add_library(LLVMSPS MODULE
   ssCodeGen_ref.hpp
   ssCodeGen_ref.cpp
 
+  modelCodeGen_ref.hpp
+  modelCodeGen_ref.cpp
+
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
@@ -48,8 +51,6 @@ add_library(LLVMSPS MODULE
   uiAccCodeGen_ref.hpp
   uiAccCodeGen_ref.cpp
 
-  modelCodeGen_ref.hpp
-  modelCodeGen_ref.cpp
   # metricCollectGen.hpp
   # metricCollectGen.cpp
 )
@@ -64,7 +65,7 @@ set_target_properties(LLVMSPS PROPERTIES
 )
 
 # Comment this out to disable PLUM and switch it to SPS
-# add_definitions(-DPARALLEL)
+add_definitions(-DPARALLEL)
 
 # Define the interleaving pattern of PLUM. 
 # All these macro will work if and only if its in PLUM mode (-DPARALLEL is defined)

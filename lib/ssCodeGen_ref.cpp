@@ -655,6 +655,32 @@ namespace ssCodeGen_ref {
         }
         return "";
     }
+
+    string StaticSamplingCodeGen_ref::getLoopInc(Value *inc) {
+        if (isa<Instruction>(inc)) {
+            Instruction *inst = cast<Instruction>(inc);
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                case Instruction::Sub:
+                case Instruction::Mul:
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    if (isa<ConstantInt>(inst->getOperand(0))) {
+                        return getLoopInc(inst->getOperand(0));
+                    } else {
+                        return getLoopInc(inst->getOperand(1));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(inc)) {
+            return to_string(dyn_cast<ConstantInt>(inc)->getValue().getSExtValue());
+        }
+        return "";
+    }
     
     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> StaticSamplingCodeGen_ref::findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, string refName, int useID, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops) {
         
@@ -1086,11 +1112,11 @@ namespace ssCodeGen_ref {
                 /* need to take stride into consideration */
                 if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "=" + getBound((*LoopRefTree->LIS->INC)[0]);
                     
                 } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "--";
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "=" + getBound((*LoopRefTree->LIS->INC)[0]);;
                     
                 } else {
                     errs() << "\n Error in geting stride \n";
@@ -1339,7 +1365,7 @@ namespace ssCodeGen_ref {
                 }
 
                 errs() << ";\n";
-
+                errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
                 
             }
         }

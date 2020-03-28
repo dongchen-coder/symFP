@@ -477,6 +477,32 @@ namespace modelCodeGen_ref {
         }
         return "";
     }
+
+    string ModelCodeGen_ref::getLoopInc(Value *inc) {
+        if (isa<Instruction>(inc)) {
+            Instruction *inst = cast<Instruction>(inc);
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                case Instruction::Sub:
+                case Instruction::Mul:
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    if (isa<ConstantInt>(inst->getOperand(0))) {
+                        return getLoopInc(inst->getOperand(0));
+                    } else {
+                        return getLoopInc(inst->getOperand(1));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(inc)) {
+            return to_string(dyn_cast<ConstantInt>(inc)->getValue().getSExtValue());
+        }
+        return "";
+    }
     
     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> ModelCodeGen_ref::findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, string refName, int useID, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops) {
         
@@ -867,7 +893,8 @@ namespace modelCodeGen_ref {
                             if (it != loops.begin()) {
                                 errs() << " && ";
                             }
-                            errs() << indvName[(*(*it)->LIS->IDV)[0]] << " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
+                            errs() << indvName[(*(*it)->LIS->IDV)[0]];
+                            errs() << " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
                         }
                         errs() << " ) {\n";
                         errs() << space + "    " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = ";
@@ -902,11 +929,11 @@ namespace modelCodeGen_ref {
                 /* need to take stride into consideration */
                 if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "=" << getBound((*LoopRefTree->LIS->INC)[0]);
                     
                 } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "--";
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "="<< getBound((*LoopRefTree->LIS->INC)[0]);
                     
                 } else {
                     errs() << "\n Error in geting stride \n";
@@ -962,7 +989,7 @@ namespace modelCodeGen_ref {
                     if (arrayTypeMap[refName + std::to_string(useID)] != REGULAR) {
                         is_normal_ref = "false";
                     } 
-                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << indvName[(*(currentLoops.begin())->LIS->IDV)[0]] << "_Start, " << indvName[(*(currentLoops.begin())->LIS->IDV)[0]] << ", cnt, " << to_string(outMostLoopPerIterationSpace[LoopRefTree->AA]) << ", " << is_normal_ref << ");\n";
+                    errs() << space + "            uint64_t parallel_rt = parallel_predict((" << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] << "_Start -" << getBound_Start((*(*currentLoops.begin())->LIS->LB)[0].first) << "), " << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", "<< is_normal_ref << ");\n";
 #ifdef REFERENCE_GROUP
                     // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
                     errs() << space + "            refRTHistoCal(refRT, parallel_rt, 1.0, \"" + refName + std::to_string(useID) + "\"";
@@ -973,7 +1000,29 @@ namespace modelCodeGen_ref {
 #endif
                     // errs() << space + "        subBlkRT(RT, cnt, 1.0";
                     errs() << ");\n";
-                    
+                    errs() << "#ifdef DEBUG\n";
+                    // errs() << space + "            if (parallel_rt != 1 && parallel_rt != 13) {\n";
+                    errs() << space + "                cout << \"[\" << parallel_rt << \"] (\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                            if (it != currentLoops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \") -- (\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]];
+                            if (it != currentLoops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \") \" << endl;\n"; 
+                    // errs() << space + "            }\n";
+                    errs() << "#endif\n";
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        actural = cnt;\n";
 #endif
@@ -1157,10 +1206,9 @@ namespace modelCodeGen_ref {
 				else {
                     errs() << "\n Error in generating random sample \n";
                 }
-
                 errs() << ";\n";
 
-                
+                errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
             }
         }
         
@@ -1409,29 +1457,54 @@ namespace modelCodeGen_ref {
         errs() << space << "return i / CHUNK_SIZE - floor(i / (CHUNK_SIZE * THREAD_NUM))*THREAD_NUM ;\n";
         errs() << "}\n";
 
-        errs() << "int getThreadLocalPos(uint64_t i) {\n;"
+        errs() << "int getThreadLocalPos(uint64_t i) {\n";
         errs() << space << "return i \% CHUNK_SIZE;\n";
         errs() << "}\n";
 
-        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t l, bool is_normal_ref) {\n";
+        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, bool is_normal_ref) {\n";
         errs() << space << "uint64_t parallel_rt = rt;\n";
-        errs() << space << "if (!is_normal_ref && getThreadID(i_src) < THREAD_NUM-1) {\n"
-        errs() << space << space << "return 1;\n";
+        errs() << space << "int tsrc = getThreadID(i_src);\n";
+        errs() << space << "int tsink = getThreadID(i_sink);\n";
+        errs() << space << "int dT = tsink - tsrc;\n";
+        errs() << space << "if (!is_normal_ref) {\n";
+        errs() << space << space << "if (tsrc < THREAD_NUM - 1) {\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Neighboring Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "return 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/*\n";
+        errs() << space << space << "} else {\n";
+        errs() << space << space << space << "return (rt - 1) * THREAD_NUM + 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "*/\n";
         errs() << space << "}\n";
-        errs() << space << "/* same thread -- scaling effect */\n";
-        errs() << space << "if (getThreadID(i_src) == getThreadID(i_sink)) {\n";
-        errs() << space << space << "return rt * THREAD_NUM;\n"
-        errs() << space << "}\n"
-        errs() << space << "int dT = abs(getThreadID(i_src) - getThreadID(i_sink));\n";
         errs() << space << "/* intra chunk reuse */\n";
         errs() << space << "if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
-        errs() << space << space << "if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
-        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * L * THREAD_NUM * dT + THREAD_NUM + dT;\n";
+        errs() << space << space << "/* same thread -- scaling effect */\n";
+        errs() << space << space <<"if (dT == 0) {\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Scaling Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM;\n";
+        errs() << space << space << "} else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
+        errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"NORMAL ORDER NEGATIVE PRI\\n\"); }\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Src-Sink Order Folding Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT);\n";
         errs() << space << space << "} else { // sink-src order\n";
-        errs() << space << space << space << "parallel_rt = CHUNK_SIZE * l * THREAD_NUM * dT - rt * THREAD_NUM + THREAD_NUM - dT;\n";
+        errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"REVERSE ORDER NEGATIVE PRI\\n\"); }\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Sink-Src Order Folding Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);\n";
         errs() << space << space << "}\n";
         errs() << space << "} else { // inter chunk reuse \n";
-        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * l * (THREAD_NUM + dT) * dT + 3*THREAD_NUM + dT;\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Inter Chunk Reuse\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsink + dT;\n";
         errs() << space << "}\n";
         errs() << space << "return parallel_rt;\n";
         errs() << "}\n";
@@ -1448,10 +1521,8 @@ namespace modelCodeGen_ref {
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
 #ifdef PARALLEL
+        map<Instruction*, uint64_t> tempL = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoopPerIterationSpace;;
         outloops = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoops;
-        outMostLoopPerIterationSpace = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoopPerIterationSpace;
-
-
 #endif
 
         /* init */
@@ -1459,7 +1530,12 @@ namespace modelCodeGen_ref {
         numberRefToSameArray(LoopRefTree);
         numberLoops(LoopRefTree);
         initIndvName(LoopRefTree);
-
+#ifdef PARALLEL
+        for(map<Instruction*, uint64_t>::iterator it = tempL.begin(); it != tempL.end(); ++it) {
+            errs() << "/* " << arrayName[(it->first)] << to_string(refNumber[(it->first)]) << "\t" << it->second << " */\n";
+            outMostLoopPerIterationSpace[arrayName[(it->first)] + to_string(refNumber[(it->first)])] = it->second;
+        } 
+#endif
         /* generate headers */
         headerGen();
 

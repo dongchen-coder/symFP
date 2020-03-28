@@ -79,6 +79,7 @@ namespace ssCodeGen_ref {
         
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
+        string getLoopInc(Value* bound);
         
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         

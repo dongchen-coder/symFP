@@ -693,7 +693,7 @@ namespace uiAccCodeGen_ref {
         } 
         errs() << space << "for (map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
         /* Cold Program */
-        errs() << space << "    uniform_smoothing(it->second, true, true);\n";
+        errs() << space << "    uniform_smoothing(it->second, true, true);";
         /*
         if (sensitive_ratio == 0.0) {
             errs() << space << "uniform_smoothing(it->second, false, false);\n";
@@ -843,6 +843,32 @@ namespace uiAccCodeGen_ref {
         }
         else if (isa<ConstantInt>(bound)) {
             return to_string(dyn_cast<ConstantInt>(bound)->getValue().getSExtValue());
+        }
+        return "";
+    }
+
+    string AccLevelUISamplingCodeGen_ref::getLoopInc(Value *inc) {
+        if (isa<Instruction>(inc)) {
+            Instruction *inst = cast<Instruction>(inc);
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                case Instruction::Sub:
+                case Instruction::Mul:
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    if (isa<ConstantInt>(inst->getOperand(0))) {
+                        return getLoopInc(inst->getOperand(0));
+                    } else {
+                        return getLoopInc(inst->getOperand(1));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(inc)) {
+            return to_string(dyn_cast<ConstantInt>(inc)->getValue().getSExtValue());
         }
         return "";
     }
@@ -1341,7 +1367,11 @@ namespace uiAccCodeGen_ref {
                                 if (it != loops.begin()) {
                                     errs() << " && ";
                                 }
-                                errs() << indvName[(*(*it)->LIS->IDV)[0]] << "LB" + to_string(loopNumber[(*it)->L]) +  " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
+                                errs() << indvName[(*(*it)->LIS->IDV)[0]];
+                                if (find(outloops.begin(), outloops.end(), (*it)) != outloops.end()) {
+                                    errs() << "LB" + to_string(loopNumber[(*it)->L]);
+                                }
+                                errs() << " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
                             }
                             errs() << " ) {\n";
                             errs() << space + "        " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = ";
@@ -1373,11 +1403,11 @@ namespace uiAccCodeGen_ref {
                         /* need to take stride into consideration */
                         if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                             
-                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "++";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "=" << getBound((*LoopRefTree->LIS->INC)[0]);
                             
                         } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                             
-                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "--";
+                            errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "=" << getBound((*LoopRefTree->LIS->INC)[0]);
                             
                         } else {
                             errs() << "\n Error in geting stride \n";
@@ -1744,7 +1774,7 @@ namespace uiAccCodeGen_ref {
                 }
 
                 errs() << ";\n";
-
+                errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
                 
             }
         }

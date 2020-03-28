@@ -29,8 +29,7 @@ namespace loopTreeTransform {
 
         std::map<Instruction*, uint64_t> outMostLoopPerIterationSpace;
 
-
-        void computePerIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        void computePerIterationSpace();
 
         void findAllOutMostLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
 

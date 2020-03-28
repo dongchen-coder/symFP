@@ -95,7 +95,7 @@ namespace uiAccCodeGen_ref {
 #endif // end of SMOOTHING Macro   
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
-        
+        string getLoopInc(Value *inc);
         /* 
          * When enableOPT is close
          * - Find loops that contains the sampled referenceID

@@ -11,6 +11,7 @@
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "loopTreeTransform.hpp"
 #include "sampleNumAnalysis.hpp"
 
 using namespace llvm;
@@ -19,7 +20,7 @@ using namespace std;
 #define CLS 64
 #define DS 8
 
-#define SAMPLING 2
+#define SAMPLING 2 
 
 // #define PARALLEL_CXX_THREAD
 
@@ -29,7 +30,7 @@ using namespace std;
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
 #define DumpRTMR
-#define REFERENCE_GROUP
+// #define REFERENCE_GROUP
 // #define DumpRefLease
 
 namespace modelCodeGen_ref {
@@ -48,7 +49,7 @@ namespace modelCodeGen_ref {
         map<Instruction*,  string> arrayExpression;
         map<Instruction*, std::vector<std::string>> arrayAccessVariable;
         map<string, RefType>arrayTypeMap;
-        map<Instruction*, uint64_t> outMostLoopPerIterationSpace;
+        map<string, uint64_t> outMostLoopPerIterationSpace;
 
         uint64_t refGlobalNumber = 0;
         map<Instruction*, int> refNumber;
@@ -58,6 +59,7 @@ namespace modelCodeGen_ref {
         map<Value*,  string> indvName;
 
         map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
+        vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> outloops;
 
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
@@ -87,6 +89,7 @@ namespace modelCodeGen_ref {
         
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
+        string getLoopInc(Value *inc);
         
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         
