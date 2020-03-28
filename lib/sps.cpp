@@ -35,6 +35,7 @@
         /* parallel random interleaving static sampling gen */
 #       include "riAccCodeGen_ref.hpp"
 #       include "riIterCodeGen_ref.hpp"
+#		include "riCodeGen_ref.hpp"
 #   endif
 #endif
 
@@ -69,6 +70,8 @@ namespace symFP {
             AU.addRequired<riIterCodeGen_ref::IterLevelRICodeGen_ref>();
 #   elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
             AU.addRequired<riAccCodeGen_ref::AccLevelRICodeGen_ref>();
+#	elif defined(RANDOM_INTERLEAVING) && defined(ALL_LEVEL_INTERLEAVING)
+			AU.addRequired<riCodeGen_ref::AllLevelRICodeGen_ref>();
 #   else 
             AU.addRequired<modelCodeGen_ref::ModelCodeGen_ref>();
 #   endif

@@ -208,7 +208,7 @@ namespace loopTreeTransform {
             LoopRefTree->next = thread_node_vec;
         }
     }
-#elif defined(ACC_LEVEL_INTERLEAVING)
+#elif defined(ACC_LEVEL_INTERLEAVING) or defined(ALL_LEVEL_INTERLEAVING)
     /* 
      * For each reference node, connect it with a thread node
      * All thread nodes will be assgined as the child of the last loop node
