@@ -22,55 +22,106 @@ double %beta
 --Loop Bound: (0, 32)
 --Loop inc: (i + 1)
 --Loop predicate: <
-----j
-----Loop Bound: (0, 32)
-----Loop inc: (j + 1)
+----r
+----Loop Bound: (0, 16)
+----Loop inc: (r + 1)
 ----Loop predicate: <
-------array access A.addr ((i * 32) + j)
-------k
+------j
 ------Loop Bound: (0, 32)
-------Loop inc: (k + 1)
+------Loop inc: (j + 8)
 ------Loop predicate: <
+--------array access A.addr ((i * 32) + j)
 
 Finish analysis loops */ 
+/* # of Out-most Loops: 1 */ 
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
 ----Sample number: 32
-------Sample number: 1024
---------Sample number: 32768
+------Sample number: 512
+--------Sample number: 2048
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
+/* A_addr0	2048 */
 #include <map>
 #include <set>
-#include <vector>
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
-#ifndef THREAD_NUM
-#    define THREAD_NUM   4
-#endif
-#ifndef BIN_SIZE
-#    define BIN_SIZE   4
-#endif
-#ifndef CHUNK_SIZE
-#    define CHUNK_SIZE   4
+#ifdef PAPI_TIMER
+#  include <chrono>
 #endif
 using namespace std;
-std::map<uint64_t, double> RT;
-std::map<uint64_t, double> MR;
-void rtHistoCal( int rt, int val ) {
-    if ( val <= 0) {
-;        return;
+#ifdef PAPI_TIMER
+using namespace  chrono;
+#endif
+ map<uint64_t, double> RT;
+ map<uint64_t, double> MR;
+int getChunkID(uint64_t i) {
+    return floor(i / (CHUNK_SIZE * THREAD_NUM));
+}
+int getThreadID(uint64_t i) {
+    return i / CHUNK_SIZE - floor(i / (CHUNK_SIZE * THREAD_NUM))*THREAD_NUM ;
+}
+int getThreadLocalPos(uint64_t i) {
+    return i % CHUNK_SIZE;
+}
+uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, bool is_normal_ref) {
+    uint64_t parallel_rt = rt;
+    int tsrc = getThreadID(i_src);
+    int tsink = getThreadID(i_sink);
+    int dT = tsink - tsrc;
+    if (!is_normal_ref) {
+        if (tsrc < THREAD_NUM - 1) {
+#ifdef DEBUG
+            cout << "Neighboring Effect" << endl;
+#endif
+            return 1;
+        }
+        /*
+        } else {
+            return (rt - 1) * THREAD_NUM + 1;
+        }
+        */
     }
-    if (RT.find(rt) == RT.end()) { 
-        RT[rt] = val;
+    /* intra chunk reuse */
+    if (getChunkID(i_src) == getChunkID(i_sink)) {
+        /* same thread -- scaling effect */
+        if (dT == 0) {
+#ifdef DEBUG
+            cout << "Scaling Effect" << endl;
+#endif
+            parallel_rt = rt * THREAD_NUM;
+        } else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order
+            if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf("NORMAL ORDER NEGATIVE PRI\n"); }
+#ifdef DEBUG
+            cout << "Src-Sink Order Folding Effect" << endl;
+#endif
+            parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT);
+        } else { // sink-src order
+            if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf("REVERSE ORDER NEGATIVE PRI\n"); }
+#ifdef DEBUG
+            cout << "Sink-Src Order Folding Effect" << endl;
+#endif
+            parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);
+        }
+    } else { // inter chunk reuse 
+#ifdef DEBUG
+            cout << "Inter Chunk Reuse" << endl;
+#endif
+            parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsink + dT;
+    }
+    return parallel_rt;
+}
+void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {
+    if (rth.find(rt) == rth.end()) { 
+        rth[rt] = val;
     } else {
-        RT[rt] += val;
+        rth[rt] += val;
     }
     return;
 }
-void subBlkRT(int rt) {
+void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {
     int msb = 0;
     int tmp_rt = rt;
     while(tmp_rt != 0) {
@@ -81,28 +132,28 @@ void subBlkRT(int rt) {
         int diff = (pow(2, msb) - pow(2, msb-1)) / BIN_SIZE;
         for (int b = pow(2, msb-1); b <= pow(2, msb); b+=diff) {
             if (rt < b) {
-                rtHistoCal(b - diff, 1);
+                rtHistoCal(rth, b - diff, cnt);
                 break;
             }
         }
     }
     else {
-        rtHistoCal(pow(2, msb-1), 1);
+        rtHistoCal(rth, pow(2, msb-1), cnt);
     }
     return;
 }
 void RTtoMR_AET() {
-    std::map<uint64_t, double> P;
+     map<uint64_t, double> P;
     double total_num_RT = 0;
     uint64_t max_RT = 0;
-    for (std::map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {
+    for ( map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {
         total_num_RT += it->second;
         if (max_RT < it->first) {
             max_RT = it->first;
         }
     }
     double accumulate_num_RT = 0;
-    for (std::map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {
+    for ( map<uint64_t, double>::reverse_iterator it = RT.rbegin(), eit = RT.rend(); it != eit; ++it) {
         P[it->first] = accumulate_num_RT / total_num_RT;
         accumulate_num_RT += it->second;
     }
@@ -133,11 +184,11 @@ void rtDump() {
 }
 void dumpMR() {
     cout << "miss ratio" << endl;
-    std::map<uint64_t, double>::iterator it1 = MR.begin();
-    std::map<uint64_t, double>::iterator it2 = MR.begin();
+     map<uint64_t, double>::iterator it1 = MR.begin();
+     map<uint64_t, double>::iterator it2 = MR.begin();
     while(it1 != MR.end()) {
         while(1) {
-            std::map<uint64_t, double>::iterator it3 = it2;
+             map<uint64_t, double>::iterator it3 = it2;
             ++it3;
             if (it3 == MR.end()) {
                 break;
@@ -157,156 +208,88 @@ void dumpMR() {
     }
     return;
 }
+/* Array A_addr	i j */ 
 /* A_addr ((i * 32) + j) 0 */
-int calAddrA_addr0( int i, int j) {
+int calAddrA_addr0( int i, int r, int j) {
     int result = (((i * 32) + j)) * 8 / 64;
     return result;
 }
 void ref_A_addr0() {
-/* for (i, 0, 32) */
-/* for (j, 0, 32) */
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1024;) {
+    for ( int s = 0; s < 2048;) {
 SAMPLE:
         int i_Start = rand() % (32 - 0) + 0;
+        if (i_Start % 1 != 0) goto SAMPLE; 
+        if ( (16 - 0) == 0) goto SAMPLE;
+        int r_Start = rand() % (16 - 0) + 0;
+        if (r_Start % 1 != 0) goto SAMPLE; 
         if ( (32 - 0) == 0) goto SAMPLE;
         int j_Start = rand() % (32 - 0) + 0;
-        string idx_string = std::to_string(i_Start) + "_" + std::to_string(j_Start) + "_" ;
+        if (j_Start % 8 != 0) goto SAMPLE; 
+        string idx_string =  to_string(i_Start) + "_" +  to_string(r_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
-#ifdef DEBUG
-        cout << "[A_addr0]Samples: " << idx_string << endl;
-#endif
         uint64_t cnt = 0;
         bool cntStart = false;
 
-        /* Variable used to compute thread-local iteration space */
-        auto BLIST = new int[THREAD_NUM][2];
-        int t_Start = 0;
         /* Generating reuse search code */
-        /* Sampled IDVs 2  */
-        /* Sampled IDV: i  */
-        /* Sampled IDV: j  */
-        /* Vector that contains the interleaved iteration, avoid duplicate declaration */
-        vector<vector<int>> nv(THREAD_NUM);
-        int chunk_size, chunk_num, c_Start, ci_Start;
-#ifdef DEBUG
-        cout << "Count: " << cnt << endl;
-#endif
-        /* Compute the chunk size. */
-#ifdef CHUNK_SIZE
-        chunk_size = CHUNK_SIZE;
-        chunk_num = (32 - 0) % (THREAD_NUM * chunk_size) == 0 ? (32 - 0) / (THREAD_NUM * chunk_size) : (32 - 0) / (THREAD_NUM * chunk_size) + 1;
-#else
-        chunk_num = 1;
-        chunk_size = (32 - 0) / THREAD_NUM;
-#endif
-        /* Compute the number of chunks */
-        c_Start = (i_Start - 0) / (THREAD_NUM * chunk_size);
-#ifdef DEBUG
-        cout << "c_Start = " << c_Start << ", chunk_num = " << chunk_num << endl;
-#endif
-        /* Generating thread local iteration space mapping code */
-        for (int cid = c_Start; cid < chunk_num; cid++) {
-            /* Computes bound express for each thread */
-            for (int t = 0; t < THREAD_NUM; ++t) {
-                BLIST[t][0] =  0+ (cid * THREAD_NUM + t) * chunk_size;
-                BLIST[t][1] = min(0 + (cid * THREAD_NUM + t + 1) * chunk_size, 32) - 1;
-#ifdef DEBUG
-                cout << "[Thread " << t << "], " << "(" << BLIST[t][0] << ", "<< BLIST[t][1] << ")" << endl;
-#endif
+
+        {
+        int iLB0 = i_Start;
+        for ( int i = iLB0; i < 32; i=(i + 1)) {
+            {
+            int rLB1 = 0;
+            if ( i == i_Start ) {
+                rLB1 = r_Start;
             }
-            /* Iterate within a chunk */
-            ci_Start = 0;
-            if (cid == c_Start) {
-                ci_Start = (i_Start - 0) % chunk_size;
+            for ( int r = rLB1; r < 16; r=(r + 1)) {
+                {
+                int jLB2 = 0;
+                if ( i == i_Start && r == r_Start ) {
+                    jLB2 = j_Start;
+                }
+                for ( int j = jLB2; j < 32; j=(j + 8)) {
+                    if (cntStart == true) {
+                        cnt++;
+                        if ( calAddrA_addr0( i, r, j) == calAddrA_addr0(i_Start, r_Start, j_Start)) {
+                                uint64_t parallel_rt = parallel_predict((i_Start -0), i, cnt, 2048, 2048, true);
+                                rtHistoCal(RT, parallel_rt, 1.0);
+#ifdef DEBUG
+                                    cout << "[" << parallel_rt << "] (" << i_Start<< ", " << r_Start<< ", " << j_Start<< ") -- (" << i<< ", " << r<< ", " << j<< ") " << endl;
+#endif
+                            goto EndSample;
+                        }
+                    }
+                    cntStart = true;
+                }
+                }
             }
-            int iLB0 = i_Start;
-            for ( int ci = ci_Start; ci < chunk_size; ci++) {
-                if ( cid != c_Start || ci != ci_Start ) {
-                    iLB0 = cid * (THREAD_NUM * chunk_size) + ci;
-                }
-                int jLB1 = 0;
-                if ( iLB0 == i_Start ) {
-                    jLB1 = j_Start;
-                }
-                for ( int j = jLB1; j < 32; j++) {
-                    int i = cid * (THREAD_NUM * chunk_size) + ci + 0;
-                    if(i > BLIST[0][1]) { goto EndSample; }
-#ifdef DEBUG
-                    cout << "Iterate (" << i << ", "")" << endl;
-#endif
-                    vector<int> v = { i, j };
-                    /* Interleaving */
-                    t_Start = ((i - 0) / chunk_size) % THREAD_NUM;
-#ifdef DEBUG
-                    cout << "Generate interleaved iteration for (";
-                    for (vector<int>::iterator it = v.begin(); it != v.end(); it++) {
-                        cout << *it;
-                        if (it != v.end()) { cout << ", "; }
-                    }
-                    cout << ")" << endl;
-#endif
-                    for ( int tid = t_Start; tid < THREAD_NUM; tid++) {
-                        vector<int> tmp;
-                        for (int vi = 0; vi < v.size(); vi++ ) {
-                            if (vi == 0) {
-                                tmp.push_back(v[0] + chunk_size * (tid - t_Start));
-                            } else {
-                                tmp.push_back(v[vi]);
-                            }
-                        }
-                        if (tmp.size() > 0) { nv[tid] = tmp; }
-#ifdef DEBUG
-                        cout << "(";
-                        for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {
-                            cout << *it << ", ";
-                        }
-                        cout << ")" << endl;
-#endif
-                    }
-                    /* iterate thread local iteration space mapping code after interleaving */
-                    for (int nvi = 0; nvi < nv.size(); nvi++) {
-                        /* Remove those invalid interleaving */
-                        if (nv[nvi].size() <= 0) { continue; }
-                        if (nv[nvi][0] > BLIST[nvi][1]) { break; }
-                        if (cntStart == true) {
-                            cnt++;
-#ifdef DEBUG
-                            cout  << "[A_addr0]" << nv[nvi][0] << ", " << nv[nvi][1] << ", cnt: " << cnt << ")	";
-#endif
-                            if ( calAddrA_addr0( nv[nvi][0], nv[nvi][1]) == calAddrA_addr0(i_Start, j_Start)) {
-#ifdef DEBUG
-                                cout << "[REUSE FIND] @ (" << calAddrA_addr0(nv[nvi][0], nv[nvi][1]) << ", " << "(" << nv[nvi][0] << ", " << nv[nvi][1] << "), " << cnt << ") " << endl;
-                                rtHistoCal(cnt, 1);
-#else
-                                subBlkRT(cnt);
-#endif
-                                goto EndSample;
-                            }
-                        }
-                    if (nv[nvi][0] == i_Start && nv[nvi][1] == j_Start) { cntStart = true; }
-                    }
-#ifdef DEBUG
-                    cout << endl;
-                    /* useID: 0 refNumber[LoopRefTree->AA]: 0 */
-#endif
-                    int kLB2 = 0;
-                    for ( int k = kLB2; k < 32; k++) {
-                } // end of inner for loops
-            } // end of inner for loops
-            } // end of outer for - ci loops
-        } // end of outer for - cid loops
+            }
+        }
+        }
 EndSample:
         s++;
         }
 }
 int main() {
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    auto start = high_resolution_clock::now();
+#endif
     ref_A_addr0();
     rtDump();
     RTtoMR_AET();
     dumpMR();
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    auto stop = high_resolution_clock::now(); 
+    // Get duration. Substart timepoints to
+    // get durarion. To cast it to proper unit
+    // use duration cast method
+    auto duration = duration_cast<microseconds>(stop - start);
+     cout << "Time taken by SPS:  " << duration.count() << endl; 
+#endif
     return 0;
 }
  /* Analyze function: test_kernel */ 

@@ -1,16 +1,16 @@
-#include "ssCodeGen_ref.hpp"
+#include "modelCodeGen_ref.hpp"
 
 
 using namespace std;
 
-namespace ssCodeGen_ref {
+namespace modelCodeGen_ref {
 
-    char StaticSamplingCodeGen_ref::ID = 0;
-    static RegisterPass<StaticSamplingCodeGen_ref> X("ssCodeGen_ref", "static sampling code generating pass (reference based)", false, false);
+    char ModelCodeGen_ref::ID = 0;
+    static RegisterPass<ModelCodeGen_ref> X("modelCodeGen_ref", "static sampling code generating pass (reference based)", false, false);
 
-    StaticSamplingCodeGen_ref::StaticSamplingCodeGen_ref() : FunctionPass(ID) {}
+    ModelCodeGen_ref::ModelCodeGen_ref() : FunctionPass(ID) {}
 
-    void StaticSamplingCodeGen_ref::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void ModelCodeGen_ref::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->AA != NULL) {
             /*
@@ -37,7 +37,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void ModelCodeGen_ref::numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->L != NULL) {
             if (loopNumber.find(LoopRefTree->L) == loopNumber.end()) {
@@ -53,7 +53,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void ModelCodeGen_ref::initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree == NULL) {
             return;
@@ -77,7 +77,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::initArrayName() {
+    void ModelCodeGen_ref::initArrayName() {
         
         for ( map<Instruction*,  string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
             it->second.replace( find(it->second.begin(), it->second.end(), '.'),  find(it->second.begin(), it->second.end(), '.') +1, 1, '_');
@@ -86,7 +86,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree,  vector<string> indvs) {
+    void ModelCodeGen_ref::addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree,  vector<string> indvs) {
         
         if (LoopRefTree->L != NULL) {
             for ( vector<Value*>::iterator it = LoopRefTree->LIS->IDV->begin(), eit = LoopRefTree->LIS->IDV->end(); it != eit; ++it) {
@@ -95,6 +95,7 @@ namespace ssCodeGen_ref {
         }
         
         if (LoopRefTree->AA != NULL) {
+            defineRefs(LoopRefTree->AA);
 			errs() << "/* " + arrayName[LoopRefTree->AA] + " " + arrayExpression[LoopRefTree->AA] + " " +  to_string(refNumber[LoopRefTree->AA])  + " */\n";
             errs() << "int calAddr" + arrayName[LoopRefTree->AA] +  to_string(refNumber[LoopRefTree->AA]) + "( ";
             string arguments = "";
@@ -126,7 +127,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void ModelCodeGen_ref::addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         vector<string> indvs;
         addrCalFuncGen(LoopRefTree, indvs);
@@ -134,7 +135,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::headerGen() {
+    void ModelCodeGen_ref::headerGen() {
         
         errs() << "#include <map>\n";
         errs() << "#include <set>\n";
@@ -166,7 +167,7 @@ namespace ssCodeGen_ref {
     }
 
 #ifdef DumpRTMR
-    void StaticSamplingCodeGen_ref::rtHistoGen() {
+    void ModelCodeGen_ref::rtHistoGen() {
         
         errs() << "void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {\n";
 #ifdef PARALLEL_OMP
@@ -223,38 +224,10 @@ namespace ssCodeGen_ref {
         errs() << "}\n";
 #endif
     }
-#elif defined(DumpRefLease)
-    void StaticSamplingCodeGen_ref::rtHistoGen() {
-        errs() << "map<uint64_t, map<uint64_t, uint64_t>* > RI;\n";
-        errs() << "map<uint64_t, map<uint64_t, double>* > hits;\n";
-        errs() << "map<uint64_t, map<uint64_t, double>* > costs;\n";
-        errs() << "map<uint64_t, double> sampledCnt;\n";
-        errs() << "map<uint64_t, double> accessRatio;\n";
-        errs() << "map<uint64_t, uint64_t> Lease;\n";
-
-        errs() << "void rtHistoCal(uint64_t ri, uint64_t ref_id) {\n";
-        errs() << "    if (RI.find(ref_id) != RI.end()) {\n";
-        errs() << "        if ((*RI[ref_id]).find(ri) != (*RI[ref_id]).end()) {\n";
-        errs() << "            (*RI[ref_id])[ri] ++;\n";
-        errs() << "        } else {\n";
-        errs() << "            (*RI[ref_id])[ri] = 1;\n";
-        errs() << "        }\n";
-        errs() << "    } else {\n";
-        errs() << "        RI[ref_id] = new map<uint64_t, uint64_t>;\n";
-        errs() << "        (*RI[ref_id])[ri] = 1;\n";
-        errs() << "    }\n";
-        errs() << "\n";
-        errs() << "    // Init leases to all references to be 0\n";
-        errs() << "    if (Lease.find(ref_id) == Lease.end()) {\n";
-        errs() << "        Lease[ref_id] = 0;\n";
-        errs() << "    }\n";
-        errs() << "    return;\n";
-        errs() << "}\n";
-    }
 #endif
 
      /* Generate the function to calculate the bins */
-    void StaticSamplingCodeGen_ref::subBlkRTGen() {
+    void ModelCodeGen_ref::subBlkRTGen() {
         string space = "    ";
         errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
         errs() << space + "int msb = 0;\n";
@@ -306,7 +279,7 @@ namespace ssCodeGen_ref {
     
     
 #ifdef DumpRTMR
-    void StaticSamplingCodeGen_ref::rtDumpGen() {
+    void ModelCodeGen_ref::rtDumpGen() {
         errs() << "void rtDump() {\n";
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
         errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
@@ -329,7 +302,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::rtToMRGen() {
+    void ModelCodeGen_ref::rtToMRGen() {
         
         errs() << "void RTtoMR_AET() {\n";
         string space = "    ";
@@ -380,7 +353,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::mrDumpGen() {
+    void ModelCodeGen_ref::mrDumpGen() {
         
         errs() << "void dumpMR() {\n";
         
@@ -415,161 +388,10 @@ namespace ssCodeGen_ref {
         
         return;
     }
-#elif defined(DumpRefLease)
-    void StaticSamplingCodeGen_ref::accessRatioCalGen() {
-        errs() << "void accessRatioCal() {\n";
-        errs() << "    double total_access_cnt = 0;\n";
-        errs() << "\n";
-        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
-        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "            total_access_cnt += ri_it->second;\n";
-        errs() << "        }\n";
-        errs() << "    }\n";
-            
-        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
-        errs() << "        double ref_access_cnt = 0;\n";
-        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "           ref_access_cnt += ri_it->second;\n";
-        errs() << "       }\n";
-        errs() << "        sampledCnt[ref_it->first] = ref_access_cnt;\n";
-        errs() << "        accessRatio[ref_it->first] = ref_access_cnt / total_access_cnt;\n";
-        errs() << "    }\n";
-        errs() << "}\n";
-    }
-    
-    void StaticSamplingCodeGen_ref::initHitsCostsGen() {
-        errs() << "void initHitsCosts() {\n";
-            
-        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
-        errs() << "        hits[ref_it->first] = new map<uint64_t, double>;\n";
-        errs() << "        costs[ref_it->first] = new map<uint64_t, double>;\n";
-        errs() << "        (*hits[ref_it->first])[0] = 0;\n";
-        errs() << "        uint64_t total_hits = 0;\n";
-        errs() << "        (*costs[ref_it->first])[0] = 0;\n";
-        errs() << "        uint64_t total_cnt = 0;\n";
-        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "            total_cnt += ri_it->second;\n";
-        errs() << "        }\n";
-        errs() << "        uint64_t pre_lease = 0;\n";
-        errs() << "        uint64_t pre_cost = 0;\n";
-        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "            total_hits += ri_it->second;\n";
-        errs() << "            (*hits[ref_it->first])[ri_it->first] = total_hits;\n";
-        
-        errs() << "            (*costs[ref_it->first])[ri_it->first] =  pre_cost + (ri_it->first - pre_lease) * total_cnt;\n";
-        errs() << "            total_cnt -= ri_it->second;\n";
-        errs() << "            pre_cost = (*costs[ref_it->first])[ri_it->first];\n";
-        errs() << "            pre_lease = ri_it->first;\n";
-        errs() << "        }\n";
-        errs() << "    }\n";
-            
-        errs() << "}\n";
-    }
-    void StaticSamplingCodeGen_ref::getPPUCGen() {
-        errs() << "double getPPUC(uint64_t ref_id, uint64_t oldLease, uint64_t newLease) {\n";
-            
-        errs() << "    if (hits.find(ref_id) == hits.end() || costs.find(ref_id) == costs.end()) {\n";
-        errs() << "        cout << \"No such ref for hits/costs\" << endl;\n";
-        errs() << "        return -1;\n";
-        errs() << "    }\n";
-        errs() << "    if (hits[ref_id]->find(newLease) == hits[ref_id]->end() || costs[ref_id]->find(newLease) == costs[ref_id]->end()) {\n";
-        errs() << "        cout << \"No RI/Newlease \" << newLease << \" for ref \" << ref_id << endl;\n";
-        errs() << "        return -1;\n";
-        errs() << "    }\n";
-            
-        errs() << "    if (hits[ref_id]->find(oldLease) == hits[ref_id]->end() || costs[ref_id]->find(oldLease) == costs[ref_id]->end()) {\n";
-        errs() << "        if (hits[ref_id]->find(oldLease) == hits[ref_id]->end()) {\n";
-        errs() << "            cout << \"No hits for Oldlease \" << oldLease << \" for ref \" << ref_id << endl;\n";
-        errs() << "        }\n";
-        errs() << "        if (costs[ref_id]->find(oldLease) == costs[ref_id]->end()) {\n";
-        errs() << "            cout << \"No costs for Oldlease \" << oldLease << \" for ref \" << ref_id << endl;\n";
-        errs() << "        }\n";
-        errs() << "        return -1;\n";
-        errs() << "    }\n";
-            
-        errs() << "    return double((*hits[ref_id])[newLease] - (*hits[ref_id])[oldLease]) / ((*costs[ref_id])[newLease] - (*costs[ref_id])[oldLease]);\n";
-        errs() << "}\n";
-    }
-    void StaticSamplingCodeGen_ref::getMaxPPUCGen() {
-        errs() << "void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {\n";
-            
-        errs() << "    double maxPPUC = -1;\n";
-        errs() << "    uint64_t bestRef = -1;\n";
-        errs() << "    uint64_t bestLease = -1;\n";
-            
-        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
-        errs() << "        for(map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "            if (ri_it->first > Lease[ref_it->first]) {\n";
-        errs() << "                double ppuc = getPPUC(ref_it->first, Lease[ref_it->first], ri_it->first);\n";
-        errs() << "                if (ppuc > maxPPUC) {\n";
-        errs() << "                    maxPPUC = ppuc;\n";
-        errs() << "                    bestRef = ref_it->first;\n";
-        errs() << "                    bestLease = ri_it->first;\n";
-        errs() << "                }\n";
-        errs() << "            }\n";
-        errs() << "        }\n";
-        errs() << "    }\n";
-            
-        errs() << "    if (maxPPUC != -1) {\n";
-        errs() << "        *finished = false;\n";
-        errs() << "        *ref_to_assign = bestRef;\n";
-        errs() << "        *newLease = bestLease;\n";
-        errs() << "    } else {\n";
-        errs() << "        *finished = true;\n";
-        errs() << "    }\n";
-            
-        errs() << "    return;\n";
-        errs() << "}\n";
-    }
-	void StaticSamplingCodeGen_ref::DumpRIGen() {
-        errs() << "void dumpRI() {\n";
-        errs() << "    uint64_t total_number_of_ri = 0;\n";
-        errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
-        errs() << "         set<uint64_t> riset;\n";
-        errs() << "        for (map<uint64_t, uint64_t>::iterator ri_it = (*(ref_it->second)).begin(), ri_eit = (*(ref_it->second)).end(); ri_it != ri_eit; ++ri_it) {\n";
-        errs() << "            cout << \"Ref \" << ref_it->first << \" RI \" << ri_it->first << \" CNT \" << ri_it->second << endl;\n";
-        errs() << "            riset.insert(ri_it->first);\n";
-        errs() << "        }\n";
-        errs() << "        cout << \"Ref \" << ref_it->first << \" RISETSIZE \" << riset.size() << endl;\n";
-        errs() << "        total_number_of_ri += riset.size();\n";
-        errs() << "    }\n";
-        errs() << "    cout << \"Average RISETSIZE for each reference \" << double(total_number_of_ri) / RI.size() << endl;\n";
-        errs() << "}\n";
-	}
-    void StaticSamplingCodeGen_ref::RLGen() {
-        errs() << "void RL_main(uint64_t CacheSize) {\n";
-        errs() << "    initHitsCosts();\n";
-        errs() << "    accessRatioCal();\n";
-        errs() << "    double totalCost = 0;\n";
-        errs() << "    double totalHitRatio = 0;\n";
-        errs() << "    double targetCost = CacheSize;\n";
-        errs() << "#ifdef DEBUG\n";
-        errs() << "    dumpRI();\n";
-        errs() << "#endif\n";
-        errs() << "    while(true) {\n";
-        errs() << "        bool finished = false;\n";
-        errs() << "        uint64_t ref_to_assign;\n";
-        errs() << "        uint64_t newLease;\n";
-        errs() << "        getMaxPPUC(&finished, &ref_to_assign, &newLease);\n";
-        errs() << "        if (finished == false) {\n";
-        errs() << "            totalCost += ((*costs[ref_to_assign])[newLease] - (*costs[ref_to_assign])[Lease[ref_to_assign]]) / sampledCnt[ref_to_assign] * accessRatio[ref_to_assign];\n";
-        errs() << "            totalHitRatio += ((*hits[ref_to_assign])[newLease] - (*hits[ref_to_assign])[Lease[ref_to_assign]]) / sampledCnt[ref_to_assign] * accessRatio[ref_to_assign];\n";
-        errs() << "            Lease[ref_to_assign] = newLease;\n";
-        errs() << "            cout << \"Assign lease \" << newLease << \" to ref \" << ref_to_assign << \" avg cache size \" << totalCost  << \" miss ratio \" << 1 - totalHitRatio << endl;\n";
-        errs() << "        } else {\n";
-        errs() << "            break;\n";
-        errs() << "        }\n";
-        errs() << "        if (totalCost < targetCost && targetCost != 0) {\n";
-        errs() << "            break;\n";
-        errs() << "        }\n";
-        errs() << "    }\n";
-        errs() << "    return;\n";
-        errs() << "}\n";
-    }
 #endif
 
 #if defined(REFERENCE_GROUP)
-    void StaticSamplingCodeGen_ref::rtMergeGen() {
+    void ModelCodeGen_ref::rtMergeGen() {
         errs() << "/* Merge the refRT to RT */\n";
         errs() << "void rtMerge() {\n";
         errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
@@ -584,7 +406,7 @@ namespace ssCodeGen_ref {
     }
 #endif
 
-    string StaticSamplingCodeGen_ref::getBound(Value *bound) {
+    string ModelCodeGen_ref::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
             
@@ -620,7 +442,7 @@ namespace ssCodeGen_ref {
         return "";
     }
     
-    string StaticSamplingCodeGen_ref::getBound_Start(Value *bound) {
+    string ModelCodeGen_ref::getBound_Start(Value *bound) {
         
         if (isa<Instruction>(bound)) {
             
@@ -656,7 +478,7 @@ namespace ssCodeGen_ref {
         return "";
     }
 
-    string StaticSamplingCodeGen_ref::getLoopInc(Value *inc) {
+    string ModelCodeGen_ref::getLoopInc(Value *inc) {
         if (isa<Instruction>(inc)) {
             Instruction *inst = cast<Instruction>(inc);
             switch (inst->getOpcode()) {
@@ -682,7 +504,7 @@ namespace ssCodeGen_ref {
         return "";
     }
     
-    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> StaticSamplingCodeGen_ref::findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, string refName, int useID, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops) {
+    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> ModelCodeGen_ref::findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, string refName, int useID, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops) {
         
         if (LoopRefTree->L != NULL) {
             loops.push_back(LoopRefTree);
@@ -713,7 +535,7 @@ namespace ssCodeGen_ref {
     /* x is the input matrix */
     /* y is the input result */
     /* length */
-    void StaticSamplingCodeGen_ref::searchReuseDifferentLoopsUpdateFuncGen() {
+    void ModelCodeGen_ref::searchReuseDifferentLoopsUpdateFuncGen() {
         errs() << "void updateCoefficient(float* a, int** x, int length, int* y) {\n";
         errs() << "    double** x_tmp = new double*[length];\n";
         errs() << "    for (int i = 0; i < length; i++) {\n";
@@ -766,7 +588,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::searchReuseDifferentLoopsCalFuncGen() {
+    void ModelCodeGen_ref::searchReuseDifferentLoopsCalFuncGen() {
         
         errs() << "int calWithCoefficient(float* a, int *x, int length) {\n";
         errs() << "    float tmp = 0;\n";
@@ -780,7 +602,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    bool StaticSamplingCodeGen_ref::searchReuseDifferentLoopsInitGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
+    bool ModelCodeGen_ref::searchReuseDifferentLoopsInitGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
@@ -839,7 +661,7 @@ namespace ssCodeGen_ref {
         return GenFlag;
     }
     
-    bool StaticSamplingCodeGen_ref::searchReuseDifferentLoopsBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
+    bool ModelCodeGen_ref::searchReuseDifferentLoopsBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
@@ -919,9 +741,6 @@ namespace ssCodeGen_ref {
                     errs() << " , ";
                     errs() <<  to_string(loops.size());
                     errs() << ")";
-#ifdef DumpRefLease
-                    errs() << ", " +  to_string(refNumber[LoopRefTree->AA]);
-#endif
                     errs() << " );\n";
 
 #ifdef PROFILE_SEARCH_REUSE
@@ -954,7 +773,7 @@ namespace ssCodeGen_ref {
     
 
     /* Search result reuse (Same loop) */
-    void StaticSamplingCodeGen_ref::searchReuseSameLoopInitGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
+    void ModelCodeGen_ref::searchReuseSameLoopInitGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
         
         //errs() << "Search result reuse: (ref name " << refName << " ) ( ID " << useID << " ) ( numOfLoops " << loops.size() << " )\n";
 
@@ -974,7 +793,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::searchReuseSameLoopBodyGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
+    void ModelCodeGen_ref::searchReuseSameLoopBodyGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
         
         for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
             if ((*ait)->isThreadNode) { continue; }
@@ -1024,9 +843,6 @@ namespace ssCodeGen_ref {
 #endif
                     
                     errs() << space + "        rtHistoCal(prev_cnt_" + refName +  to_string(refNumber[(*ait)->AA]);
-#ifdef DumpRefLease
-                    errs() << ", " +  to_string(refNumber[(*ait)->AA]);
-#endif
                     errs() << ");\n";
 
 
@@ -1046,7 +862,7 @@ namespace ssCodeGen_ref {
     
     
     /* Generating Reuse Search */
-    bool StaticSamplingCodeGen_ref::refRTSearchGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space) {
+    bool ModelCodeGen_ref::refRTSearchGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
@@ -1077,7 +893,8 @@ namespace ssCodeGen_ref {
                             if (it != loops.begin()) {
                                 errs() << " && ";
                             }
-                            errs() << indvName[(*(*it)->LIS->IDV)[0]] << " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
+                            errs() << indvName[(*(*it)->LIS->IDV)[0]];
+                            errs() << " == " + indvName[(*(*it)->LIS->IDV)[0]] + "_Start";
                         }
                         errs() << " ) {\n";
                         errs() << space + "    " + indvName[(*LoopRefTree->LIS->IDV)[0]] + "LB" + loopNum + " = ";
@@ -1112,11 +929,11 @@ namespace ssCodeGen_ref {
                 /* need to take stride into consideration */
                 if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "=" + getBound((*LoopRefTree->LIS->INC)[0]);
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "=" << getBound((*LoopRefTree->LIS->INC)[0]);
                     
                 } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
                     
-                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] + "=" + getBound((*LoopRefTree->LIS->INC)[0]);;
+                    errs() << indvName[(*LoopRefTree->LIS->IDV)[0]] << "="<< getBound((*LoopRefTree->LIS->INC)[0]);
                     
                 } else {
                     errs() << "\n Error in geting stride \n";
@@ -1167,19 +984,45 @@ namespace ssCodeGen_ref {
                         tmp.pop_back();
                     }
                     errs() << tmp + ")) {\n";
+
+                    string is_normal_ref = "true";
+                    if (arrayTypeMap[refName + std::to_string(useID)] != REGULAR) {
+                        is_normal_ref = "false";
+                    } 
+                    errs() << space + "            uint64_t parallel_rt = parallel_predict((" << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] << "_Start -" << getBound_Start((*(*currentLoops.begin())->LIS->LB)[0].first) << "), " << indvName[(*(*currentLoops.begin())->LIS->IDV)[0]] << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", "<< is_normal_ref << ");\n";
 #ifdef REFERENCE_GROUP
-                        // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
-                        errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\"";
+                    // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+                    errs() << space + "            refRTHistoCal(refRT, parallel_rt, 1.0, \"" + refName + std::to_string(useID) + "\"";
 #else
-                        // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1.0";
+                    // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
+                    errs() << space + "            rtHistoCal(RT, parallel_rt, 1.0";
+
 #endif
                     // errs() << space + "        subBlkRT(RT, cnt, 1.0";
-#ifdef DumpRefLease
-                    errs() << ", " +  to_string(useID);
-#endif
                     errs() << ");\n";
-                    
+                    errs() << "#ifdef DEBUG\n";
+                    // errs() << space + "            if (parallel_rt != 1 && parallel_rt != 13) {\n";
+                    errs() << space + "                cout << \"[\" << parallel_rt << \"] (\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                            if (it != currentLoops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \") -- (\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]];
+                            if (it != currentLoops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \") \" << endl;\n"; 
+                    // errs() << space + "            }\n";
+                    errs() << "#endif\n";
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        actural = cnt;\n";
 #endif
@@ -1275,7 +1118,7 @@ namespace ssCodeGen_ref {
     }
 
 
-    void StaticSamplingCodeGen_ref::refRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID) {
+    void ModelCodeGen_ref::refRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID) {
         
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops = findLoops(LoopRefTree, refName, useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>());
         
@@ -1363,10 +1206,9 @@ namespace ssCodeGen_ref {
 				else {
                     errs() << "\n Error in generating random sample \n";
                 }
-
                 errs() << ";\n";
+
                 errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
-                
             }
         }
         
@@ -1470,7 +1312,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void ModelCodeGen_ref::refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         /*
         for ( map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < it->second; i++) {
@@ -1495,7 +1337,7 @@ namespace ssCodeGen_ref {
         return;
     }
     
-    void StaticSamplingCodeGen_ref::mainGen() {
+    void ModelCodeGen_ref::mainGen() {
     
         errs() << "int main() {\n";
         
@@ -1559,32 +1401,6 @@ namespace ssCodeGen_ref {
         errs() << "    auto duration = duration_cast<microseconds>(stop - start);\n ";
         errs() << "    cout << \"Time taken by SPS:  \" << duration.count() << endl; \n";
         errs() << "#endif\n";
-#elif defined(DumpRefLease)
-        errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "// Get ending timepoint\n"; 
-        errs() << "    auto stop = high_resolution_clock::now(); \n";
-  
-        errs() << "    // Get duration. Substart timepoints to\n";
-        errs() << "    // get durarion. To cast it to proper unit\n"; 
-        errs() << "    // use duration cast method\n";
-        errs() << "    auto duration = duration_cast<microseconds>(stop - start);\n ";
-        errs() << "    cout << \"Time taken by SPS:  \" << duration.count() << endl; \n";
-        errs() << "#endif\n";
-        errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "    // Get starting timepoint\n";
-        errs() << "    start = high_resolution_clock::now();\n" ;
-        errs() << "#endif\n";
-        errs() << "    RL_main(0);\n";
-        errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "// Get ending timepoint\n"; 
-        errs() << "    stop = high_resolution_clock::now(); \n";
-  
-        errs() << "    // Get duration. Substart timepoints to\n";
-        errs() << "    // get durarion. To cast it to proper unit\n"; 
-        errs() << "    // use duration cast method\n";
-        errs() << "    duration = duration_cast<microseconds>(stop - start);\n ";
-        errs() << "    cout << \"Time taken by CARL:  \" << duration.count() << endl; \n";
-        errs() << "#endif\n";
 #elif
         errs() << "#ifdef PAPI_TIMER\n";
         errs() << "// Get ending timepoint\n"; 
@@ -1602,26 +1418,128 @@ namespace ssCodeGen_ref {
         
         return;
     }
+
+    void ModelCodeGen_ref::defineRefs(Instruction* arrayInstr) {
+        errs() << "/* Array " << arrayName[arrayInstr] << "\t";
+        for(vector<string>::iterator vit = arrayAccessVariable[arrayInstr].begin(); vit != arrayAccessVariable[arrayInstr].end(); ++vit) {
+            errs() << *vit << " ";
+        }
+        errs() << "*/ \n";
+        for(vector<string>::iterator vit = arrayAccessVariable[arrayInstr].begin(); vit != arrayAccessVariable[arrayInstr].end(); ++vit) {
+            // iterate all outermost loops
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outloops.begin(); it != outloops.end(); ++it) {
+                // contains outermost loop induction variable
+                if (indvName[(*(*it)->LIS->IDV)[0]] == *vit ) {
+                    // contains only 1 induction 
+                    if (arrayAccessVariable[arrayInstr].size() == 1) {
+                        arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_ONLY;
+                        return;
+                    } else if (vit != arrayAccessVariable[arrayInstr].begin()) {
+                        arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REVERSE;
+                        return;
+                    }
+                    arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REGULAR;
+                    return;
+                }
+            }
+        }
+        arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_INVARIANT;
+        return;
+    }
     
+    void ModelCodeGen_ref::parallelModelCodeGen() {
+        string space = "    ";
+        errs() << "int getChunkID(uint64_t i) {\n";
+        errs() << space << "return floor(i / (CHUNK_SIZE * THREAD_NUM));\n";
+        errs() << "}\n";
+
+        errs() << "int getThreadID(uint64_t i) {\n";
+        errs() << space << "return i / CHUNK_SIZE - floor(i / (CHUNK_SIZE * THREAD_NUM))*THREAD_NUM ;\n";
+        errs() << "}\n";
+
+        errs() << "int getThreadLocalPos(uint64_t i) {\n";
+        errs() << space << "return i \% CHUNK_SIZE;\n";
+        errs() << "}\n";
+
+        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, bool is_normal_ref) {\n";
+        errs() << space << "uint64_t parallel_rt = rt;\n";
+        errs() << space << "int tsrc = getThreadID(i_src);\n";
+        errs() << space << "int tsink = getThreadID(i_sink);\n";
+        errs() << space << "int dT = tsink - tsrc;\n";
+        errs() << space << "if (!is_normal_ref) {\n";
+        errs() << space << space << "if (tsrc < THREAD_NUM - 1) {\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Neighboring Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "return 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/*\n";
+        errs() << space << space << "} else {\n";
+        errs() << space << space << space << "return (rt - 1) * THREAD_NUM + 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "*/\n";
+        errs() << space << "}\n";
+        errs() << space << "/* intra chunk reuse */\n";
+        errs() << space << "if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
+        errs() << space << space << "/* same thread -- scaling effect */\n";
+        errs() << space << space <<"if (dT == 0) {\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Scaling Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM;\n";
+        errs() << space << space << "} else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
+        errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"NORMAL ORDER NEGATIVE PRI\\n\"); }\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Src-Sink Order Folding Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT);\n";
+        errs() << space << space << "} else { // sink-src order\n";
+        errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"REVERSE ORDER NEGATIVE PRI\\n\"); }\n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Sink-Src Order Folding Effect\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);\n";
+        errs() << space << space << "}\n";
+        errs() << space << "} else { // inter chunk reuse \n";
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << space << space << "cout << \"Inter Chunk Reuse\" << endl;\n";
+        errs() << "#endif\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsink + dT;\n";
+        errs() << space << "}\n";
+        errs() << space << "return parallel_rt;\n";
+        errs() << "}\n";
+    }
     
-    bool StaticSamplingCodeGen_ref::runOnFunction(Function &F) {
+    bool ModelCodeGen_ref::runOnFunction(Function &F) {
     
         errs() << " // Start to generating Static Sampling Code (reference based)\n";
         
         /* reading info from previous passes */
         arrayName = getAnalysis<idxAnalysis::IndexAnalysis>().arrayName;
         arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
+        arrayAccessVariable= getAnalysis<idxAnalysis::IndexAnalysis>().arrayAccessVariable;
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
+#ifdef PARALLEL
+        map<Instruction*, uint64_t> tempL = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoopPerIterationSpace;;
+        outloops = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoops;
+#endif
 
         /* init */
         initArrayName();
         numberRefToSameArray(LoopRefTree);
         numberLoops(LoopRefTree);
         initIndvName(LoopRefTree);
-
+#ifdef PARALLEL
+        for(map<Instruction*, uint64_t>::iterator it = tempL.begin(); it != tempL.end(); ++it) {
+            errs() << "/* " << arrayName[(it->first)] << to_string(refNumber[(it->first)]) << "\t" << it->second << " */\n";
+            outMostLoopPerIterationSpace[arrayName[(it->first)] + to_string(refNumber[(it->first)])] = it->second;
+        } 
+#endif
         /* generate headers */
         headerGen();
+
+        parallelModelCodeGen();
 
         /* generate rtHistoCal function */
         rtHistoGen();
@@ -1642,24 +1560,6 @@ namespace ssCodeGen_ref {
         
         /* generate mrDump function */
         mrDumpGen();
-#elif defined(DumpRefLease)
-        /* genearte accessRatioCal function */
-        accessRatioCalGen();
-        
-        /* generate initHitsCosts function */
-        initHitsCostsGen();
-        
-        /* generate getPPUC function */
-        getPPUCGen();
-        
-        /* generate getMaxPPUC function */
-        getMaxPPUCGen();
-        
-        /* generate DumpRI function */
-        DumpRIGen();
-        
-        /* generate RLGen function */
-        RLGen();
 #endif
         
         /* generate addr cal function*/
@@ -1680,13 +1580,14 @@ namespace ssCodeGen_ref {
         return false;
     }
     
-    void StaticSamplingCodeGen_ref::getAnalysisUsage(AnalysisUsage &AU) const {
+    void ModelCodeGen_ref::getAnalysisUsage(AnalysisUsage &AU) const {
         AU.setPreservesAll();
         AU.addRequired<idxAnalysis::IndexAnalysis>();
         AU.addRequired<argAnalysis::ArgumentAnalysis>();
         AU.addRequired<gVarAnalysis::GlobalVariableAnalysis>();
         AU.addRequired<LoopInfoWrapperPass>();
         AU.addRequired<loopAnalysis::LoopIndvBoundAnalysis>();
+        AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
         AU.addRequired<sampleNumAnalysis::SampleNumberAnalysis>();
         return;
     }

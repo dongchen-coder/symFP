@@ -1,5 +1,5 @@
-#ifndef ssCodeGen_ref_hpp
-#define ssCodeGen_ref_hpp
+#ifndef modelCodeGen_ref_hpp
+#define modelCodeGen_ref_hpp
 
 #include <map>
 #include <vector>
@@ -11,6 +11,7 @@
 #include "argAnalysis.hpp"
 #include "gVarAnalysis.hpp"
 #include "loopAnalysis.hpp"
+#include "loopTreeTransform.hpp"
 #include "sampleNumAnalysis.hpp"
 
 using namespace llvm;
@@ -19,7 +20,7 @@ using namespace std;
 #define CLS 64
 #define DS 8
 
-#define SAMPLING 2
+#define SAMPLING 2 
 
 // #define PARALLEL_CXX_THREAD
 
@@ -29,16 +30,26 @@ using namespace std;
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
 #define DumpRTMR
-#define REFERENCE_GROUP
+// #define REFERENCE_GROUP
 // #define DumpRefLease
 
-namespace ssCodeGen_ref {
-    struct StaticSamplingCodeGen_ref : public FunctionPass {
+namespace modelCodeGen_ref {
+    enum RefType
+    {
+        OUTERMOST_ONLY, // A[I]
+        OUTERMOST_INVARIANT, // A[J]
+        REVERSE, // A[J][I]
+        REGULAR // A[I][J]
+    };
+    struct ModelCodeGen_ref : public FunctionPass {
         static char ID;
-        StaticSamplingCodeGen_ref();
+        ModelCodeGen_ref();
 
         map<Instruction*,  string> arrayName;
         map<Instruction*,  string> arrayExpression;
+        map<Instruction*, std::vector<std::string>> arrayAccessVariable;
+        map<string, RefType>arrayTypeMap;
+        map<string, uint64_t> outMostLoopPerIterationSpace;
 
         uint64_t refGlobalNumber = 0;
         map<Instruction*, int> refNumber;
@@ -48,29 +59,28 @@ namespace ssCodeGen_ref {
         map<Value*,  string> indvName;
 
         map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
+        vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> outloops;
 
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         void initArrayName();
 
+        void defineRefs(Instruction* arrayInstr);
+
         void addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree,  vector< string> indvs);
         void addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
 
         void rtHistoGen();
         void subBlkRTGen(); 
+
+        void parallelModelCodeGen();
 #ifdef DumpRTMR
         void rtDumpGen();
         void rtToMRGen();
         void mrDumpGen();
-#elif defined(DumpRefLease)
-        void accessRatioCalGen();
-        void initHitsCostsGen();
-        void getPPUCGen();
-        void getMaxPPUCGen();
-        void DumpRIGen();
-        void RLGen();
 #endif
+
 #ifdef REFERENCE_GROUP
         void rtMergeGen();
 #endif
@@ -79,7 +89,7 @@ namespace ssCodeGen_ref {
         
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
-        string getLoopInc(Value* bound);
+        string getLoopInc(Value *inc);
         
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops);
         

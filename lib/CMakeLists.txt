@@ -33,6 +33,9 @@ add_library(LLVMSPS MODULE
   ssCodeGen_ref.hpp
   ssCodeGen_ref.cpp
 
+  modelCodeGen_ref.hpp
+  modelCodeGen_ref.cpp
+
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
@@ -79,7 +82,7 @@ add_definitions(-DPARALLEL)
 # - DUNIFORM_INTERLEAVING:
 #     Uniform Interleaving
 # By default is uniform interleaving
-add_definitions(-DRANDOM_INTERLEAVING)
+# add_definitions(-DRANDOM_INTERLEAVING)
 # add_definitions(-DUNIFORM_INTERLEAVING)
 
 # - DACC_LEVEL_INTERLEAVING:
@@ -91,7 +94,7 @@ add_definitions(-DRANDOM_INTERLEAVING)
 # By default is 1:1 interleaving in data granularity
 # add_definitions(-DITER_LEVEL_INTERLEAVING)
 # add_definitions(-DACC_LEVEL_INTERLEAVING)
-add_definitions(-DALL_LEVEL_INTERLEAVING)
+# add_definitions(-DALL_LEVEL_INTERLEAVING)
 
 # - DUNIFORM_SMOOTHING
 #     Do the RI calibration in uniform distribution

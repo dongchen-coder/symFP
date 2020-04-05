@@ -20,6 +20,11 @@ namespace loopTreeTransform {
     /* local helper function declaration */
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel);
 
+    /* compute loop iteration space */
+    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+
+    string getBound(Value *bound);
+
 
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel) {
         
@@ -31,6 +36,84 @@ namespace loopTreeTransform {
         thread_node->LIS = NULL;
         thread_node->LoopLevel = parentLoopLevel;   
         return thread_node;
+    }
+
+    string getLoopInc(Value *inc) {
+        if (isa<Instruction>(inc)) {
+            Instruction *inst = cast<Instruction>(inc);
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                case Instruction::Sub:
+                case Instruction::Mul:
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    if (isa<ConstantInt>(inst->getOperand(0))) {
+                        return getLoopInc(inst->getOperand(0));
+                    } else {
+                        return getLoopInc(inst->getOperand(1));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(inc)) {
+            return to_string(dyn_cast<ConstantInt>(inc)->getValue().getSExtValue());
+        }
+        return "";
+    }
+
+    string getBound(Value *bound) {
+        
+        if (isa<Instruction>(bound)) {
+            
+            Instruction *inst = cast<Instruction>(bound);
+            
+            switch (inst->getOpcode()) {
+                case Instruction::Add:
+                    return "(" + getBound(inst->getOperand(0)) + " + " + getBound(inst->getOperand(1)) + ")";
+                    break;
+                case Instruction::Sub:
+                    return "(" + getBound(inst->getOperand(0)) + " - " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Mul:
+                    return "(" + getBound(inst->getOperand(0)) + " * " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::FDiv:
+                case Instruction::SDiv:
+                case Instruction::UDiv:
+                    return "(" + getBound(inst->getOperand(0)) + " / " + getBound(inst->getOperand(1)) + ")";;
+                    break;
+                case Instruction::Load:
+                    return inst->getOperand(0)->getName().str();
+                    break;
+                case Instruction::Alloca:
+                    return inst->getName();
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (isa<ConstantInt>(bound)) {
+            return to_string(dyn_cast<ConstantInt>(bound)->getValue().getSExtValue());
+        }
+        return "";
+    }
+
+    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+        uint64_t iterSpace = 0;
+        if (LoopRefTree->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if ((*it)->L == NULL) {
+                    iterSpace += 1;
+                } else {
+                    iterSpace += computeIterSpace(*it);
+                }
+            }
+            iterSpace *= ((uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*LoopRefTree->LIS->INC)[0]));        
+        }
+        return iterSpace;
     }
 
     /* Get all the out loops */
@@ -48,10 +131,38 @@ namespace loopTreeTransform {
         return;
     }
 
+    void iterateArrayInstr(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node, vector<Instruction*> & arrayVec) {
+        if (node->L == NULL) {
+            arrayVec.push_back(node->AA);
+            return;
+        } else if (node->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = node->next->begin(); lit != node->next->end(); ++lit) {
+                iterateArrayInstr(*lit, arrayVec);
+            }
+        }
+    }
+
+    void ParallelLoopTreeTransform::computePerIterationSpace() {
+        for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outMostLoops.begin(), eit = outMostLoops.end(); it != eit; ++it) {
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* omloop = *it;
+            // go over this outermost loop
+            // compute the iteration space for each reference within this outermost loop
+            uint64_t IS = computeIterSpace(*it);
+            if (omloop->L != NULL) {
+                vector<Instruction*> arrayVec;
+                iterateArrayInstr(omloop, arrayVec);
+                for(vector<Instruction*>::iterator ait = arrayVec.begin(); ait != arrayVec.end(); ++ait) {
+                    outMostLoopPerIterationSpace[*ait] = IS;
+                }
+            }
+        }
+        return;
+    }
+
 #if defined(ITER_LEVEL_INTERLEAVING)
     /* 
      * Connect all consecutive reference node with a thread node
-     * All thread nodes will be assgined as the child of the last loop node
+     * All thread nodes will be assigned as the child of the last loop node
     */
     void ParallelLoopTreeTransform::LoopTreeTransform(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator nextIter = LoopRefTree->next->begin();
@@ -197,15 +308,19 @@ namespace loopTreeTransform {
 
         PTLoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         findAllOutMostLoops(PTLoopRefTree);
+        computePerIterationSpace();
+
+#if defined(ACC_LEVEL_INTERLEAVING) || defined(ITER_LEVEL_INTERLEAVING)
         errs() << "\n /* Start transform loop tree\n";
         
         tranverseLoopRefTree(PTLoopRefTree);
-
 // #ifdef DEBUG
         DumpLoopTree(PTLoopRefTree, "");
 // #endif
-        
         errs() << "\nFinish transform loop tree */ \n";
+#endif
+
+        
         
         return false;
     }
