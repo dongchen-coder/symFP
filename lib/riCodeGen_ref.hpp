@@ -98,8 +98,11 @@ namespace riCodeGen_ref {
         void LoopIterIncGen(
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node,
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops,
-            string space,
-            bool allLevelInc
+            string space
+        );
+        
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findFirstRef(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* outMostLoop
         );
         
         bool refRTSearchGen(
