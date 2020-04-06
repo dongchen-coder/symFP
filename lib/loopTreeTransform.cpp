@@ -20,9 +20,6 @@ namespace loopTreeTransform {
     /* local helper function declaration */
     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* initThreadNode(int parentLoopLevel);
 
-    /* compute loop iteration space */
-    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
-
     string getBound(Value *bound);
 
 
@@ -101,7 +98,7 @@ namespace loopTreeTransform {
         return "";
     }
 
-    uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+    uint64_t ParallelLoopTreeTransform::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
         uint64_t iterSpace = 0;
         if (LoopRefTree->next != NULL) {
             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
@@ -110,8 +107,10 @@ namespace loopTreeTransform {
                 } else {
                     iterSpace += computeIterSpace(*it);
                 }
+            } 
+            if (find(outMostLoops.begin(), outMostLoops.end(), LoopRefTree) == outMostLoops.end()) {
+                iterSpace *= ((uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*LoopRefTree->LIS->INC)[0])); 
             }
-            iterSpace *= ((uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*LoopRefTree->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*LoopRefTree->LIS->INC)[0]));        
         }
         return iterSpace;
     }
@@ -208,7 +207,7 @@ namespace loopTreeTransform {
             LoopRefTree->next = thread_node_vec;
         }
     }
-#elif defined(ACC_LEVEL_INTERLEAVING) or defined(ALL_LEVEL_INTERLEAVING)
+#elif defined(ACC_LEVEL_INTERLEAVING)
     /* 
      * For each reference node, connect it with a thread node
      * All thread nodes will be assgined as the child of the last loop node

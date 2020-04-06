@@ -22,7 +22,7 @@ using namespace llvm;
 
 // #define PARALLEL_CXX_THREAD
 
-#define REFERENCE_GROUP
+// #define REFERENCE_GROUP
 
 #define DumpRTMR
 // #define DumpRefLease
@@ -96,6 +96,8 @@ namespace uiAccCodeGen_ref {
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
         string getLoopInc(Value *inc);
+        uint64_t getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node);
+        uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
         /* 
          * When enableOPT is close
          * - Find loops that contains the sampled referenceID

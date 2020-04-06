@@ -86,7 +86,8 @@ namespace modelCodeGen_ref {
 #endif
         void headerGen();
 
-        
+        uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        uint64_t getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*);
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
         string getLoopInc(Value *inc);

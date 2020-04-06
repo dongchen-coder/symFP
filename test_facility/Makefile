@@ -17,7 +17,7 @@ TEST_DIR=.
 #LIB_DIR=/Users/dchen/tools/llvm-8.0.0/build/lib
 LIB_DIR=../build/lib
 
-SPSRATE?=1
+SPSRATE=0.1
 
 SRC_DIR=$(TEST_DIR)/ss_src
 BC_DIR=$(TEST_DIR)/ss_bc
@@ -50,7 +50,7 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-test_bench = test1 test2 test3 test4
+test_bench = test1 test2 test3 test4 test5 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k stencil # deriche doitgen fdtd_2d floyd_warshall heat_3d jacobi_1d jacobi_2d seidel_2d adi
 
 check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k stencil# 
 #check_bench = stencil convolution2d convolution3d
@@ -146,11 +146,17 @@ trace_ref_osl_run:
 test_trace_run:
 	$(foreach name, $(test_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -DMINI_DATASET -o $(BIN_DIR)/$(name)_trace ;)
 
-test_parallel_gen:
-	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+test_plum_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_staticSampling.cpp -O3 -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -DDEBUG -o $(BIN_DIR)/$(name)_staticSampling ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plum.cpp ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_plum.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -DPAPI_TIMER -o $(BIN_DIR)/$(name)_plum ;)
+
+test_model_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_model.cpp ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_model.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -DPAPI_TIMER -o $(BIN_DIR)/$(name)_model ;)
 
 clean:	
 	rm $(BIN_DIR)/sequential/*_staticSampling

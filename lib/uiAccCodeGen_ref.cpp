@@ -143,6 +143,9 @@ namespace uiAccCodeGen_ref {
 #ifdef REFERENCE_GROUP
         errs() << "#include <algorithm>\n";
 #endif
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << "#include \"../utility/papi_timer.h\"\n";
+        errs() << "#endif\n";
 #ifdef PARALLEL
         errs() << "#ifndef THREAD_NUM\n";
         errs() << "#    define THREAD_NUM   4\n";
@@ -222,8 +225,9 @@ namespace uiAccCodeGen_ref {
 #endif
         errs() << "    return;\n";
         errs() << "}\n";
-    }
 #endif
+    }
+
 #elif defined(DumpRefLease)
     void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
         errs() << "map<uint64_t, map<uint64_t, uint64_t>* > RI;\n";
@@ -910,6 +914,25 @@ namespace uiAccCodeGen_ref {
         }
         return loopRes;
     }
+
+    uint64_t AccLevelUISamplingCodeGen_ref::getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node) {
+        return ((uint64_t) stoi(getBound((*node->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*node->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*node->LIS->INC)[0]));
+    }
+
+    uint64_t AccLevelUISamplingCodeGen_ref::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+        uint64_t iterSpace = 0;
+        if (LoopRefTree->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                if ((*it)->L == NULL) {
+                    iterSpace += 1;
+                } else {
+                    iterSpace += computeIterSpace(*it);
+                }
+            } 
+            iterSpace *= getOuterMostLoopIterationSpace(LoopRefTree);
+        }
+        return iterSpace;
+    }
     
     /* Search result reuse (Different loop) */
     /* a is coefficient vector */
@@ -1569,19 +1592,17 @@ namespace uiAccCodeGen_ref {
                         errs() << tmp + ")) {\n";
 
                         errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout << \"[REUSE FIND] @ (\" << ";
-                        errs() << "calAddr" + refName + std::to_string(useID);
-                        errs() << "(";
+                        errs() << space + "            cout << \"[" << refName << std::to_string(useID) << " --> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << "] @ (\" << ";
+                        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                            for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                                errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                                if (it != loops.end()-1) {
+                                    errs() << " << \", \" << ";
+                                }
+                            }
+                        }
+                        errs() << " << \") --> (\" << ";
                         tmp = "";
-                        for (unsigned i = 0; i < sampleIDVs.size(); i++) {
-                            tmp += "nv[nvi][" + std::to_string(i) + "], ";
-                        }
-                        if (loops.size() != 0) {
-                            tmp.pop_back();
-                            tmp.pop_back();
-                        }
-                        errs() << tmp + ") << \", \" << \"(\"";
-                        tmp = " << ";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "]";
                             if (i != currentLoops.size() - 1) {
@@ -1590,6 +1611,7 @@ namespace uiAccCodeGen_ref {
                         }
                         errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
                         errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
+                        // errs() << space + "            if (cnt == 2907  || cnt == 2955) { exit(1); }\n";
                         errs() << "#else\n";
 
 #ifdef REFERENCE_GROUP
@@ -1663,7 +1685,10 @@ namespace uiAccCodeGen_ref {
                 if (find(outloops.begin(), outloops.end(), *it) != outloops.end()) {
                     isFirstNestLoop = ((*it) == loops[0]);
                     /* Search the new nested loop to check if it contains references that we are currently sampling */
-                    if (findLoops(*it, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), true).size() <= 0) {
+                    if (!isFirstNestLoop && findLoops(*it, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), true).size() <= 0) {
+                        errs() << space << "    if (cntStart == true) {\n";
+                        errs() << space << "        cnt += " << computeIterSpace(*it) << ";\n";
+                        errs() << space << "    }\n";
                         continue;
                     }
                 }
@@ -1775,7 +1800,9 @@ namespace uiAccCodeGen_ref {
 
                 errs() << ";\n";
                 errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
-                
+                if (find(outloops.begin(), outloops.end(), *lit) != outloops.end()) {
+                    errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start + THREAD_NUM * CHUNK_SIZE > " << getBound_Start((*(*lit)->LIS->LB)[i].second) << ") { goto SAMPLE; }\n";
+                }
             }
         }
         
@@ -1884,6 +1911,10 @@ namespace uiAccCodeGen_ref {
         for (std::map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < (*it).second; i++) {
          */
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << "    PAPI_timer_init();\n";
+        errs() << "    PAPI_timer_start();\n";
+        errs() << "#endif\n";
         errs() << space + "/* " << refNumber.size() << " */\n";
         for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 
@@ -1925,12 +1956,18 @@ namespace uiAccCodeGen_ref {
         
 
 #ifdef DumpRTMR
-#ifdef REFERENCE_GROUP
-        // errs() << "    refRTDump();\n";  
+#ifdef REFERENCE_GROUP  
         errs() << "    rtMerge();\n";
 #endif
-        errs() << "    rtDump();\n";
         errs() << "    RTtoMR_AET();\n";
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << "    PAPI_timer_end();\n";
+        errs() << "    PAPI_timer_print();\n";
+        errs() << "#endif\n";
+        errs() << "    rtDump();\n";
+#ifdef REFERENCE_GROUP  
+        errs() << "    refRTDump();\n";
+#endif
         errs() << "    dumpMR();\n";
 #elif defined(DumpRefLease)
         errs() << "    RL_main(0);\n";

@@ -45,8 +45,8 @@ add_library(LLVMSPS MODULE
   riAccCodeGen_ref.hpp
   riAccCodeGen_ref.cpp
 
-  riCodeGen_ref.hpp
-  riCodeGen_ref.cpp
+  # riCodeGen_ref.hpp
+  # riCodeGen_ref.cpp
 
   uiIterCodeGen_ref.hpp
   uiIterCodeGen_ref.cpp
@@ -66,9 +66,9 @@ target_compile_features(LLVMSPS PRIVATE cxx_range_for cxx_auto_type)
 set_target_properties(LLVMSPS PROPERTIES
    COMPILE_FLAGS "-fno-rtti"
 )
-set_target_properties(LLVMSPS PROPERTIES
-    LINK_FLAGS "-undefined dynamic_lookup"
-)
+# set_target_properties(LLVMSPS PROPERTIES
+#    LINK_FLAGS "-undefined dynamic_lookup"
+# )
 
 
 # Comment this out to disable PLUM and switch it to SPS
@@ -83,7 +83,7 @@ add_definitions(-DPARALLEL)
 #     Uniform Interleaving
 # By default is uniform interleaving
 # add_definitions(-DRANDOM_INTERLEAVING)
-# add_definitions(-DUNIFORM_INTERLEAVING)
+add_definitions(-DUNIFORM_INTERLEAVING)
 
 # - DACC_LEVEL_INTERLEAVING:
 #     Do Interleaving per each access
@@ -93,7 +93,7 @@ add_definitions(-DPARALLEL)
 #     Do interleaving for all references and interations
 # By default is 1:1 interleaving in data granularity
 # add_definitions(-DITER_LEVEL_INTERLEAVING)
-# add_definitions(-DACC_LEVEL_INTERLEAVING)
+add_definitions(-DACC_LEVEL_INTERLEAVING)
 # add_definitions(-DALL_LEVEL_INTERLEAVING)
 
 # - DUNIFORM_SMOOTHING
