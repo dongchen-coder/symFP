@@ -80,32 +80,35 @@ namespace riCodeGen_ref {
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
         
-        /* 
-         * When enableOPT is close
-         * - Find loops that contains the sampled referenceID
-         * When enableOPT is open
-         * - Find loops that contains the reference, the reference could have different ID but should have the same name 
-         * The useID here is to filter out those references that will not be iterated anymore because it appears in the loops that had already finished execution 
-        */
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> findLoops(
-            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
-            //std::string refName,
-            //int useID,
-            std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,
-            bool enableOPT
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree,
+            std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> ref
         );
 
         void LoopIterIncGen(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* root,
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node,
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops,
             string space
         );
         
-        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findFirstRef(
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findFirstRefInLoop(
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* outMostLoop
+        );
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findFirstRefAfterLoop(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree,
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* loop
+        );
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findFirstRefAfterRef(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree,
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* Ref
+        );
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* findLastRefInLoop(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* loop
         );
         
         bool refRTSearchGen(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *root,
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree,
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
             string space);
@@ -114,8 +117,6 @@ namespace riCodeGen_ref {
 
         void refRTBodyGen(
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree
-            //std::string refName,
-            //int useID
         );
         
         void mainGen();

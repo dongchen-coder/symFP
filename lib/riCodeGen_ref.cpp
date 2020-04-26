@@ -136,6 +136,7 @@ namespace riCodeGen_ref {
         errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
         errs() << "#include <cmath>\n";
+        errs() << "#include <time.h>\n";
 #ifdef PARALLEL_CXX_THREAD
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
@@ -176,7 +177,7 @@ namespace riCodeGen_ref {
 #ifdef DumpRTMR
     void AllLevelRICodeGen_ref::rtHistoGen() {
         errs() << "void rtHistoCal( map<uint64_t, double> &rth, int rt, int val ) {\n";
-        errs() << "    if ( val <= 0) {\n;";
+        errs() << "    if ( val <= 0) {\n";
         errs() << "        return;\n";
         errs() << "    }\n";
 #ifdef PARALLEL_OMP
@@ -547,47 +548,36 @@ namespace riCodeGen_ref {
     
     std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> AllLevelRICodeGen_ref::findLoops(
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
-        //string refName,
-        //int useID,
-        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,
-        bool enableOPT
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> ref
     ) {
         
-        /* If this is a loop, add it to the list */
+        /*
         if (LoopRefTree->L != NULL) {
             loops.push_back(LoopRefTree);
         }
-        /* If this is a reference and it's the reference we'd like to sample, return the list */
-        if (LoopRefTree->AA != NULL) {
-            /*
-             if (arrayName[LoopRefTree->AA] == refName) {
-                if (!enableOPT && refNumber[LoopRefTree->AA] == useID) {
-                    return loops;
-                } else if (enableOPT && refNumber[LoopRefTree->AA] >= useID) {
-                    return loops;
-                }
-            } else {
-                return std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>();
-            }*/
+        
+        if (LoopRefTree->AA != NULL && LoopRefTree == ref) {
             return loops;
         }
         
-        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopRes;
+        
         
         if (LoopRefTree->next != NULL) {
             for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                //std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(*it, refName, useID, loops, enableOPT);
                 std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopTmp = findLoops(*it, loops, enableOPT);
                 if (loopTmp.size() != 0) {
                     loopRes = loopTmp;
                 }
             }
         }
+         */
+        std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopRes;
         return loopRes;
     }
 
     /* Generate the loop incremental func */
-    void AllLevelRICodeGen_ref::LoopIterIncGen(
+/*    void AllLevelRICodeGen_ref::LoopIterIncGen(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* root,
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node,
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops,
             string space
@@ -596,117 +586,306 @@ namespace riCodeGen_ref {
         if (currentLoops.size() != 0) {
             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* lastLoop = currentLoops.back();
             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = lastLoop->next->begin(), eit = lastLoop->next->end(); it != eit; ++it) {
-                if ((*it)->isThreadNode && (*it)->next->front() == node) {
+                
+                if ((*it) == node) {
                     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it_next = it;
                     it_next++;
-                    if (it_next != eit && (*it_next)->isThreadNode && (*it_next)->next->front()->AA != NULL) {
-                        errs() << space + "    progress[*it].second = \"" + arrayName[(*it_next)->next->front()->AA] + std::to_string(refNumber[(*it_next)->next->front()->AA]) + "\";\n";
+                    
+                    if (it_next != eit) {
+                        
+                        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* nextRef = findFirstRefAfterRef(root, node);
+                        if (nextRef != NULL) {
+                            errs() << space + "    progress[tid_to_run].second = \"" + arrayName[nextRef->AA] + std::to_string(refNumber[nextRef->AA]) + "\";\n";
+                        } else {
+                            errs() << space + "    progress[tid_to_run].second = \"\";\n";
+                        }
+                        if (nextRef != *it_next) {
+                            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* addedLoop = *it_next;
+                            while(addedLoop->L != NULL) {
+                                currentLoops.push_back(addedLoop);
+                                errs() << space + "    progress[tid_to_run].first.push_back(";
+                                string lower_bound = getBound_Start((*(addedLoop)->LIS->LB)[0].first);
+                                errs() << lower_bound << ");\n";
+                                addedLoop = addedLoop->next->front();
+                            }
+                        }
+                        errs() << space + "    continue;\n";
                     } else {
                         int i = currentLoops.size()-1;
                         for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::reverse_iterator rit = currentLoops.rbegin(); rit != currentLoops.rend(); ++rit) {
+                            
+                            string inc = "1";
+                            
                             if (i == currentLoops.size()-1) {
+                                inc = "1";
                                 string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
                                 string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
-                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[*it].first[" + to_string(i) +  "] + 1) == " + upper_bound + " ? 1 : 0;\n";
-                                errs() << space + "    progress[*it].first[" + to_string(i) + "] = (progress[*it].first[" + to_string(i) + "] + 1) == " + upper_bound + " ? " + lower_bound + " : progress[*it].first[" + to_string(i) + "] + 1 ;\n";
+                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
+                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
                             } else {
                                 string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
                                 string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
-                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[*it].first[" + to_string(i) +  "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? 1 : 0;\n";
-                                errs() << space + "    progress[*it].first[" + to_string(i) + "] = (progress[*it].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? " + lower_bound + " : progress[*it].first[" + to_string(i) + "] + "+ to_string(i+1) +" ;\n";
-                            }
-                            i--;
-                            
-                            for (int i = currentLoops.size()-1; i >= 0; i--) {
-                                if (i == currentLoops.size()-1) {
-                                    errs() << space + "    if (nextInc" + to_string(i) + " == 0) {\n";
-                                    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRef(currentLoops[i]);
-                                    errs() << space + "        progress[*it].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
-                                    errs() << space + "    }\n";
+                                if (i == 0) {
+                                    upper_bound = "BLIST[tid_to_run][1]+1";
                                 }
+                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? 1 : 0;\n";
+                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +" ;\n";
                             }
                             
+                            if (i == currentLoops.size()-1) {
+                                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefInLoop(currentLoops[i]);
+                                if (firstAA == NULL) {
+                                    errs() << space + "    progress[tid_to_run].second =\";\n";
+                                } else {
+                                    errs() << space + "    progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
+                                }
+                            } else {
+                                errs() << space + "    if (nextInc" + to_string(i+1) + " == 1) {\n";
+                                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefAfterLoop(root, currentLoops[i+1]);
+                                if (firstAA == NULL) {
+                                    firstAA = findFirstRefInLoop(currentLoops[i]);
+                                }
+                                if (firstAA == NULL) {
+                                    errs() << space + "        progress[tid_to_run].second = \"\";\n";
+                                } else {
+                                    errs() << space + "        progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
+                                }
+                                errs() << space + "    }\n";
+                            }
+                            
+                            i--;
                         }
-                        errs() << space + "    if (nextInc" + to_string(i+1) + " == 1) {\n";
-                        errs() << space + "        candidate_thread_pool.erase(find(candidate_thread_pool.begin(), candidate_thread_pool.end(), *it));\n";
-                        errs() << space + "    }\n";
+                        if (node == findLastRefInLoop(currentLoops.front())) {
+                            errs() << space + "    if (nextInc" + to_string(i+1) + " == 1) {\n";
+                            errs() << space + "        candidate_thread_pool.erase(find(candidate_thread_pool.begin(), candidate_thread_pool.end(), tid_to_run));\n";
+                            errs() << space + "    }\n";
+                            errs() << space + "    continue;\n";
+                        }
                     }
                 }
             }
         }
+        return;
+    }
+ */
+    void AllLevelRICodeGen_ref::LoopIterIncGen(
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* root,
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* node,
+            vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops,
+            string space
+        ) {
         
-        
-        
-        
-        
-#ifdef TO_DO
-        errs() << space + "/* Iteration incrementation " << currentLoops.size() << " */\n";
-        errs() << space + "progress[t_select][" + to_string(currentLoops.size()) + "] = progress[t_select][" + to_string(currentLoops.size()) + "] + 1; \n";
-        if (allLevelInc) {
-            int i = currentLoops.size()-1;
-            for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::reverse_iterator rit = currentLoops.rbegin(); rit != currentLoops.rend(); ++rit) {
-                if (i == currentLoops.size()-1) {
-                    /* increment the index in the middle level */
-                    errs() << space + "progress[t_select][" + to_string(i) + "] = progress[t_select][" + to_string(i) + "] + (progress[t_select][" + to_string(i+1) + "] / " + getBound_Start((*(node)->LIS->LB)[0].second) + ");\n";
-                    errs() << space + "progress[t_select][" + to_string(currentLoops.size()) << "] = progress[t_select][" + to_string(currentLoops.size()) +  "] % " + getBound_Start((*(node)->LIS->LB)[0].second) + ";\n";
-                } else {
-                    /* increment the index in the middle level */
-                    errs() << space + "progress[t_select][" + to_string(i) + "] = progress[t_select][" + to_string(i) + "] + (progress[t_select][" + to_string(i+1) + "] / " + getBound_Start((*(*(rit-1))->LIS->LB)[0].second) + ");\n";
-                    /* module the index in the prev ious level */
-                    errs() << space + "progress[t_select][" + to_string(i+1) + "] = progress[t_select][" + to_string(i+1) + "] % " + getBound_Start((*(*(rit-1))->LIS->LB)[0].second) + ";\n";
+        if (currentLoops.size() != 0) {
+            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* lastLoop = currentLoops.back();
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = lastLoop->next->begin(), eit = lastLoop->next->end(); it != eit; ++it) {
+                
+                if ((*it) == node) {
+                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it_next = it;
+                    it_next++;
+                    
+                    if (it_next != eit) {
+                        
+                        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* nextRef = findFirstRefAfterRef(root, node);
+                        if (nextRef != NULL) {
+                            errs() << space + "    progress[tid_to_run].second = \"" + arrayName[nextRef->AA] + std::to_string(refNumber[nextRef->AA]) + "\";\n";
+                        } else {
+                            errs() << space + "    progress[tid_to_run].second = \"\";\n";
+                        }
+                        if (nextRef != *it_next) {
+                            loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* addedLoop = *it_next;
+                            while(addedLoop->L != NULL) {
+                                currentLoops.push_back(addedLoop);
+                                errs() << space + "    progress[tid_to_run].first.push_back(";
+                                string lower_bound = getBound_Start((*(addedLoop)->LIS->LB)[0].first);
+                                errs() << lower_bound << ");\n";
+                                addedLoop = addedLoop->next->front();
+                            }
+                        }
+                        errs() << space + "    continue;\n";
+                    } else {
+                        int i = currentLoops.size()-1;
+                        for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::reverse_iterator rit = currentLoops.rbegin(); rit != currentLoops.rend(); ++rit) {
+                            
+                            if (i == currentLoops.size()-1) {
+                                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefInLoop(currentLoops[i]);
+                                if (firstAA == NULL) {
+                                    errs() << space + "    progress[tid_to_run].second =\";\n";
+                                } else {
+                                    errs() << space + "    progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
+                                }
+                            } else {
+                                errs() << space + "    if (nextInc" + to_string(i+1) + " == 0) {\n";
+                                errs() << space + "        continue;\n";
+                                errs() << space + "    }\n";
+                                
+                                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefAfterLoop(root, currentLoops[i+1]);
+                                if (firstAA == NULL) {
+                                    firstAA = findFirstRefInLoop(currentLoops[i]);
+                                }
+                                if (firstAA == NULL) {
+                                    errs() << space + "    progress[tid_to_run].second = \"\";\n";
+                                } else {
+                                    errs() << space + "    progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
+                                }
+                                
+                                // if next ref is after loop
+                                if (find(currentLoops[i]->next->begin(), currentLoops[i]->next->end(), firstAA) != currentLoops[i]->next->end()) {
+                                    bool afterLoopFlag = false;
+                                    for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = currentLoops[i]->next->begin(); it != currentLoops[i]->next->end(); ++it) {
+                                        if (*it == currentLoops[i+1]) {
+                                            vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it_next = it;
+                                            ++it_next;
+                                            if (it_next != currentLoops[i]->next->end()) {
+                                                if (*it_next == firstAA) {
+                                                    afterLoopFlag = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (afterLoopFlag == true) {
+                                        int numberOfLoopsRemoved = 1;
+                                        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* lastLoop = currentLoops[i+1];
+                                        while(lastLoop->next != NULL && lastLoop->next->back() != node) {
+                                            numberOfLoopsRemoved += 1;
+                                            lastLoop = lastLoop->next->back();
+                                        }
+                                        for (int i = 0; i < numberOfLoopsRemoved; i++) {
+                                            errs() << space + "    progress[tid_to_run].first.pop_back();\n";
+                                        }
+                                        break;
+                                    } else {
+                                        int numberOfLoopsRemoved = 1;
+                                        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* lastLoop = currentLoops[i+1];
+                                        while(lastLoop->next != NULL && lastLoop->next->back() != node) {
+                                            numberOfLoopsRemoved += 1;
+                                            lastLoop = lastLoop->next->back();
+                                        }
+                                        for (int i = 0; i < numberOfLoopsRemoved; i++) {
+                                            errs() << space + "    progress[tid_to_run].first.pop_back();\n";
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            string inc = "1";
+                            if (i == currentLoops.size()-1) {
+                                inc = "1";
+                                string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
+                                string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
+                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
+                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
+                            } else {
+                                string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
+                                string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
+                                if (i == 0) {
+                                    upper_bound = "BLIST[tid_to_run][1]+1";
+                                }
+                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? 1 : 0;\n";
+                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +" ;\n";
+                            }
+                            
+                            i--;
+                        }
+                        
+                        if (node == findLastRefInLoop(currentLoops.front())) {
+                            errs() << space + "    if (nextInc" + to_string(i+1) + " == 1) {\n";
+                            errs() << space + "        candidate_thread_pool.erase(find(candidate_thread_pool.begin(), candidate_thread_pool.end(), tid_to_run));\n";
+                            errs() << space + "    }\n";
+                            errs() << space + "    continue;\n";
+                        }
+                    }
                 }
-                i --;
             }
         }
-        errs() << "#ifdef DEBUG\n";
-        errs() << space + "// cout <<  \"[Thread \" << t_select << \"] next iteration: \";\n";
-        errs() << space + "for (vector<int>::iterator it = progress[t_select].begin(); it != progress[t_select].end(); ++it) {\n";
-        errs() << space + "    // cout << *it << \" \";\n";
-        errs() << space + "}\n";
-        errs() << space + "// cout << endl;\n";
-        errs() << "#endif\n";
-        // check if is out of bound
-        if (allLevelInc) {
-            errs() << space + "if (progress[t_select][0] > BLIST[t_select][1]) {\n";
-        } else {
-            errs() << space + "if (progress[t_select][" << currentLoops.size()<< "]";
-            if ((*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
-                    errs() << " > ";
-                } else if ((*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE) {
-                    errs() << " < ";
-                } else if ((*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT) {
-                    errs() << " >= ";
-                } else if ((*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*node->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
-                    errs() << " <= ";
-                } 
-            errs() << getBound_Start((*(node)->LIS->LB)[0].second) << ") {\n";
-        }
-        errs() << space + "    // remove t_select from the thread pool\n";
-        errs() << space + "    candidate_thread_pool_" << node->LoopLevel << ".erase(remove(candidate_thread_pool_" << node->LoopLevel << ".begin(), candidate_thread_pool_" << node->LoopLevel << ".end(), t_select), candidate_thread_pool_" << node->LoopLevel << ".end());\n";
-        errs() << "#ifdef DEBUG\n";
-        errs() << space + "    cout << \"Remove thread \" << t_select << \" from the candidate thread pool\" << endl;\n";
-        errs() << "#endif\n";
-        errs() << space + "}\n";
-#endif
         return;
     }
     
-    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* AllLevelRICodeGen_ref::findFirstRef(
-        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* outMostLoop) {
-        if (outMostLoop->next != NULL) {
-            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outMostLoop->next->begin(), eit = outMostLoop->next->end(); it != eit; ++it) {
-                if ((*it)->isThreadNode && (*it)->next->front()->AA != NULL) {
-                    return (*it)->next->front();
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* AllLevelRICodeGen_ref::findFirstRefInLoop(
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* loop) {
+        if (loop->next != NULL) {
+            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = loop->next->begin(), eit = loop->next->end(); it != eit; ++it) {
+                //if ((*it)->isThreadNode && (*it)->next->front()->AA != NULL) { //with threadNode
+                if ((*it)->AA != NULL) {
+                    //return (*it)->next->front(); //with threadNode
+                    return (*it);
                 } else if ((*it)->L != NULL) {
-                    return findFirstRef(*it);
+                    return findFirstRefInLoop(*it);
                 }
             }
         }
         return NULL;
     }
 
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* AllLevelRICodeGen_ref::findFirstRefAfterLoop(
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* loop) {
+        if (LoopRefTree != NULL) {
+            if (LoopRefTree->next != NULL) {
+                bool foundFlag = false;
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* ref = NULL;
+                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                    if (foundFlag == false) {
+                        ref = findFirstRefAfterLoop(*it, loop);
+                    } else {
+                        if ((*it)->L != NULL) {
+                            ref = findFirstRefInLoop(*it);
+                        } else {
+                            ref = (*it);
+                        }
+                    }
+                    if (ref != NULL) {
+                        return ref;
+                    }
+                    if (ref == NULL && (*it) == loop) {
+                        foundFlag = true;
+                    }
+                }
+            }
+        }
+        return NULL;
+    }
+                        
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* AllLevelRICodeGen_ref::findFirstRefAfterRef(
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* Ref) {
+        if (LoopRefTree != NULL) {
+            if (LoopRefTree->next != NULL) {
+                bool foundFlag = false;
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* FirstRef = NULL;
+                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
+                    if (foundFlag == false) {
+                        FirstRef = findFirstRefAfterLoop(*it, Ref);
+                    } else {
+                        FirstRef = (*it);
+                        while (FirstRef->L != NULL) {
+                            FirstRef = FirstRef->next->front();
+                        }
+                    }
+                    if (FirstRef != NULL) {
+                        return FirstRef;
+                    }
+                    if (FirstRef == NULL && (*it) == Ref) {
+                        foundFlag = true;
+                    }
+                }
+            }
+        }
+        return NULL;
+    }
+
+    loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* AllLevelRICodeGen_ref::findLastRefInLoop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* loop) {
+        while(loop->next != NULL) {
+            loop = loop->next->back();
+        }
+        if (loop->AA != NULL) {
+            return loop;
+        }
+        return NULL;
+    }
+    
+
     /* Generating Reuse Search */
     bool AllLevelRICodeGen_ref::refRTSearchGen(
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *root,
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree,
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
         string space
@@ -752,7 +931,7 @@ namespace riCodeGen_ref {
                 errs() << space + "        BLIST[t][0] =  " + getBound((*LoopRefTree->LIS->LB)[0].first) + "+ (cid * THREAD_NUM + t) * chunk_size;\n";
                 errs() << space + "        BLIST[t][1] = min(" + getBound((*LoopRefTree->LIS->LB)[0].first) + " + (cid * THREAD_NUM + t + 1) * chunk_size, " + getBound((*LoopRefTree->LIS->LB)[0].second) + ") - 1;\n";
                 errs() << "#ifdef DEBUG\n";
-                errs() << space + "        // cout << \"[Thread \" << t << \"], \" << \"(\" << BLIST[t][0] << \", \"<< BLIST[t][1] << \")\" << endl;\n";
+                errs() << space + "        cout << \"[Thread \" << t << \"], \" << \"(\" << BLIST[t][0] << \", \"<< BLIST[t][1] << \")\" << endl;\n";
                 errs() << "#endif\n";
                 errs() << space + "    }\n";
                 errs() << space + "    vector<int> thread_pool;\n";
@@ -767,56 +946,51 @@ namespace riCodeGen_ref {
                 errs() << space + "        progress[tid].first";
                 string tmp = "";
                 tmp += " = {";
-                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
-                    if (find(outloops.begin(), outloops.end(), *it) != outloops.end()) {
-                        tmp += "cid * (THREAD_NUM * chunk_size) + " + getBound((*(*it)->LIS->LB)[0].first) + " + chunk_size * tid";
+                
+                vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loopsOfFirstRef;
+                loopsOfFirstRef.push_back(currentLoops.back());
+                while (loopsOfFirstRef.back()->next != NULL && loopsOfFirstRef.back()->next->front()->L != NULL) {
+                    loopsOfFirstRef.push_back(loopsOfFirstRef.back()->next->front());
+                }
+                for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = loopsOfFirstRef.begin(), eit = loopsOfFirstRef.end(); it != eit; ++it) {
+                    if (currentLoops.front() == *it) {
+                        tmp += "cid * (THREAD_NUM * chunk_size) + " + getBound((*(*it)->LIS->LB)[0].first) + " + chunk_size * tid, ";
                     } else {
-                        tmp += getBound((*(*it)->LIS->LB)[0].first);
+                        tmp += getBound((*(*it)->LIS->LB)[0].first) + ", ";
                     }
-                    tmp += ", ";
                 }
-                if (currentLoops.size() == 0) {
-                    tmp += "cid * (THREAD_NUM * chunk_size) + " + getBound((*LoopRefTree->LIS->LB)[0].first) + " + chunk_size * tid";
-                } else {
-                    tmp += getBound((*(LoopRefTree)->LIS->LB)[0].first);
-                }
+                tmp.pop_back();
+                tmp.pop_back();
                 tmp += " };\n";
                 errs() << tmp;
                 
                 errs() << space + "        progress[tid].second = \"";
-                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRef(currentLoops.front());
-                errs() << arrayName[firstAA->AA] + std::to_string(refNumber[firstAA->AA]) << "\";\n";
-                
+                loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefInLoop(currentLoops.front());
+                if (firstAA == NULL) {
+                    errs() << "\";\n";
+                } else {
+                    errs() << arrayName[firstAA->AA] + std::to_string(refNumber[firstAA->AA]) << "\";\n";
+                }
                 errs() << space + "    }\n";
+                errs() << space + "    srand((unsigned)time(NULL));\n";
                 errs() << space + "    while ( !candidate_thread_pool.empty()) {\n";
-                errs() << space + "        int thread_num_to_suspend = rand() % candidate_thread_pool.size();\n";
+                errs() << space + "        int tid_to_run = candidate_thread_pool[rand() % candidate_thread_pool.size()];\n";
                 errs() << "#ifdef DEBUG\n";
-                errs() << space + "        cout << \"Num of thread to run \" <<  THREAD_NUM -thread_num_to_suspend << endl;\n";
+                errs() << space + "        //cout << \"run thread \" << tid_to_run << \" @ \";\n";
+                errs() << space + "        //cout << progress[tid_to_run].second << \" \";\n";
+                errs() << space + "        //for (int i = 0; i < progress[tid_to_run].first.size(); i++) cout << progress[tid_to_run].first[i] << \" \";\n";
+                errs() << space + "        //cout << endl;\n";
                 errs() << "#endif\n";
-                errs() << space + "        thread_pool.assign(candidate_thread_pool.begin(), candidate_thread_pool.end());\n";
-                errs() << space + "        for (int i = 0; i < thread_num_to_suspend; i++) {\n";
-                errs() << space + "            int tid_to_remove = rand() % thread_pool.size();\n";
-                errs() << space + "            thread_pool.erase(thread_pool.begin() + tid_to_remove);\n";
-                errs() << space + "        }\n";
-                errs() << "#ifdef DEBUG\n";
-                errs() << space + "        for (int i = 0; i < thread_pool.size(); i++) {\n";
-                errs() << space + "             cout << \"run thread \" << thread_pool[i] << \" @ \";\n";
-                errs() << space + "             cout << progress[thread_pool[i]].second << \" \";\n";
-                errs() << space + "             for (int j = 0; j < progress[thread_pool[i]].first.size(); j++) cout << progress[thread_pool[i]].first[j] << \" \";\n";
-                errs() << space + "             cout << endl;\n";
-                errs() << space + "        }\n";
-                errs() << "#endif\n";
-                errs() << space + "        for (vector<int>::iterator it = thread_pool.begin(); it != thread_pool.end(); ++it) {\n";
                 space += "    ";
             }
         }
         else if (LoopRefTree->AA != NULL) {
-            errs() << space + "if (progress[*it].second == \"" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "\") {\n";
+            errs() << space + "if (progress[tid_to_run].second == \"" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "\") {\n";
             errs() << space + "    cnt++;\n";
             errs() << space + "    int access = calAddr"+arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA])+"(";
             string tmp = "";
             for (unsigned i = 0; i < currentLoops.size(); i++) {
-                tmp += "progress[*it].first[" + std::to_string(i) + "], ";
+                tmp += "progress[tid_to_run].first[" + std::to_string(i) + "], ";
             }
             if (currentLoops.size() != 0) {
                 tmp.pop_back();
@@ -828,210 +1002,41 @@ namespace riCodeGen_ref {
             errs() << "#ifdef DEBUG\n";
             errs() << space + "       // cout << \"[REUSE of Addr \" << access << \"] \" << cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]) << \" find @(\" ";
             for (unsigned i = 0; i < currentLoops.size(); i++) {
-                errs() << "<< progress[*it].first[" + std::to_string(i) + "] << \" \"";
+                errs() << "<< progress[tid_to_run].first[" + std::to_string(i) + "] << \" \"";
             }
             errs() << "<< \")\" << endl;\n";
             errs() << "#endif\n";
-            errs() << space + "        subBlkRT(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]));\n";
+            //errs() << space + "        subBlkRT(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]));\n";
+            errs() << space + "        rtHistoCal(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]), 1);\n";
             errs() << space + "    }\n";
             errs() << space + "    LAT_" + arrayName[LoopRefTree->AA] + "[access] = make_tuple(cnt, cid);\n";
             
-            
-            LoopIterIncGen(LoopRefTree, currentLoops, space);
+            LoopIterIncGen(root, LoopRefTree, currentLoops, space);
             
             errs() << space + "}\n";
-            /*
-            errs() << space + "while ( !thread_pool.empty()) {\n";
-            errs() << space + "    int t_select = thread_pool[rand() % thread_pool.size()];\n";
-            errs() << space + "    cnt++;\n";
-            errs() << space + "    access = calAddr" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
-            string tmp = "";
-            for (unsigned i = 0; i < currentLoops.size(); i++) {
-                tmp += "progress[t_select][" + std::to_string(i) + "], ";
-            }
-            if (currentLoops.size() != 0) {
-                tmp.pop_back();
-                tmp.pop_back();
-            }
-            errs() << tmp + ");\n";
-            errs() << space + "    if (LAT_" + arrayName[LoopRefTree->AA] + ".find(access) != LAT_" + arrayName[LoopRefTree->AA] + ".end()) {\n";
-            errs() << "#ifdef DEBUG\n";
-            errs() << space + "        cout << \"[REUSE of Addr \" << access << \"] \" << cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]) << \" find @(\" ";
-            for (unsigned i = 0; i < currentLoops.size(); i++) {
-                errs() << "<< progress[t_select][" + std::to_string(i) + "] << \" \"";
-            }
-            errs() << "<< \")\" << endl;\n";
-            errs() << "#endif\n";
-            errs() << space + "        subBlkRT(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]));\n";
-            errs() << space + "    }\n";
-            errs() << space + "    LAT_" + arrayName[LoopRefTree->AA] + "[access] = make_tuple(cnt, cid);\n";
-             */
-             /* remove from thread pool */
-            /*
-            errs() << space + "    thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());\n";
-            errs() << "#ifdef DEBUG\n";
-            errs() << space + "    // cout << \"Remove thread \" << t_select << \" from the pool\" << endl;\n";
-            errs() << "#endif\n";
-            errs() << space + "}\n";
-             */
+            
         }
+        /*
         else if (LoopRefTree->isThreadNode) {
+            // do nothing
         }
+         */
 
         
         if (LoopRefTree->next != NULL) {
             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                if (LoopRefTree->isThreadNode) {
-                    refRTSearchGen(*it, currentLoops, space);
+                //if (LoopRefTree->isThreadNode) { // with threadNode
+                if (LoopRefTree->AA) {
+                    refRTSearchGen(root, *it, currentLoops, space);
                 } else {
-                    refRTSearchGen(*it, currentLoops, space+"    ");
+                    refRTSearchGen(root, *it, currentLoops, space + "    ");
                 }
             }
         }
         
         if (LoopRefTree->L != NULL && currentLoops.size() == 1) {
-            errs() << space + "} } }\n";
+            errs() << space + "} }\n";
         }
-        
-        
-#ifdef TO_DO
-        bool hasTNLoop = false;
-        /* Loop Node */
-        if (LoopRefTree->L != NULL) {
-            for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                hasTNLoop = hasTNLoop || (*it)->isThreadNode;
-            }
-            if (currentLoops.size() == 0 && LoopRefTree->L != NULL)
-                errs() << "#ifdef DEBUG\n";
-                errs() << space + " cout << \"Count: \" << cnt << endl;\n";
-                errs() << "#endif\n";
-                errs() << space + "/* Compute the chunk size. */\n";
-                errs() << "#ifdef CHUNK_SIZE\n";
-                errs() << space + "chunk_size = CHUNK_SIZE;\n";
-                errs() << space + "chunk_num = ";
-                if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
-                    errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / (THREAD_NUM * chunk_size) + 1;\n";
-                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
-                    errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") % (THREAD_NUM * chunk_size) == 0 ? " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) : " + "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / (THREAD_NUM * chunk_size) + 1;\n";
-                } else {
-                    errs() << "\n Error in computing thread local iteration space \n";
-                }
-                errs() << "#else\n";
-                errs() << space + "chunk_num = 1;\n";
-                errs() << space + "chunk_size = ";
-                if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SLE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_ULE) {
-                    errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / THREAD_NUM;\n";
-                } else if ((*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGE || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_SGT || (*LoopRefTree->LIS->PREDICATE)[0] == llvm::CmpInst::ICMP_UGT) {
-                    errs() << "(" + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].second) + ") / THREAD_NUM;\n";
-                } else {
-                    errs() << "\n Error in computing thread local iteration space \n";
-                }
-                errs() << "#endif\n";
-
-                /* Generate the code to compute the start chunk of the sampler */
-                string loopNum = std::to_string(loopNumber[LoopRefTree->L]);
-                errs() << space + "/* Compute the number of chunks */\n";
-                /* Outer-most loops will generate chunk iterations */
-                errs() << space + "/* Generating thread local iteration space mapping code */\n";
-                errs() << space + "for (int cid = 0; cid < chunk_num; cid++) {\n";
-                errs() << space + "    /* Computes bound express for each thread */\n";
-                errs() << space + "    for (int t = 0; t < THREAD_NUM; ++t) {\n";
-                errs() << space + "        BLIST[t][0] =  " + getBound((*LoopRefTree->LIS->LB)[0].first) + "+ (cid * THREAD_NUM + t) * chunk_size;\n";
-                errs() << space + "        BLIST[t][1] = min(" + getBound((*LoopRefTree->LIS->LB)[0].first) + " + (cid * THREAD_NUM + t + 1) * chunk_size, " + getBound((*LoopRefTree->LIS->LB)[0].second) + ") - 1;\n";
-                errs() << "#ifdef DEBUG\n";
-                errs() << space + "        // cout << \"[Thread \" << t << \"], \" << \"(\" << BLIST[t][0] << \", \"<< BLIST[t][1] << \")\" << endl;\n";
-                errs() << "#endif\n";
-                errs() << space + "    }\n";
-                errs() << space + "    vector<int> thread_pool;\n";
-                errs() << space + "    map<int, vector<int>> progress;\n";
-            }
-            if () {
-                errs() << space + "/* Generate the Random Interleaving process */\n";
-                // if it's not the first loop
-                if (find(currentLoops.begin(), currentLoops.end(), LoopRefTree) != currentLoops.end() || isFirstChildLoop) {
-                    errs() << space + "vector<int> candidate_thread_pool_" << LoopRefTree->LoopLevel << ";\n";
-                }
-                errs() << space + "for (int tid = 0; tid < THREAD_NUM; tid++) {\n";
-                errs() << space + "    candidate_thread_pool_" << LoopRefTree->LoopLevel << ".push_back(tid);\n";
-                errs() << space + "    /* init the progress vector for each thread (" << currentLoops.size() << ") */\n";
-                errs() << space + "    progress[tid]";
-                string tmp = "";
-                if (!containsFirstTN) {
-                    tmp += " = {";
-                    for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
-                        if (find(outloops.begin(), outloops.end(), *it) != outloops.end()) {
-                            tmp += "cid * (THREAD_NUM * chunk_size) + " + getBound((*(*it)->LIS->LB)[0].first) + " + chunk_size * tid";
-                        } else {
-                            tmp += getBound((*(*it)->LIS->LB)[0].first);
-                        }
-                        tmp += ", ";
-                    }
-                    if (currentLoops.size() == 0) {
-                        tmp += "cid * (THREAD_NUM * chunk_size) + " + getBound((*LoopRefTree->LIS->LB)[0].first) + " + chunk_size * tid";
-                    } else {
-                        tmp += getBound((*(LoopRefTree)->LIS->LB)[0].first);
-                    }
-                    tmp += " };\n";
-                } else {
-                    tmp += ".push_back(" + getBound((*(LoopRefTree)->LIS->LB)[0].first) + ");\n";
-                }
-                errs() << tmp;
-                errs() << space + "}\n";
-                errs() << space + "while ( !candidate_thread_pool_" << LoopRefTree->LoopLevel << ".empty()) {\n";
-            }
-        } else { // Thread Node
-            // find reuses for each ref node
-            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
-                if ((*it)->AA != NULL) {
-                    if (arrayName[(*it)->AA] == refName) {
-                        errs() << space + "for(vector<int>::iterator it = candidate_thread_pool_" << LoopRefTree->LoopLevel << ".begin(); it != candidate_thread_pool_" << LoopRefTree->LoopLevel << ".end(); ++it) {\n";
-                        errs() << space + "        thread_pool.push_back(*it);\n";
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "    cout << \"[\" << *it << \"] Iteration \" << ";
-                        for (unsigned i = 0; i < currentLoops.size(); i++) {
-                                errs() << "progress[*it][" + std::to_string(i) + "] << \" \" << ";
-                            }
-                        errs() << " endl;\n";
-                        errs() << "#endif\n";
-                        errs() << space + "}\n";
-                        errs() << space + "while ( !thread_pool.empty()) {\n";
-                        errs() << space + "    int t_select = thread_pool[rand() % thread_pool.size()];\n";
-                        errs() << space + "    cnt++;\n";
-                        errs() << space + "    access = calAddr" + arrayName[(*it)->AA] + std::to_string(refNumber[(*it)->AA]) + "( ";
-                        string tmp = "";
-                        for (unsigned i = 0; i < currentLoops.size(); i++) {
-                            tmp += "progress[t_select][" + std::to_string(i) + "], ";
-                        }
-                        if (currentLoops.size() != 0) {
-                            tmp.pop_back();
-                            tmp.pop_back();
-                        }
-                        errs() << tmp + ");\n";
-                        errs() << space + "    if (LAT.find(access) != LAT.end()) {\n";
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "        cout << \"[REUSE of Addr \" << access << \"] \" << cnt - get<0>(LAT[access]) << \" find @(\" ";
-                        for (unsigned i = 0; i < currentLoops.size(); i++) {
-                            errs() << "<< progress[t_select][" + std::to_string(i) + "] << \" \"";
-                        }
-                        errs() << "<< \")\" << endl;\n";
-                        errs() << "#endif\n";
-                        errs() << space + "        subBlkRT(RT, cnt - get<0>(LAT[access]));\n";
-                        errs() << space + "    }\n";
-                        errs() << space + "    LAT[access] = make_tuple(cnt, cid);\n";
-                         /* remove from thread pool */
-                        errs() << space + "    thread_pool.erase(remove(thread_pool.begin(), thread_pool.end(), t_select), thread_pool.end());\n";
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "    // cout << \"Remove thread \" << t_select << \" from the pool\" << endl;\n";
-                        errs() << "#endif\n";
-                        errs() << space + "}\n";
-                    } else {
-                        errs() << space + "cnt += THREAD_NUM;\n";
-                    }
-                }
-            }
-        }
-#endif
-        
         
         return true;
     }
@@ -1047,7 +1052,7 @@ namespace riCodeGen_ref {
         errs() << space + "/* Vector that contains the interleaved iteration, avoid duplicate declaration */\n";
         errs() << space + "int chunk_size, chunk_num;\n";
         errs() << space + "uint64_t access;\n";
-        refRTSearchGen(LoopRefTree, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
+        refRTSearchGen(LoopRefTree, LoopRefTree, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), "    ");
         return;
     }
     
