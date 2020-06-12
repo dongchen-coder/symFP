@@ -98,10 +98,13 @@ add_definitions(-DACC_LEVEL_INTERLEAVING)
 
 # - DUNIFORM_SMOOTHING
 #     Do the RI calibration in uniform distribution
-# - DGAUSSIAN_SMOOTHING #     Do the RI calibration in gaussian distribution
-# By default is uniform smoothing
+# - DGAUSSIAN_SMOOTHING 
+#     Do the RI calibration in gaussian distribution
+# - DSMOOTHING 
+#     Do the RI calibration in custom heuristic
 # add_definitions(-DGAUSSIAN_SMOOTHING)
 # add_definitions(-DUNIFORM_SMOOTHING)
+# add_definitions(-DSMOOTHING)
 
 
 

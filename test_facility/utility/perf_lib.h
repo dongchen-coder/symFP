@@ -11,7 +11,7 @@
 
 #define LLC_MISS_EVENT  0xd120
 #define LLC_REF_EVENT   0xd104
-#define MAX_PERF_EVENT_OPEN			2
+#define MAX_PERF_EVENT_OPEN			3
 #define MAX_PERF_READ_BUF_LENGTH	4096
 
 using namespace std;

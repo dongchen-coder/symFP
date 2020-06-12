@@ -29,7 +29,7 @@ using namespace std;
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
 #define DumpRTMR
-#define REFERENCE_GROUP
+// #define REFERENCE_GROUP
 // #define DumpRefLease
 
 namespace ssCodeGen_ref {
@@ -94,7 +94,7 @@ namespace ssCodeGen_ref {
         bool refRTSearchGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space);
         void refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void refRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree,  string refName, int useID);
-        
+        void predictParallelCodeGen();
         void mainGen();
         
         bool runOnFunction(Function &F) override;

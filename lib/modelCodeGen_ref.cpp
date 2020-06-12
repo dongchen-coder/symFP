@@ -137,19 +137,21 @@ namespace modelCodeGen_ref {
     
     void ModelCodeGen_ref::headerGen() {
         
-        errs() << "#include <map>\n";
-        errs() << "#include <set>\n";
         errs() << "#include <cstdlib>\n";
-        errs() << "#include <iostream>\n";
         errs() << "#include <cmath>\n";
         errs() << "#include <functional>\n";
-
+        errs() << "#include <iostream>\n";
+        errs() << "#include <map>\n";
 #ifdef PARALLEL_CXX_THREAD
-        errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
 #endif
+        errs() << "#include <set>\n";
+#ifdef PARALLEL_CXX_THREAD
+        errs() << "#include <thread>\n";
+#endif
+        errs() << "#include <vector>\n";
         errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "#  include \"../utility/papi_timer.h\"\n";
+        errs() << "#  include \"papi_timer.h\"\n";
         errs() << "#endif\n";
         errs() << "using namespace std;\n";
         errs() << "using namespace placeholders;\n";
@@ -158,12 +160,26 @@ namespace modelCodeGen_ref {
         // errs() << "#endif\n";
         
 #ifdef PARALLEL_CXX_THREAD
-        errs() << " mutex mtx;\n";
+        errs() << "mutex mtx;\n";
 #endif
-        errs() << " map<uint64_t, double> RT;\n";
-        errs() << " map<uint64_t, double> MR;\n";
+        errs() << "map<uint64_t, double> RT;\n";
+        errs() << "map<uint64_t, double> MR;\n";
 #ifdef REFERENCE_GROUP
-        errs() << " map<string, map<uint64_t, double>> refRT;\n";
+        errs() << "map<string, map<uint64_t, double>> refRT;\n";
+#endif
+        errs() << "double total_reuse = 0.0;\n";
+        errs() << "double total_neighbor = 0.0;\n";
+        errs() << "double total_scale = 0.0;\n";
+        errs() << "double total_fold = 0.0;\n";
+        errs() << "double total_interchunk = 0.0;\n";
+#ifdef SMOOTHING
+        errs() << "enum class ReuseType {\n";
+        errs() << "    INTER_CHUNK,\n";
+        errs() << "    NEIGHBOR,\n";
+        errs() << "    SCALE,\n";
+        errs() << "    FOLD_SRC_SINK,\n";
+        errs() << "    FOLD_SINK_SRC\n";
+        errs() << "};\n";
 #endif
         return;
     }
@@ -408,6 +424,18 @@ namespace modelCodeGen_ref {
     }
 #endif
 
+    void ModelCodeGen_ref::statDumpGen() {
+        errs() << "/* Dump the reuse statistics */\n";
+        errs() << "void statDump() {\n";
+        errs() << "    cout << \"Total Neighboring Reuses: \" << total_neighbor / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Scaling Reuses: \" << total_scale / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Folding Src-Sink Reuses: \" << total_fold / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Inter Chunk Reuses: \" << total_interchunk / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Reuses: \" << total_reuse << endl;\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+    }
+
     string ModelCodeGen_ref::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
@@ -510,17 +538,19 @@ namespace modelCodeGen_ref {
         return ((uint64_t) stoi(getBound((*node->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*node->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*node->LIS->INC)[0]));
     }
 
-    uint64_t ModelCodeGen_ref::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+    uint64_t ModelCodeGen_ref::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, bool inclusive) {
         uint64_t iterSpace = 0;
         if (LoopRefTree->next != NULL) {
             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
                 if ((*it)->L == NULL) {
                     iterSpace += 1;
                 } else {
-                    iterSpace += computeIterSpace(*it);
+                    iterSpace += computeIterSpace(*it, true);
                 }
             } 
-            iterSpace *= getOuterMostLoopIterationSpace(LoopRefTree);
+            if (inclusive) {
+                iterSpace *= getOuterMostLoopIterationSpace(LoopRefTree);
+            }
         }
         return iterSpace;
     }
@@ -1037,6 +1067,14 @@ namespace modelCodeGen_ref {
                         }
                     }
                     errs() << ");\n";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        errs() << space + "            /* ";
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]];
+                            errs() << " ";
+                        }
+                        errs() << computeIterSpace(*it, false) << " */\n";
+                    }
                     errs() << space + "            /* compute the number of accesses between source and sink chunk */\n";
                     /* first we compute middle chunks between source and sink chunk */
                     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator head = find(outloops.begin(), outloops.end(), (*loops.begin()));
@@ -1046,7 +1084,7 @@ namespace modelCodeGen_ref {
                     if (is_in_same_loop == "false") {
                         if (head != outloops.end() && end != outloops.end()) {
                             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = head + 1; it < end; ++it) {
-                                middle_access += computeIterSpace(*it);
+                                middle_access += computeIterSpace(*it, true);
                             }
                         }
                         /* Here we compute the remaining chunks to be iterated after source chunk and chunks to be iterated before sink chunk. Then add the iterations computed in the first step */
@@ -1060,7 +1098,26 @@ namespace modelCodeGen_ref {
                     errs() << "#ifdef DEBUG\n";
                     errs() << space + "            cout << \" middle_access is \" << middle_accesses << endl;\n";
                     errs() << "#endif\n";
+#ifdef SMOOTHING
+                    errs() << space + "            uint64_t step = cnt;\n";
+                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator src_it = loops.begin();
+                    vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator sink_it = currentLoops.begin();
+                    while(src_it != loops.end() && sink_it != currentLoops.end()) {
+                        errs() << space + "            if ( " << indvName[(*(*src_it)->LIS->IDV)[0]] << "_Start != " << indvName[(*(*sink_it)->LIS->IDV)[0]] << ") {\n";
+                        // errs() << space << "                step = " << computeIterSpace(*src_it, false) << ";\n";
+                        if (find(outloops.begin(), outloops.end(), *sink_it) != outloops.end()) { 
+                            errs() << space << "                step = " << computeIterSpace(*src_it, false) << ";\n";
+                        } else {
+                            errs() << space << "                step = abs(" << indvName[(*(*sink_it)->LIS->IDV)[0]] << " -" << indvName[(*(*src_it)->LIS->IDV)[0]] << "_Start" << ") *" << computeIterSpace(*src_it, false) << ";\n";
+                        }
+                        errs() << space + "            }\n";
+                        src_it++;
+                        sink_it++;
+                    }
+                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, step, " << is_normal_ref << ", " << is_in_same_loop << ", srcAddrCal, sinkAddrCal);\n";
+#else
                     errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, " << is_normal_ref << ", " << is_in_same_loop << ", srcAddrCal, sinkAddrCal);\n";
+#endif
 #ifdef REFERENCE_GROUP
                     // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
                     errs() << space + "            refRTHistoCal(refRT, parallel_rt, 1.0, \"" + refName + std::to_string(useID) + "\"";
@@ -1457,8 +1514,7 @@ namespace modelCodeGen_ref {
         for ( map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
             errs() << space + "t_" + arrayName[it->first] + "_" +  to_string(it->second) + ".join();\n";
         }
-#endif
-        
+#endif    
 
 #ifdef DumpRTMR
 #ifdef REFERENCE_GROUP
@@ -1466,9 +1522,10 @@ namespace modelCodeGen_ref {
 #endif
         errs() << "    RTtoMR_AET();\n";
         errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "    PAPI_timer_end();\n";
+        errs() << "    PAPI_timer_stop();\n";
         errs() << "    PAPI_timer_print();\n";
         errs() << "#endif\n";
+        errs() << "    statDump();\n";
 #ifdef REFERENCE_GROUP
         errs() << "    refRTDump();\n";
 #endif
@@ -1552,7 +1609,68 @@ namespace modelCodeGen_ref {
         errs() << space << "}\n";
         errs() << space << "return -1;\n";
         errs() << "}\n";
+#ifdef SMOOTHING
+        errs() << "void parallel_smoothing(uint64_t ris, uint64_t rip,  uint64_t l, ReuseType type) {\n";
+        errs() << space << "if (type == ReuseType::INTER_CHUNK) {\n";
+        errs() << space << space << "total_interchunk += 1.0;\n";
+        errs() << space << "}\n";
+        errs() << space << "else if (type == ReuseType::NEIGHBOR) {\n";
+        errs() << space << space << "vector<double> constant = { 0.51, 0.38, 0.10, 0.01 };\n";
+        // errs() << space << space << "vector<double> constant = { 0.25, 0.25, 0.25, 0.25 };\n"; 
+        // errs() << space << space << "if (ris < 64) { constant = {0.25, 0.25, 0.25, 0.25}; }\n";
+        errs() << space << space << "if (ris == 1) {\n";
+        errs() << space << space << space << "rtHistoCal(RT, ris, 1.0);\n";
+        errs() << space << space << space << "return;\n";
+        errs() << space << space << "}\n";
+        // errs() << space << "if (ri >= 64) {\n";
+        errs() << space << space << "/*\n";
+        errs() << space << space << "for (int t = 0; t < THREAD_NUM; t++) {\n";
+        // errs() << space << space << space << "uint64_t lb = rip + (t-1) * l >= 1 ? rip + (t-1) * l : 1;\n";
+        // errs() << space << space << space << "for (uint64_t i = lb; i <= rip + (t * l); i++) {\n";
+        errs() << space << space << space << "uint64_t lb = ris + (t-1) * l >= 1 ? ris + (t-1) * l : 1;\n";
+
+        errs() << space << space << space << "for (uint64_t i = lb; i <= ris + (t * l); i++) {\n";
+        errs() << space << space << space << space << "rtHistoCal(RT, i, constant[t] / l);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "*/\n";
+        errs() << space << space << "for (int i = 0; i < constant.size(); i++) {\n";
+        errs() << space << space << space << "rtHistoCal(RT, ris * pow(2, i-1), constant[i]);\n";
+        errs() << space << space << "}\n";
+        errs() << space << "}\n";
+        errs() << space << "else if (type == ReuseType::SCALE) {\n";
+        errs() << space << space << "vector<double> constant = { 0.13, 0.18, 0.44, 0.25 };\n";
+        // errs() << space << space << "if (ris < 64) { constant = {0.25, 0.25, 0.25, 0.25}; }\n";
+        errs() << space << space << "for (int i = 0; i < constant.size(); i++) {\n";
+        errs() << space << space << space << "rtHistoCal(RT, ris * pow(2, i), constant[i]);\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/*\n";
+        errs() << space << space << "for (int t = 0; t < THREAD_NUM; t++) {\n";
+        errs() << space << space << space << "for (uint64_t i = ris + (pow(2, t) * l); i < ris + (pow(2, (t+1)) * l); i++) {\n";
+        errs() << space << space << space << space << "rtHistoCal(RT, i, constant[t] / l * (pow(2, t+1) - pow(2, t)));\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "*/\n";
+        errs() << space << "}\n";
+        errs() << space << "else if (type == ReuseType::FOLD_SRC_SINK) {\n";
+        errs() << space << space << "vector<double> constant = { 0.25, 0.25, 0.25, 0.25 };\n";
+        // errs() << space << "if (ri >= 64) {\n";
+        errs() << space << space << "for (int t = 0; t < THREAD_NUM; t++) {\n";
+        errs() << space << space << space << "uint64_t lb = ris + (t * l) >= 1 ? ris + (t+1) * l : 1;\n";
+        errs() << space << space << space << "for (uint64_t i = lb; i < (ris + t * l); i++) {\n";
+        errs() << space << space << space << space << "rtHistoCal(RT, i, constant[t] / l);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << "}\n";
+        errs() << space << "}\n";
+        // errs() << space << "}\n";
+        errs() << "}\n";
+#endif
+#ifdef SMOOTHING
+        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, uint64_t step, bool is_normal_ref, bool is_in_same_loop, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
+#else
         errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, bool is_normal_ref, bool is_in_same_loop, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
+#endif
+        errs() << space << "total_reuse += 1.0;\n";
         errs() << space << "uint64_t parallel_rt = rt;\n";
         errs() << space << "int tsrc = getThreadID(i_src);\n";
         errs() << space << "int tsink = getThreadID(i_sink);\n";
@@ -1562,24 +1680,46 @@ namespace modelCodeGen_ref {
         errs() << space << space << "cout << \"Inter Chunk Reuse\" << endl;\n";
         errs() << space << space << "cout << \"rt \" << rt << endl;\n";
         errs() << "#endif\n";
+#ifdef SMOOTHING
+        errs() << space << space << "parallel_smoothing(rt, rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsrc - (THREAD_NUM - 1) * middle_accesses + dT, step, ReuseType::FOLD_SRC_SINK);\n";
+        errs() << space << space << space << "return 0;\n";
+#else
         errs() << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsrc - (THREAD_NUM - 1) * middle_accesses + dT;\n";
+#endif
         errs() << space << "} else if (!is_normal_ref) {\n";
         errs() << space << space << "/* intra chunk reuse */\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << "cout << \"Neighboring Effect\" << endl;\n";
         errs() << "#endif\n";
+        errs() << space << space << "total_neighbor += 1.0;\n";
         errs() << space << space << "int tsrc_neighbor = search_src_candidate_neighbor(i_src, srcAddrCal);\n";
         errs() << space << space << "int tsink_neighbor = search_sink_candidate_neighbor(i_sink, sinkAddrCal);\n";
         errs() << space << space << "if (tsrc_neighbor >= 0) {\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Find sink in src neighbor at \" << tsrc_neighbor << endl;\n";
+        errs() << space << space << space << "cout << \"Neighbor Effect: \" << tsrc_neighbor - tsrc << endl;\n";
         errs() << "#endif\n";
+        
+#ifdef SMOOTHING
+        errs() << space << space << space << "parallel_smoothing(rt, tsrc_neighbor - tsrc, step, ReuseType::NEIGHBOR);\n";
+        errs() << space << space << space << "return 0;\n";
+#else
         errs() << space << space << space << "return tsrc_neighbor - tsrc;\n";
+#endif
         errs() << space << space << "} else if (tsink_neighbor >= 0) {\n";
         errs() << "#ifdef DEBUG\n";
-        errs() << space << space << space << "cout << \"Find sink in sink neighbor at \" << tsink_neighbor << endl;\n";
+        errs() << space << space << space << "cout << \"Find sink in sink neighbor at \" << tsink_neicghbor << endl;\n";
+        errs() << space << space << space << "cout << \"Neighbor Effect: \" << rt * THREAD_NUM + tsink_neighbor - tsink << endl;\n";
         errs() << "#endif\n";
-        errs() << space << space << space << "if (getChunkID(i_src) == getChunkID(i_sink)) { return rt * THREAD_NUM + tsink_neighbor - tsink; }\n";
+        errs() << space << space << space << "if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
+        
+#ifdef SMOOTHING
+        errs() << space << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM + tsink_neighbor - tsink, step, ReuseType::NEIGHBOR);\n";
+        errs() << space << space << space << space << "return 0;\n";
+#else
+        errs() << space << space << space << space << "return rt * THREAD_NUM + tsink_neighbor - tsink;\n";
+#endif
+        errs() << space << space << space << "}\n";
         errs() << space << space << "}\n";
         errs() << space << "} else if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
         errs() << space << space << "/* same thread -- scaling effect */\n";
@@ -1587,24 +1727,64 @@ namespace modelCodeGen_ref {
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Scaling Effect\" << endl;\n";
         errs() << "#endif\n";
+        errs() << space << space << space << "total_scale += 1.0;\n";
+#ifdef SMOOTHING
+        errs() << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM, rt, ReuseType::SCALE);\n";
+        errs() << space << space << space << "return 0;\n";
+#else
         errs() << space << space << space << "parallel_rt = rt * THREAD_NUM;\n";
+#endif
         errs() << space << space << "} else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
         errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"NORMAL ORDER NEGATIVE PRI\\n\"); }\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Src-Sink Order Folding Effect\" << endl;\n";
         errs() << "#endif\n";
+        errs() << space << space << space << "total_fold += 1.0;\n";
+#ifdef SMOOTHING
+        errs() << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT), step, ReuseType::FOLD_SRC_SINK);\n";
+        errs() << space << space << space << "return 0;\n";
+#else
         errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT);\n";
+#endif
         errs() << space << space << "} else { // sink-src order\n";
         errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"REVERSE ORDER NEGATIVE PRI\\n\"); }\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Sink-Src Order Folding Effect\" << endl;\n";
         errs() << "#endif\n";
+
         errs() << space << space << space << "// parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);\n";
         errs() << space << space << space << "return 0;\n";
         errs() << space << space << "}\n";
         errs() << space << "}\n";
         errs() << space << "return parallel_rt;\n";
         errs() << "}\n";
+    }
+
+
+        void ModelCodeGen_ref::SmoothingGen() {
+        errs() << "/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
+        errs() << "void uniform_smoothing(map<uint64_t, double> &rth) {\n";
+        errs() << "    map<uint64_t, double> tmp;\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = rth.begin(); it != rth.end(); ++it) {\n";
+        errs() << "        uint64_t mu = it->first;\n";
+        errs() << "        /* Do uniform distribution for all ri, distribute from ri to ri * THREAD_NUM  */\n";
+        errs() << "        if (it->second <= 0.0) { continue; }\n";
+        errs() << "        uint64_t start_b = mu;\n";
+        errs() << "        uint64_t end_b = mu * THREAD_NUM;\n";
+        errs() << "        double split_val = it->second / (end_b - start_b);\n";
+        errs() << "        for (int b = start_b; b <= end_b; b++) {\n";
+        errs() << "            rtHistoCal(tmp, b, split_val);\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    rth.clear();\n";
+        errs() << "    for(map<uint64_t, double>::iterator it = tmp.begin(); it != tmp.end(); ++it) {\n";
+        // errs() << "        subBlkRT(rth, it->first, it->second);\n";
+        errs() << "        rtHistoCal(rth, it->first, it->second);\n";
+        // errs() << "        RT[it->first] = it->second;\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        return;
     }
     
     bool ModelCodeGen_ref::runOnFunction(Function &F) {
@@ -1636,13 +1816,14 @@ namespace modelCodeGen_ref {
         /* generate headers */
         headerGen();
 
-        parallelModelCodeGen();
-
         /* generate rtHistoCal function */
         rtHistoGen();
 
         /* generate subBlkRT function */
         subBlkRTGen();
+
+        /* generate parallel predict model */
+        parallelModelCodeGen();
 
 #if defined(REFERENCE_GROUP)
         rtMergeGen();
@@ -1657,6 +1838,13 @@ namespace modelCodeGen_ref {
         
         /* generate mrDump function */
         mrDumpGen();
+
+        /* generate statDump function */
+        statDumpGen();
+#endif
+
+#if defined(SMOOTHING)
+        SmoothingGen();
 #endif
         
         /* generate addr cal function*/

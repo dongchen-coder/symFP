@@ -1,6 +1,8 @@
-#include<iostream>
-#include<map>
-#include<set>
+#include <iostream>
+#include <map>
+#include <set>
+#include <vector>
+#include <tuple>
 #include <cmath>
 using namespace std;
 
@@ -10,6 +12,7 @@ using namespace std;
 #    define BIN_SIZE   64
 #endif
 
+using namespace std;
 /* first access time */
 std::map<int, int> fat;
 /* last access time */
@@ -26,7 +29,7 @@ map<uint64_t, map<uint64_t, uint64_t>* > RI;
 
 map<uint64_t, uint64_t> refAccessCnt;
 map<uint64_t, uint64_t> srcRef;
-
+map<string, vector<tuple<vector<uint64_t>, uint64_t>> stat
 //std::map<uint64_t, std::set<uint64_t> > rtRefSet;
 //std::map<uint64_t, std::set<uint64_t> > rtArrSet;
 void rtHistoCal( uint64_t rt, uint64_t val ) {
@@ -58,6 +61,14 @@ void subBlkRT(uint64_t rt) {
     }
     else {
         rtHistoCal((uint64_t)pow(2, msb-1), 1);
+    }
+    return;
+}
+void updateStat(map<string, vector<tuple<vector<uint64_t>, uint64_t>>> & stat, string refID, tuple<vector<uint64_t>, uint64_t> t) {
+    if (stat.find(refID) == stat.end()) {
+        stat[refID] = { t };
+    } else {
+        stat[refID].push_back(t);
     }
     return;
 }
@@ -107,6 +118,20 @@ void rtTmpAccess(int addr) {
     return;
 }
 
+void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, uint64_t ref_id) {
+	addr = addr * DS / CLS;
+	refT++;
+
+    if (fat.find(addr) == fat.end()) {
+        fat[addr] = refT;
+        lat[addr] = refT;
+    } else {
+        updateStat(stat, ref_id, make_tuple(iter, refT - lat[addr]));
+        lat[addr] = refT;
+    }
+
+	return;	
+}
 void dumpRtTmp() {
 	cout << "Number of Cache Line: " << fat.size() * DS / CLS << endl;
     uint64_t cnt = 0;
@@ -120,6 +145,23 @@ void dumpRtTmp() {
 
 	// cout << rtTmp.size() << endl;
 
+    return;
+}
+
+void dumpStat() {
+    for (map<string, vector<tuple<vector<uint64_t>, uint64_t>>::iterator it = stat.begin(); it != stat.end(); ++it) {
+        cout << "Reference: " << it->first << endl;
+        for(vector<tuple<vector<uint64_t>, uint64_t>::iterator vit = it->second.begin(); vit != it->second.end(); ++vit) {
+            cout << "(";
+            for(vector<uint64_t>::iterator iit = get<0>(*vit).begin(); iit != get<0>(*vit).end(); ++iit) {
+                cout << *iit;
+                if (iit != get<0>(*vit).end()-1) {
+                    cout << ", ";
+                }
+            }
+            cout << "), " << get<1>(*vit) << endl;
+        }
+    }
     return;
 }
 

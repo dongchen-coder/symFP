@@ -45,12 +45,12 @@ void stencil_trace(double *a, double *b, unsigned int dim_size) {
         for (int j = 1; j < dim_size+1; j++) {
             b[i* (DIM_SIZE + 2) +j] =  a[i* (DIM_SIZE + 2)+j] + a[i* (DIM_SIZE + 2)+j + 1] + a[i* (DIM_SIZE + 2)+j - 1] + a[(i-1)* (DIM_SIZE + 2) +j] + a[(i+1)* (DIM_SIZE + 2) +j];
 
-            rtTmpAccess(i * (DIM_SIZE + 2) + j);
-            rtTmpAccess(i * (DIM_SIZE + 2) + j + 1);
-            rtTmpAccess(i * (DIM_SIZE + 2) + j - 1);
-            rtTmpAccess( (i-1) * (DIM_SIZE + 2) + j);
-            rtTmpAccess( (i+1) * (DIM_SIZE + 2) + j);
-            rtTmpAccess(i * (DIM_SIZE + 2) + j + (DIM_SIZE + 2)* (DIM_SIZE + 2));
+            rtTmpAccess(i * (DIM_SIZE + 2) + j, {i, j}, "A[i][j]");
+            rtTmpAccess(i * (DIM_SIZE + 2) + j + 1, {i, j}, "A[i][j+1]");
+            rtTmpAccess(i * (DIM_SIZE + 2) + j - 1, {i, j}, "A[i][j-1]");
+            rtTmpAccess( (i-1) * (DIM_SIZE + 2) + j, {i, j}, "A[i-1][j]");
+            rtTmpAccess( (i+1) * (DIM_SIZE + 2) + j, {i, j}, "A[i+1][j]");
+            rtTmpAccess(i * (DIM_SIZE + 2) + j + (DIM_SIZE + 2)* (DIM_SIZE + 2), {i, j}, "B[i][j]");
         }
     }
     return;
@@ -76,6 +76,7 @@ int main() {
     dumpRtTmp();
     RTtoMR_AET();
     dumpMR();
+    dumpStat();
 #endif
     
 #ifdef RD

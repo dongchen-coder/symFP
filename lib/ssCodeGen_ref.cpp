@@ -1540,7 +1540,6 @@ namespace ssCodeGen_ref {
         }
 #endif
         
-
 #ifdef DumpRTMR
 #ifdef REFERENCE_GROUP
         errs() << "    rtMerge();\n";
@@ -1602,6 +1601,39 @@ namespace ssCodeGen_ref {
         
         return;
     }
+
+    void StaticSamplingCodeGen_ref::predictParallelCodeGen() {
+        string space = "    ";
+        errs() << "void parallel_smoothing() {\n";
+        errs() << space << "map<uint64_t, double> tmp;\n";
+        errs() << space << "for(map<uint64_t, double>::iterator it = RT.begin(); it != RT.end(); ++it) {\n";
+        errs() << space << space << "if (it->first > 64) {\n";
+        errs() << space << space << space << "/* move less than seqri */\n";
+        errs() << space << space << space << "for (uint64_t ri = it->first; ri < it->first*2; ri++) {\n"; 
+        errs() << space << space << space << space << "rtHistoCal(tmp, ri, (it->second * 0.13) / it->first);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << space << "/* move [seqri, 2*seqri) */\n";
+        errs() << space << space << space << "for (uint64_t ri = it->first*2; ri < it->first*3; ri++) {\n"; 
+        errs() << space << space << space << space << "rtHistoCal(tmp, ri, (it->second * 0.18) / it->first);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << space << "/* move [2*seqri, 3*seqri) */\n";
+        errs() << space << space << space << "for (uint64_t ri = it->first*3; ri < it->first*4; ri++) {\n"; 
+        errs() << space << space << space << space << "rtHistoCal(tmp, ri, (it->second * 0.44) / it->first);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << space << "/* move [3*seqri, 4*seqri) */\n";
+        errs() << space << space << space << "for (uint64_t ri = it->first*4; ri < it->first*5; ri++) {\n"; 
+        errs() << space << space << space << space << "rtHistoCal(tmp, ri, (it->second * 0.25) / it->first);\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << "} else {\n";
+        errs() << space << space << space << "for (uint64_t ri = it->first; ri < it->first*5; ri++) {\n"; 
+        errs() << space << space << space << space << "rtHistoCal(tmp, ri, (it->second) / it->first*4 );\n";
+        errs() << space << space << space << "}\n";
+        errs() << space << space << "}\n";
+        errs() << space << "}\n";
+        errs() << space << "RT = tmp;\n";
+        errs() << space << "return;\n";
+        errs() << "}\n";
+    }
     
     
     bool StaticSamplingCodeGen_ref::runOnFunction(Function &F) {
@@ -1628,7 +1660,9 @@ namespace ssCodeGen_ref {
 
         /* generate subBlkRT function */
         subBlkRTGen();
-
+        
+        /* generate parallel_smoothing function */
+        predictParallelCodeGen();
 #if defined(REFERENCE_GROUP)
         rtMergeGen();
 #endif

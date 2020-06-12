@@ -144,7 +144,7 @@ namespace uiAccCodeGen_ref {
         errs() << "#include <algorithm>\n";
 #endif
         errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "#include \"../utility/papi_timer.h\"\n";
+        errs() << "#include \"papi_timer.h\"\n";
         errs() << "#endif\n";
 #ifdef PARALLEL
         errs() << "#ifndef THREAD_NUM\n";
@@ -409,9 +409,9 @@ namespace uiAccCodeGen_ref {
         errs() << "                break;\n";
         errs() << "            }\n";
         errs() << "        }\n";
-        errs() << "        cout << it1->first << \", \" << it1->second << endl;\n";
+        errs() << "        cout << (double) it1->first * 64 / (1024) << \", \" << it1->second << endl;\n";
         errs() << "        if (it1 != it2) {\n";
-        errs() << "            cout << it2->first << \", \" << it2->second << endl;\n";
+        errs() << "            cout << (double) it2->first * 64 / (1024) << \", \" << it2->second << endl;\n";
         errs() << "        }\n";
         errs() << "        it1 = ++it2;\n";
         errs() << "        it2 = it1;\n";

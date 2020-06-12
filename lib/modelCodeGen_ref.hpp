@@ -80,13 +80,14 @@ namespace modelCodeGen_ref {
         void rtToMRGen();
         void mrDumpGen();
 #endif
+        void statDumpGen();
 
 #ifdef REFERENCE_GROUP
         void rtMergeGen();
 #endif
         void headerGen();
 
-        uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree);
+        uint64_t computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, bool inclusive);
         uint64_t getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*);
         string getBound(Value* bound);
         string getBound_Start(Value* bound);
@@ -101,6 +102,8 @@ namespace modelCodeGen_ref {
         
         void searchReuseSameLoopInitGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space);
         void searchReuseSameLoopBodyGen( string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space);
+
+        void SmoothingGen();
         
         bool refRTSearchGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag,  string refName, int useID,  vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, string space);
         void refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
