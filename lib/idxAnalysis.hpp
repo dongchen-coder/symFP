@@ -36,6 +36,18 @@ namespace idxAnalysis {
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
         std::map<Instruction*, std::vector<std::string>> arrayAccessVariable;
+
+        /* 
+         * Using hash table to associating the array load/store instruction with its cost value 
+         * now the table is reference based, 2 accesses to the same array will compute its cost separately
+         * Will merge at the end of this pass -> BCArrayList;
+         * assign the Expected BCArray ratio to a global value -> BCArrayRatio
+         */
+        std::map<Instruction*, int> BCReference;
+        std::map<std::string, int> BCArrayList;
+
+        /* Expeted cost */
+        double BCArrayRatio;
         
         /* Extracting array index expression from load/store instruction */
         std::vector<Instruction*> instStackInit(Instruction* inst);

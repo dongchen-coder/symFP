@@ -25,7 +25,6 @@
 /* sequential resverior sampling gen */
 // #include "rsCodeGen_ref.hpp"
 #if defined(PARALLEL)
-#   include "modelCodeGen_ref.hpp"
 #   include "loopTreeTransform.hpp"
 #   if defined(UNIFORM_INTERLEAVING)
         /* parallel 1:1 interleaving static sampling gen */
@@ -36,6 +35,10 @@
 #       include "riAccCodeGen_ref.hpp"
 #       include "riIterCodeGen_ref.hpp"
 #		include "riCodeGen_ref.hpp"
+#   elif defined(THREAD_TUNING)
+#       include "staticTuningCodeGen_ref.hpp"
+#   else 
+#       include "modelCodeGen_ref.hpp"
 #   endif
 #endif
 
@@ -72,6 +75,8 @@ namespace symFP {
             AU.addRequired<riAccCodeGen_ref::AccLevelRICodeGen_ref>();
 #	elif defined(RANDOM_INTERLEAVING) && defined(ALL_LEVEL_INTERLEAVING)
 			AU.addRequired<riCodeGen_ref::AllLevelRICodeGen_ref>();
+#   elif defined(THREAD_TUNING)
+            AU.addRequired<staticTuningCodeGen_ref::TuningCodeGen_ref>();
 #   else 
             AU.addRequired<modelCodeGen_ref::ModelCodeGen_ref>();
 #   endif

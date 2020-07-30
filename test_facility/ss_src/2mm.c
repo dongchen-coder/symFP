@@ -1,6 +1,9 @@
 #ifndef DEBUG
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
+# endif
+# ifndef POLYBENCH_LOOP_ITERATION
+#  define POLYBENCH_LOOP_ITERATION  1000
 # endif
 #ifdef MINI_DATASET
 	#define NI 32
@@ -14,7 +17,7 @@
     #define NL 128
     #define NK 128
 #endif 
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
 	#define NI 1024
 	#define NJ 1024
 	#define NK 1024

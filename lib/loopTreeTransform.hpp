@@ -22,12 +22,16 @@ namespace loopTreeTransform {
 
         typedef loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode LoopRefTNode;
 
+        uint64_t total_cache_access;
         /* LoopRefTree after the parallel transofrm */
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* PTLoopRefTree;
 
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>outMostLoops;
 
         std::map<Instruction*, uint64_t> outMostLoopPerIterationSpace;
+
+        /* all array references enclosed by each outermost looop */
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, vector<Instruction*>> refPerOutMostLoop;
 
         void computePerIterationSpace();
         /* compute loop iteration space */

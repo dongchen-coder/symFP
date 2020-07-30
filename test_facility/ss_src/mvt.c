@@ -1,8 +1,8 @@
 //void runMvt(int n, DATA_TYPE POLYBENCH_2D(a, N, N, n, n), DATA_TYPE POLYBENCH_1D(x1, N, n), DATA_TYPE POLYBENCH_1D(x2, N, n), DATA_TYPE POLYBENCH_1D(y1, N, n), DATA_TYPE POLYBENCH_1D(y2, N, n))
 
 #ifndef DEBUG
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
 # endif    
 #ifdef MINI_DATASET
     #define N 32
@@ -10,7 +10,7 @@
 #ifdef SMALL_DATASET
     #define N 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define N 4096
 #endif
 #ifdef LARGE_DATASET

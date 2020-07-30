@@ -164,6 +164,7 @@ namespace modelCodeGen_ref {
 #endif
         errs() << "map<uint64_t, double> RT;\n";
         errs() << "map<uint64_t, double> MR;\n";
+        errs() << "uint64_t sample_sum = 0;\n";
 #ifdef REFERENCE_GROUP
         errs() << "map<string, map<uint64_t, double>> refRT;\n";
 #endif
@@ -172,6 +173,7 @@ namespace modelCodeGen_ref {
         errs() << "double total_scale = 0.0;\n";
         errs() << "double total_fold = 0.0;\n";
         errs() << "double total_interchunk = 0.0;\n";
+        errs() << "double share_reuse = 0.0;\n";
 #ifdef SMOOTHING
         errs() << "enum class ReuseType {\n";
         errs() << "    INTER_CHUNK,\n";
@@ -184,7 +186,6 @@ namespace modelCodeGen_ref {
         return;
     }
 
-#ifdef DumpRTMR
     void ModelCodeGen_ref::rtHistoGen() {
         
         errs() << "void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {\n";
@@ -242,7 +243,6 @@ namespace modelCodeGen_ref {
         errs() << "}\n";
 #endif
     }
-#endif
 
      /* Generate the function to calculate the bins */
     void ModelCodeGen_ref::subBlkRTGen() {
@@ -319,7 +319,7 @@ namespace modelCodeGen_ref {
 #endif  
         return;
     }
-    
+
     void ModelCodeGen_ref::rtToMRGen() {
         
         errs() << "void RTtoMR_AET() {\n";
@@ -431,6 +431,7 @@ namespace modelCodeGen_ref {
         errs() << "    cout << \"Total Scaling Reuses: \" << total_scale / total_reuse << endl;\n";
         errs() << "    cout << \"Total Folding Src-Sink Reuses: \" << total_fold / total_reuse << endl;\n";
         errs() << "    cout << \"Total Inter Chunk Reuses: \" << total_interchunk / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Shared Reuses: \" << share_reuse / total_reuse << endl;\n";
         errs() << "    cout << \"Total Reuses: \" << total_reuse << endl;\n";
         errs() << "    return;\n";
         errs() << "}\n";
@@ -1043,6 +1044,14 @@ namespace modelCodeGen_ref {
                     if (arrayTypeMap[refName + std::to_string(useID)] != REGULAR || arrayTypeMap[refName + std::to_string(refNumber[LoopRefTree->AA])] != REGULAR) {
                         is_normal_ref = "false";
                     } 
+                    
+                    bool is_src_loop_outermost = find(outloops.begin(), outloops.end(), (*loops.begin())) != outloops.end();
+                    bool is_sink_loop_outermost = find(outloops.begin(), outloops.end(), (*currentLoops.begin())) != outloops.end();
+                    errs() << space << "            /* is_src_loop_outermost: " << is_src_loop_outermost << " */\n";
+                    errs() << space << "            /* is_sink_loop_outermost: " << is_sink_loop_outermost << " */\n";
+                    /* source and sink are not in the same loop 
+                     * 
+                     */
                     if ((*currentLoops.begin()) != (*loops.begin())) {
                         is_in_same_loop = "false";
                     }
@@ -1080,24 +1089,37 @@ namespace modelCodeGen_ref {
                     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator head = find(outloops.begin(), outloops.end(), (*loops.begin()));
                     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator end = find(outloops.begin(), outloops.end(), (*currentLoops.begin()));
                     uint64_t middle_access = 0;
-                    errs() << space + "            uint64_t middle_accesses = " << middle_access;
+                    errs() << space + "            uint64_t middle_accesses = 0;\n";
                     if (is_in_same_loop == "false") {
                         if (head != outloops.end() && end != outloops.end()) {
                             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = head + 1; it < end; ++it) {
                                 middle_access += computeIterSpace(*it, true);
                             }
                         }
+                        errs() << space + "            if (isCompleteChunk(" << getOuterMostLoopIterationSpace((*loops.begin())) << ")) {\n";
+                        errs() << space << space << "            middle_accesses += ";
                         /* Here we compute the remaining chunks to be iterated after source chunk and chunks to be iterated before sink chunk. Then add the iterations computed in the first step */
-                        errs() << " + (";
+                        errs() << "((";
                         if ((*currentLoops.begin()) != (*loops.begin())) {
                             errs() << "getChunkNum(" << getOuterMostLoopIterationSpace((*loops.begin())) << ")";
                         }
-                        errs() << " - getChunkID(" << outermost_src_indv << ") - 1) * CHUNK_SIZE * THREAD_NUM * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << " + getChunkID(" << outermost_sink_indv << ") * CHUNK_SIZE * THREAD_NUM * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]);
+                        errs() << " - getChunkID(" << outermost_src_indv << ") - 1) * (CHUNK_SIZE * THREAD_NUM)) * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << " + getChunkID(" << outermost_sink_indv << ") * CHUNK_SIZE * THREAD_NUM * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ";\n";
+                        errs() << space << "            } else {\n";
+                        errs() << space << space << "            middle_accesses += ";
+                        /* Here we compute the remaining chunks to be iterated after source chunk and chunks to be iterated before sink chunk. Then add the iterations computed in the first step */
+                        errs() << "((";
+                        if ((*currentLoops.begin()) != (*loops.begin())) {
+                            errs() << "getChunkNum(" << getOuterMostLoopIterationSpace((*loops.begin())) << ")";
+                        }
+                        // -2 means remove the source and the last chunk
+                        errs() << " - getChunkID(" << outermost_src_indv << ") - 2) * CHUNK_SIZE * THREAD_NUM + (" << getOuterMostLoopIterationSpace((*loops.begin())) << " % (THREAD_NUM * CHUNK_SIZE))" << ") * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << " + getChunkID(" << outermost_sink_indv << ") * CHUNK_SIZE * THREAD_NUM * " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ";\n";
+                        errs() << space << "            }\n";
                     }
-                    errs() << ";\n";
+                    errs() << space + "            middle_accesses += "<< middle_access << ";\n";
                     errs() << "#ifdef DEBUG\n";
                     errs() << space + "            cout << \" middle_access is \" << middle_accesses << endl;\n";
                     errs() << "#endif\n";
+                    errs() << space + "            int reuse_type = -1;\n";
 #ifdef SMOOTHING
                     errs() << space + "            uint64_t step = cnt;\n";
                     vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator src_it = loops.begin();
@@ -1114,9 +1136,9 @@ namespace modelCodeGen_ref {
                         src_it++;
                         sink_it++;
                     }
-                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, step, " << is_normal_ref << ", " << is_in_same_loop << ", srcAddrCal, sinkAddrCal);\n";
+                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, step, " << is_normal_ref << ", " << is_in_same_loop << ", reuse_type, srcAddrCal, sinkAddrCal);\n";
 #else
-                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, " << is_normal_ref << ", " << is_in_same_loop << ", srcAddrCal, sinkAddrCal);\n";
+                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, " << is_normal_ref << ", " << is_in_same_loop << ", reuse_type, srcAddrCal, sinkAddrCal);\n";
 #endif
 #ifdef REFERENCE_GROUP
                     // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
@@ -1154,6 +1176,30 @@ namespace modelCodeGen_ref {
                     errs() << "<< \") \" << endl;\n"; 
                     // errs() << space + "            }\n";
                     errs() << "#endif\n";
+                    /* output format:
+                    * src-ref, src-idx, sink-ref, sink-idx, ris, rip, type
+                    */
+                    errs() << space << "                // cout << \"" << refName << to_string(useID) << ";\" << ";
+                    errs() << "\"(\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                            if (it != loops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \");\" << \"" << refName << to_string(refNumber[LoopRefTree->AA]) << ";\" << ";
+                    errs() << "\"(\" << ";
+                    for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                        for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                            errs() << indvName[(*(*it)->LIS->IDV)[i]];
+                            if (it != currentLoops.end()-1) {
+                                errs() << "<< \", \" << ";
+                            }
+                        }
+                    }
+                    errs() << "<< \");\" << cnt << \";\" << parallel_rt << \";\" << reuse_type << endl;\n"; 
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        actural = cnt;\n";
 #endif
@@ -1285,7 +1331,6 @@ namespace modelCodeGen_ref {
         errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
         errs() << space + "set<string> record;\n";
-        
         errs() << space + "for ( int s = 0; s < ";
 		if (loops.size() == 0) {
 			errs() << "1";
@@ -1522,16 +1567,17 @@ namespace modelCodeGen_ref {
 #endif
         errs() << "    RTtoMR_AET();\n";
         errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "    PAPI_timer_stop();\n";
+        errs() << "    PAPI_timer_end();\n";
         errs() << "    PAPI_timer_print();\n";
         errs() << "#endif\n";
         errs() << "    statDump();\n";
 #ifdef REFERENCE_GROUP
         errs() << "    refRTDump();\n";
 #endif
+        errs() << "    cout << \"Samples: \" << \"" << l1_dcache_access << "\" << endl;\n"; 
         errs() << "    rtDump();\n";
         errs() << "    dumpMR();\n";
-#elif
+#else
         // errs() << "#ifdef PAPI_TIMER\n";
         // errs() << "// Get ending timepoint\n"; 
         // errs() << "    auto stop = high_resolution_clock::now(); \n";
@@ -1555,22 +1601,48 @@ namespace modelCodeGen_ref {
             errs() << *vit << " ";
         }
         errs() << "*/ \n";
+        loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* target = NULL;
+        // find the outermost loop that this array enclosed in 
+        for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outloops.begin(); it != outloops.end(); ++it) {
+            if (find(refPerOutMostLoop[*it].begin(), refPerOutMostLoop[*it].end(), arrayInstr) != refPerOutMostLoop[*it].end()) {
+                target = *it;
+                break;
+            }
+        }
+        // this array expression does not in an loop
+        if (target == NULL) {
+            arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_INVARIANT;
+            return;
+        }
+        // for each induction variable in an array expression
         for(vector<string>::iterator vit = arrayAccessVariable[arrayInstr].begin(); vit != arrayAccessVariable[arrayInstr].end(); ++vit) {
-            // iterate all outermost loops
-            for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = outloops.begin(); it != outloops.end(); ++it) {
-                // contains outermost loop induction variable
-                if (indvName[(*(*it)->LIS->IDV)[0]] == *vit ) {
-                    // contains only 1 induction 
-                    if (arrayAccessVariable[arrayInstr].size() == 1) {
-                        arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_ONLY;
-                        return;
-                    } else if (vit != arrayAccessVariable[arrayInstr].begin()) {
-                        arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REVERSE;
-                        return;
-                    }
-                    arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REGULAR;
+            errs() << "/* " << indvName[(*(target)->LIS->IDV)[0]] << " */\n"; 
+            // contains outermost loop induction variable
+            if (indvName[(*(target)->LIS->IDV)[0]] == *vit ) {
+                // contains only 1 induction 
+                if (arrayAccessVariable[arrayInstr].size() == 1) {
+                    // loop that this array encloses is greater than 1 (multi-level)
+                    arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_ONLY;
+                    // if (.size() > 1)
+                    //     arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_ONLY;
+                    // else
+                    //     arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REGULAR;
+                    return;
+                } else if (vit != arrayAccessVariable[arrayInstr].begin()) {
+                    /* in this case
+                     * array index expression contains the outermost loop
+                     * induction variable but it does not in the same access
+                     * level as the outermost loop does.
+                     * 
+                     * i.e. i is the outermost loop and j is its inner loop
+                     * A[j][i] meet this condition
+                     */
+                    errs() << "/* " << *vit << ", " << *(arrayAccessVariable[arrayInstr].begin()) << " */\n";
+                    arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REVERSE;
                     return;
                 }
+                arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = REGULAR;
+                return;
             }
         }
         arrayTypeMap[arrayName[arrayInstr] + to_string(refNumber[arrayInstr])] = OUTERMOST_INVARIANT;
@@ -1579,7 +1651,13 @@ namespace modelCodeGen_ref {
     
     void ModelCodeGen_ref::parallelModelCodeGen() {
         string space = "    ";
+        errs() << "bool isCompleteChunk(uint64_t is) {\n";
+        errs() << space << "return ((is % (CHUNK_SIZE * THREAD_NUM)) == 0);\n";
+        errs() << "}\n";
         errs() << "int getChunkNum(uint64_t is) {\n";
+        errs() << space << "if (is % (CHUNK_SIZE * THREAD_NUM) != 0) {\n";
+        errs() << space << space << "return is / (CHUNK_SIZE * THREAD_NUM) + 1;\n";
+        errs() << space << "}\n";
         errs() << space << "return is / (CHUNK_SIZE * THREAD_NUM);\n";
         errs() << "}\n";
 
@@ -1668,30 +1746,37 @@ namespace modelCodeGen_ref {
 #ifdef SMOOTHING
         errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, uint64_t step, bool is_normal_ref, bool is_in_same_loop, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
 #else
-        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, bool is_normal_ref, bool is_in_same_loop, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
+        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, bool is_normal_ref, bool is_in_same_loop, int & type, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
 #endif
+        errs() << "#ifdef DEBUG\n";
+        errs() << space << "cout << \"rt \" << rt << endl;\n";
+        errs() << "#endif\n";
         errs() << space << "total_reuse += 1.0;\n";
         errs() << space << "uint64_t parallel_rt = rt;\n";
         errs() << space << "int tsrc = getThreadID(i_src);\n";
         errs() << space << "int tsink = getThreadID(i_sink);\n";
         errs() << space << "int dT = tsink - tsrc;\n";
+        errs() << space << "int sink_neighbor_delta = 0;\n";
         errs() << space << "if (!is_in_same_loop || getChunkID(i_src) != getChunkID(i_sink)) {\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << "cout << \"Inter Chunk Reuse\" << endl;\n";
-        errs() << space << space << "cout << \"rt \" << rt << endl;\n";
+        errs() << space << space << ";\n";
         errs() << "#endif\n";
+        errs() << space << space << "type = 0; // code for inter chunk reuse\n";
+        errs() << space << space << "total_interchunk += 1.0;\n";
+        errs() << space << space << "if (dT != 0) { share_reuse += 1.0; }\n";
 #ifdef SMOOTHING
         errs() << space << space << "parallel_smoothing(rt, rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsrc - (THREAD_NUM - 1) * middle_accesses + dT, step, ReuseType::FOLD_SRC_SINK);\n";
         errs() << space << space << space << "return 0;\n";
 #else
         errs() << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsrc - (THREAD_NUM - 1) * middle_accesses + dT;\n";
 #endif
+        errs() << space << space << "return parallel_rt;\n";
         errs() << space << "} else if (!is_normal_ref) {\n";
         errs() << space << space << "/* intra chunk reuse */\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << "cout << \"Neighboring Effect\" << endl;\n";
         errs() << "#endif\n";
-        errs() << space << space << "total_neighbor += 1.0;\n";
         errs() << space << space << "int tsrc_neighbor = search_src_candidate_neighbor(i_src, srcAddrCal);\n";
         errs() << space << space << "int tsink_neighbor = search_sink_candidate_neighbor(i_sink, sinkAddrCal);\n";
         errs() << space << space << "if (tsrc_neighbor >= 0) {\n";
@@ -1699,6 +1784,9 @@ namespace modelCodeGen_ref {
         errs() << space << space << space << "cout << \"Find sink in src neighbor at \" << tsrc_neighbor << endl;\n";
         errs() << space << space << space << "cout << \"Neighbor Effect: \" << tsrc_neighbor - tsrc << endl;\n";
         errs() << "#endif\n";
+        errs() << space << space << space << "total_neighbor += 1.0;\n";
+        errs() << space << space << space << "share_reuse += 1.0;\n";
+        errs() << space << space << space << "type = 1; // code for src neighboring effect\n";
         
 #ifdef SMOOTHING
         errs() << space << space << space << "parallel_smoothing(rt, tsrc_neighbor - tsrc, step, ReuseType::NEIGHBOR);\n";
@@ -1708,7 +1796,7 @@ namespace modelCodeGen_ref {
 #endif
         errs() << space << space << "} else if (tsink_neighbor >= 0) {\n";
         errs() << "#ifdef DEBUG\n";
-        errs() << space << space << space << "cout << \"Find sink in sink neighbor at \" << tsink_neicghbor << endl;\n";
+        errs() << space << space << space << "cout << \"Find sink in sink neighbor at \" << tsink_neighbor << endl;\n";
         errs() << space << space << space << "cout << \"Neighbor Effect: \" << rt * THREAD_NUM + tsink_neighbor - tsink << endl;\n";
         errs() << "#endif\n";
         errs() << space << space << space << "if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
@@ -1717,29 +1805,40 @@ namespace modelCodeGen_ref {
         errs() << space << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM + tsink_neighbor - tsink, step, ReuseType::NEIGHBOR);\n";
         errs() << space << space << space << space << "return 0;\n";
 #else
+        errs() << space << space << space << space << "total_neighbor += 1.0;\n";
+        errs() << space << space << space << space << "share_reuse += 1.0;\n";
+        errs() << space << space << space << space << "type = 2; // code for sink neighboring effect\n";
+        // errs() << space << space << space << space << "sink_neighbor_delta = tsink_neighbor - tsink;\n";
         errs() << space << space << space << space << "return rt * THREAD_NUM + tsink_neighbor - tsink;\n";
 #endif
         errs() << space << space << space << "}\n";
         errs() << space << space << "}\n";
+        // errs() << space << "}\n";
+        // errs() << space << "if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
         errs() << space << "} else if (getChunkID(i_src) == getChunkID(i_sink)) {\n"; 
         errs() << space << space << "/* same thread -- scaling effect */\n";
         errs() << space << space <<"if (dT == 0) {\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Scaling Effect\" << endl;\n";
         errs() << "#endif\n";
-        errs() << space << space << space << "total_scale += 1.0;\n";
+        errs() << space << space << space << "if (sink_neighbor_delta == 0.0) { total_scale += 1.0; }\n";
 #ifdef SMOOTHING
         errs() << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM, rt, ReuseType::SCALE);\n";
         errs() << space << space << space << "return 0;\n";
 #else
         errs() << space << space << space << "parallel_rt = rt * THREAD_NUM;\n";
+        errs() << space << space << space << "type = 3; // code for scaling effect\n";
 #endif
         errs() << space << space << "} else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
         errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"NORMAL ORDER NEGATIVE PRI\\n\"); }\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Src-Sink Order Folding Effect\" << endl;\n";
         errs() << "#endif\n";
-        errs() << space << space << space << "total_fold += 1.0;\n";
+        errs() << space << space << space << "type = 4; // code for src-sink order folding effect\n";
+        errs() << space << space << space << "if (sink_neighbor_delta == 0) {\n";
+        errs() << space << space << space << space << "total_fold += 1.0;\n";
+        errs() << space << space << space << space << "share_reuse += 1.0;\n";
+        errs() << space << space << space << "}\n";
 #ifdef SMOOTHING
         errs() << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT), step, ReuseType::FOLD_SRC_SINK);\n";
         errs() << space << space << space << "return 0;\n";
@@ -1751,12 +1850,12 @@ namespace modelCodeGen_ref {
         errs() << "#ifdef DEBUG\n";
         errs() << space << space << space << "cout << \"Sink-Src Order Folding Effect\" << endl;\n";
         errs() << "#endif\n";
-
         errs() << space << space << space << "// parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);\n";
+        errs() << space << space << space << "type = 5; // code for sink-src order folding effect\n";
         errs() << space << space << space << "return 0;\n";
         errs() << space << space << "}\n";
         errs() << space << "}\n";
-        errs() << space << "return parallel_rt;\n";
+        errs() << space << "return parallel_rt + sink_neighbor_delta;\n";
         errs() << "}\n";
     }
 
@@ -1797,9 +1896,11 @@ namespace modelCodeGen_ref {
         arrayAccessVariable= getAnalysis<idxAnalysis::IndexAnalysis>().arrayAccessVariable;
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         sampleNum = getAnalysis<sampleNumAnalysis::SampleNumberAnalysis>().sampleNum;
+        l1_dcache_access = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().total_cache_access;
 #ifdef PARALLEL
         map<Instruction*, uint64_t> tempL = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoopPerIterationSpace;;
         outloops = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoops;
+        refPerOutMostLoop = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().refPerOutMostLoop;
 #endif
 
         /* init */

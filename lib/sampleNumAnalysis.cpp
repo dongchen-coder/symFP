@@ -184,7 +184,8 @@ namespace sampleNumAnalysis {
                         }
                     }
                 }
-                
+
+                iter_num += sampling_num;
                 
                 for (int i = 0; i < loops_New.size(); i++) {
                     sampling_num = sampling_num * samplingRate;
@@ -479,7 +480,7 @@ namespace sampleNumAnalysis {
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         
         errs() << "calculating:\n";
-        
+        iter_num = 0;
         calculateSampleNum(LoopRefTree, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>());
         
         errs() << "Dump tree:\n";

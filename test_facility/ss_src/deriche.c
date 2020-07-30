@@ -1,6 +1,34 @@
 
-#define W 1024
-#define H 1024
+
+#ifndef DEBUG
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
+# endif
+#ifdef MINI_DATASET
+    #define W 32
+    #define H 32
+#endif
+#ifdef SMALL_DATASET
+    #define W 1024
+    #define H 1024
+#endif 
+#ifdef MEDIUM_DATASET
+    #define W 4096
+    #define H 4096
+#endif
+#ifdef LARGE_DATASET
+    #define W 8192
+    #define H 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define W 100000
+    #define H 100000
+#endif
+
+#else
+    #define W 4
+    #define H 4
+#endif
 
 #define EXP_FUN(x) exp(x)
 #define POW_FUN(x,y) pow(x,y)
@@ -45,12 +73,12 @@ void deriche(double* y1, double* imgIn, double* y2, double* imgOut, double alpha
 		yp2 = 0.0;
 		xp1 = 0.0;
 		xp2 = 0.0;
-		for (j = H-1; j >= 0; j--) {
-			y2[i * H + j] = a3*xp1 + a4*xp2 + b1*yp1 + b2*yp2;
+		for (j = 0; j < H; j++) {
+			y2[i * H + H-1-j] = a3*xp1 + a4*xp2 + b1*yp1 + b2*yp2;
 			xp2 = xp1;
-			xp1 = imgIn[i * H + j];
+			xp1 = imgIn[i * H + H-1-j];
 			yp2 = yp1;
-			yp1 = y2[i * H + j];
+			yp1 = y2[i * H + H-1-j];
 		}
 	}
 
@@ -76,12 +104,12 @@ void deriche(double* y1, double* imgIn, double* y2, double* imgOut, double alpha
 		tp2 = 0.0;
 		yp1 = 0.0;
 		yp2 = 0.0;
-		for (i = W-1; i>=0; i--) {
-			y2[i * H + j] = a7*tp1 + a8*tp2 + b1*yp1 + b2*yp2;
+		for (i = 0; i < W; i++) {
+			y2[(W-1-i) * H + j] = a7*tp1 + a8*tp2 + b1*yp1 + b2*yp2;
 			tp2 = tp1;
-			tp1 = imgOut[i * H + j];
+			tp1 = imgOut[(W-1-i) * H + j];
 			yp2 = yp1;
-			yp1 = y2[i * H + j];
+			yp1 = y2[(W-1-i) * H + j];
 		}
 	}
 

@@ -1171,6 +1171,29 @@ namespace ssCodeGen_ref {
                         // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
                         errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\"";
 #else
+                        errs() << "#ifdef DEBUG\n";
+                        // errs() << space + "            if (parallel_rt != 1 && parallel_rt != 13) {\n";
+                        errs() << space << "                cout << \"[" << refName << to_string(useID) << " --> " << refName << to_string(refNumber[LoopRefTree->AA]) << "]" << " [\" << cnt << \"] (\" << ";
+                        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                            for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                                errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                                if (it != loops.end()-1) {
+                                    errs() << "<< \", \" << ";
+                                }
+                            }
+                        }
+                        errs() << "<< \") --> (\" << ";
+                        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = currentLoops.begin(), eit = currentLoops.end(); it != eit; ++it) {
+                            for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                                errs() << indvName[(*(*it)->LIS->IDV)[i]];
+                                if (it != currentLoops.end()-1) {
+                                    errs() << "<< \", \" << ";
+                                }
+                            }
+                        }
+                        errs() << "<< \") \" << endl;\n"; 
+                        // errs() << space + "            }\n";
+                        errs() << "#endif\n";
                         // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
                         errs() << space + "            rtHistoCal(RT, cnt, 1.0";
 #endif

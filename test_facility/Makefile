@@ -17,7 +17,7 @@ TEST_DIR=.
 #LIB_DIR=/Users/dchen/tools/llvm-8.0.0/build/lib
 LIB_DIR=../build/lib
 
-SPSRATE=0.1
+SPSRATE=0.01
 
 SRC_DIR=$(TEST_DIR)/ss_src
 BC_DIR=$(TEST_DIR)/ss_bc
@@ -43,20 +43,20 @@ CC= $(CLANG_BIN_DIR)/clang
 DIS= $(LLVM_BIN_DIR)/llvm-dis
 
 CHK_SIZE=4
+CONSTANT_FLAG = -DTHREAD_LB=2 -DTHREAD_UB=10 -DCHUNK_SIZE=$(CHK_SIZE) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DPAPI_TIMER #-DDEBUG
 
-all_bench = stencil 2mm 3mm adi atax bicg cholesky correlation covariance deriche doitgen durbin fdtd_2d floyd_warshall gemm gemver gesummv gramschmidt heat_3d jacobi_1d jacobi_2d lu ludcmp mvt nussinov seidel_2d symm syr2k syrk trisolv trmm
+all_bench = stencil 2mm 3mm adi atax bicg cholesky correlation covariance deriche doitgen durbin fdtd-2d floyd-warshall gemm gemver gesummv gramschmidt heat-3d jacobi-1d jacobi-2d lu ludcmp mvt nussinov seidel-2d symm syr2k syrk trisolv trmm
 
-constant_bound_bench = deriche doitgen fdtd_2d heat_3d jacobi_1d jacobi_2d seidel_2d 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d stencil
+constant_bound_bench = stream # deriche fdtd-2d heat-3d jacobi-1d jacobi-2d 2mm 3mm mvt atax bicg gemm gemver gesummv adi stencil
 
 sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm trisolv trmm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-test_bench = deriche doitgen fdtd_2d heat_3d jacobi_1d jacobi_2d seidel_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d stencil
+test_bench = deriche fdtd-2d heat-3d jacobi-1d jacobi-2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv stencil
 
-check_bench = 2mm 3mm mvt atax bicg gemm gemver gesummv convolution2d convolution3d syrk syr2k stencil# 
+check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 
-phase_bench = 2mm_phase 2mm_phase2 3mm_phase 3mm_phase2 3mm_phase3 correlation_phase correlation_phase2 correlation_phase3 correlation_phase4 covariance_phase covariance_phase2 coveriance_phase3 gemver_phase gemver_phase2 gemver_phase3 gemver_phase4 mvt_phase mvt_phase2 syr2k_phase syr2k_phase2 syrk_phase syrk_phase2
 #check_bench = stencil convolution2d convolution3d
 #check_bench = atax
 #check_bench = gesummv
@@ -87,7 +87,6 @@ parallel_gen:
 	$(foreach name, $(all_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(all_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/parallel/$(name)_staticSampling.cpp ;)
 	$(foreach name, $(all_bench), g++ -std=c++11 $(SS_DIR)/parallel/$(name)_staticSampling.cpp -O3 -DTHREAD_NUM=8 -DBIN_SIZE=64 -o $(BIN_DIR)/parallel/$(name)_staticSampling ;)
-
 all_run:
 	$(foreach name, $(all_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt ;)
 
@@ -157,29 +156,35 @@ test_trace_run:
 	$(foreach name, $(test_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -DMINI_DATASET -o $(BIN_DIR)/$(name)_trace ;)
 
 test_plum_gen:
-	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
-	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plum.cpp ;)
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_plum.cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -DPAPI_TIMER -o $(BIN_DIR)/$(name)_plum ;)
+	# $(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	# $(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plum.cpp ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_plum.cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plum ;)
 
 test_model_gen:
-	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
-	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_model.cpp ;)
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_model.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -DPAPI_TIMER -o $(BIN_DIR)/$(name)_model ;)
+	# $(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	# $(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_model.cpp ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_model.cpp -O3 -lpthread -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_model ;)
 
 test_smoothing_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_smoothing.cpp ;)
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_smoothing.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -o $(BIN_DIR)/$(name)_smoothing ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_smoothing.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_smoothing ;)
 	
 test_ss_gen:
-	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
-	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_ss.cpp ;)
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_ss.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) -DBIN_SIZE=64 -DTHREAD_NUM=4 -DCHUNK_SIZE=$(CHK_SIZE) -o $(BIN_DIR)/$(name)_ss ;)
+	$(foreach name, $(all_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DLARGE_DATASET -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(all_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(all_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_ss.cpp ;)
+	$(foreach name, $(all_bench), g++ -g -std=c++11 $(SS_DIR)/$(name)_ss.cpp -O3 -I$(PAPI_LIB_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_ss ;)
 	
+test_tuning_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMEDIUM_DATASET -o $(BC_DIR)/$(name).bc ;)
+	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_tuning.cpp ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 -pthread $(SS_DIR)/$(name)_tuning.cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_tuning ;)
+
 clean:	
 	rm $(BIN_DIR)/sequential/*_staticSampling
 	rm $(BIN_DIR)/parallel/*_staticSampling

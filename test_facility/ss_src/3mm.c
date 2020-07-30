@@ -1,6 +1,6 @@
 #ifndef DEBUG
-#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-    #define STANDARD_DATASET
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+    #define LARGE_DATASET
 #endif
 #ifdef MINI_DATASET
     #define NI 32
@@ -16,7 +16,7 @@
     #define NK 128
     #define NM 128
 #endif 
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NI 1024
     #define NJ 1024
     #define NK 1024
@@ -55,7 +55,7 @@ void mm2(int ni, int nj, int nk, int nl, int nm,
     {
         for (j = 0; j < NJ; j++)
         {
-            E[i * NJ + j] = 0;
+            E[i * NJ + j] = 0.0;
             for (k = 0; k < NK; ++k)
             {
                 E[i * NJ + j] += A[i * NK + k] * B[k * NJ + j];
@@ -68,7 +68,7 @@ void mm2(int ni, int nj, int nk, int nl, int nm,
     {
         for (j = 0; j < NL; j++)
         {
-            F[i * NL + j] = 0;
+            F[i * NL + j] = 0.0;
             for (k = 0; k < NM; ++k)
             {
                 F[i * NL + j] += C[i * NM + k] * D[k * NL + j];

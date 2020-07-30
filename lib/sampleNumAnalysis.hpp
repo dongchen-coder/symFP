@@ -17,6 +17,7 @@ namespace sampleNumAnalysis {
         SampleNumberAnalysis();
         
         double samplingRate;
+        uint64_t iter_num;
         
         std::map<Instruction*, int> refNumber;
         std::map<Loop*, int> loopNumber;

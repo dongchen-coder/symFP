@@ -1,8 +1,8 @@
 //void gemm(int ni, int nj, int nk, DATA_TYPE alpha, DATA_TYPE beta, DATA_TYPE POLYBENCH_2D(A,NI,NK,ni,nk), DATA_TYPE POLYBENCH_2D(B,NK,NJ,nk,nj), DATA_TYPE POLYBENCH_2D(C,NI,NJ,ni,nj))
 
 #ifndef DEBUG
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
 # endif
 #ifdef MINI_DATASET
     #define NI 32
@@ -14,7 +14,7 @@
     #define NJ 128
     #define NK 128
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NI 1024
     #define NJ 1024
     #define NK 1024
@@ -45,8 +45,10 @@ void gemm(int ni, int nj, int nk, double alpha, double beta, double* A, double* 
         for (j = 0; j < NJ; j++)
         {
             C[i * NJ + j] *= beta;
-            
-            for (k = 0; k < NK; k++)
+        }
+        for (k = 0; k < NK; k++)
+        {
+            for (j = 0; j < NJ; j++)
             {
                 C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
             }

@@ -59,7 +59,11 @@ namespace modelCodeGen_ref {
         map<Value*,  string> indvName;
 
         map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
+        uint64_t l1_dcache_access = 0;
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> outloops;
+
+        /* all array references enclosed by each outermost looop */
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, vector<Instruction*>> refPerOutMostLoop;
 
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         void numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);

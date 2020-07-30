@@ -1,6 +1,32 @@
-#define N 1024
-#define TSTEPS 10
+#ifndef DEBUG
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
+# endif
+#ifdef MINI_DATASET
+	#define TSTEPS  2
+	#define N       32
+#endif
+#ifdef SMALL_DATASET
+	#define TSTEPS  10
+    #define N       1024
+#endif 
+#ifdef MEDIUM_DATASET
+	#define TSTEPS  50
+	#define N       2048
+#endif
+#ifdef LARGE_DATASET
+	#define TSTEPS  50
+	#define N       4096
+#endif
+#ifdef EXTRALARGE_DATASET
+	#define TSTEPS  100
+	#define N       8192
+#endif
 
+#else
+	#define TSTEPS  1
+	#define N       4
+#endif
 void adi(double* p, double* q, double* v, double* u) {
 
 	int t, i, j;
@@ -23,31 +49,31 @@ void adi(double* p, double* q, double* v, double* u) {
 	f = d;
 
 	//Column Sweep
-	for (i=1; i< N-1; i++) {
-		v[0 * N + i] = 1.0;
-		p[i * N + 0] = 0.0;
-		q[i * N + 0] = v[0 * N + i];
-		for (j=1; j< N-1; j++) {
-			p[i * N + j] = -c / (a*p[i * N + j-1]+b);
-			q[i * N + j] = (-d*u[j * N + i-1] + (1.0 + 2.0 * d) * u[j * N + i] - f * u[j * N + i+1] - a * q[i * N + j-1]) / (a*p[i * N + j-1]+b);
+	for (i=0; i< N-2; i++) {
+		v[0 * N + i+1] = 1.0;
+		p[(i+1) * N + 0] = 0.0;
+		q[(i+1) * N + 0] = v[0 * N + (i+1)];
+		for (j=0; j< N-2; j++) {
+			p[(i+1) * N + j+1] = -c / (a*p[(i+1) * N + j]+b);
+			q[(i+1) * N + j+1] = (-d*u[(j+1) * N + i] + (1.0 + 2.0 * d) * u[(j+1) * N + i+1] - f * u[(j+1) * N + i+2] - a * q[(i+1) * N + j]) / (a*p[(i+1) * N + j]+b);
 		}
-		v[(N - 1) * N + i] = 1.0;
-		for (j= N-2; j>=1; j--) {
-			v[j * N + i] = p[i * N + j] * v[(j+1) * N + i] + q[i * N + j];
+		v[(N - 1) * N + (i+1)] = 1.0;
+		for (j = 0; j < N-2; j++) {
+			v[(N-2-j) * N + (i+1)] = p[(i+1) * N + (N-2-j)] * v[(N-1-j) * N + i+1] + q[(i+1) * N + N-2-j];
 		}
 	}
 	//Row Sweep
-	for (i=1; i < N - 1; i++) {
-		u[i * N + 0] = 1.0;
-		p[i * N + 0] = 0.0;
-		q[i * N + 0] = u[i * N + 0];
-		for (j=1; j< N - 1; j++) {
-			p[i * N + j] = -f / (d*p[i * N + j-1]+e);
-			q[i * N + j] = (-a * v[(i-1) * N + j] + (1.0 + 2.0 * a) * v[i * N + j] - c * v [(i+1) * N + j]- d * q[i * N + j-1]) / (d * p[i * N + j-1]+e);
+	for (i=0; i < N - 2; i++) {
+		u[(i+1) * N + 0] = 1.0;
+		p[(i+1) * N + 0] = 0.0;
+		q[(i+1) * N + 0] = u[(i+1) * N + 0];
+		for (j=0; j< N - 2; j++) {
+			p[(i+1) * N + j+1] = -f / (d*p[(i+1) * N + j]+e);
+			q[(i+1) * N + j+1] = (-a * v[i * N + j+1] + (1.0 + 2.0 * a) * v[(i+1) * N + j+1] - c * v [(i+2) * N + j+1]- d * q[(i+1) * N + j]) / (d * p[(i+1) * N + j]+e);
 		}
-		u[i * N + N - 1 ] = 1.0;
-		for (j= N - 2; j>=1; j--) {
-			u[i * N + j] = p[i * N + j] * u[i * N + j+1] + q[i * N + j];
+		u[(i+1) * N + N - 1 ] = 1.0;
+		for (j=0; j<N-2; j++) {
+			u[(i+1) * N + N-2-j] = p[(i+1) * N + N-2-j] * u[(i+1) * N + N-1-j] + q[(i+1) * N + N-2-j];
 		}
 	}
 

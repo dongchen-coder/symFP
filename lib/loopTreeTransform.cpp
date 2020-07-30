@@ -153,7 +153,9 @@ namespace loopTreeTransform {
                 for(vector<Instruction*>::iterator ait = arrayVec.begin(); ait != arrayVec.end(); ++ait) {
                     outMostLoopPerIterationSpace[*ait] = IS;
                 }
+                refPerOutMostLoop[*it] = arrayVec;
             }
+            total_cache_access += (IS * ((uint64_t) stoi(getBound((*omloop->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*omloop->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*omloop->LIS->INC)[0])));
         }
         return;
     }
@@ -305,6 +307,7 @@ namespace loopTreeTransform {
      */
     bool ParallelLoopTreeTransform::runOnFunction(Function &F) {
 
+        total_cache_access = 0;
         PTLoopRefTree = getAnalysis<loopAnalysis::LoopIndvBoundAnalysis>().LoopRefTree;
         findAllOutMostLoops(PTLoopRefTree);
         computePerIterationSpace();

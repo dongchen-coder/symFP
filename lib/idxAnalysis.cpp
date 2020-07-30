@@ -192,6 +192,7 @@ namespace idxAnalysis {
 #ifdef IDX_DEBUG
                 errs() << "Error: unregconized instruction in InstStack\n";
 #endif
+                return "";
             }
 #ifdef IDX_DEBUG
             instStackEntry->dump();
@@ -210,10 +211,12 @@ namespace idxAnalysis {
         std::string nameTmp = "";
         
         if (isa<LoadInst>(inst->getPointerOperand())) {
+            // this array is a read, cost = 1
             /* Load instruction */
             LoadInst* ldTmp = dyn_cast<LoadInst>(inst->getPointerOperand());
             nameTmp = ldTmp->getOperand(0)->getName();
         } else {
+            // this array is a write, cost = 2
             /* Store instruction */
             nameTmp = inst->getPointerOperand()->getName();
         }
@@ -225,11 +228,14 @@ namespace idxAnalysis {
     void IndexAnalysis::findAllArrayAccesses(Function &F) {
         /* Using instruction iterator to interating through all the IR instructions in the functions */
         for (inst_iterator it = inst_begin(F), eit = inst_end(F); it != eit; ++it) {
+            int cost = 0;
             if (isa<LoadInst>(*it)) {
                 std::vector<std::string> idvTmp;
                 if (isa<GetElementPtrInst>(it->getOperand(0))) {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(0));
-                    
+                    // this is a load array reference
+                    cost += 1;
+
                     /* Problem: how to figure out which operand is index for GEP? */
                     int OperandToAnalysis = 1;
                     
@@ -243,14 +249,22 @@ namespace idxAnalysis {
                         
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
+                            std::string idxExpr = computeExpression(indexInst, idvTmp);
+                            // this is a indirect access expression
+                            if (!idxExpr.empty()/*expr is not empty*/) 
+                                cost += 1;
                             arrayName[accessInst] = nameTmp;
-                            arrayExpression[accessInst] = computeExpression(indexInst, idvTmp);
+                            arrayExpression[accessInst] = idxExpr;
                             arrayAccessVariable[accessInst] = idvTmp;
                         } else if (isa<Argument>(gepTmp->getOperand(OperandToAnalysis))) {
+                            // this is a indirect access expression
+                            cost += 1;
                             Argument* argTmp = dyn_cast<Argument>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = argTmp->getName().str();
-                        } else if (isa<Constant>(gepTmp->getOperand(OperandToAnalysis))) {
+                        } else if (isa<Constant>(gepTmp->getOperand(OperandToAnalysis))) { 
+                            // this is a constant access expression
+                            cost += 0;
                             Constant* constTmp = dyn_cast<Constant>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = constTmp->getUniqueInteger().toString(10, true);
@@ -260,6 +274,7 @@ namespace idxAnalysis {
 #endif
                         }
                     }
+                    BCReference[gepTmp] = cost;
                 }
             }
             
@@ -267,6 +282,8 @@ namespace idxAnalysis {
                 std::vector<std::string> idvTmp;
                 if (isa<GetElementPtrInst>(it->getOperand(1))) {
                     GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->getOperand(1));
+                    // this is a load array reference
+                    cost += 2;
                     
                     /* Problem: how to figure out which operand is index for GEP? */
                     int OperandToAnalysis = 1;
@@ -280,14 +297,22 @@ namespace idxAnalysis {
                         std::string nameTmp = getArrayName(gepTmp);
                         if (isa<Instruction>(gepTmp->getOperand(OperandToAnalysis))) {
                             Instruction* indexInst = dyn_cast<Instruction>(gepTmp->getOperand(OperandToAnalysis));
+                            std::string idxExpr = computeExpression(indexInst, idvTmp);
+                            // this is a indirect access expression
+                            if (!idxExpr.empty()/*expr is not empty*/) 
+                                cost += 1;
                             arrayName[accessInst] = nameTmp;
-                            arrayExpression[accessInst] = computeExpression(indexInst, idvTmp);
+                            arrayExpression[accessInst] = idxExpr;
                             arrayAccessVariable[accessInst] = idvTmp;
                         } else if (isa<Argument>(gepTmp->getOperand(OperandToAnalysis))) {
+                            // this is a indirect access expression
+                            cost += 1;
                             Argument* argTmp = dyn_cast<Argument>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = argTmp->getName().str();
                         } else if (isa<Constant>(gepTmp->getOperand(OperandToAnalysis))) {
+                             // this is a constant access expression
+                            cost += 0;
                             Constant* constTmp = dyn_cast<Constant>(gepTmp->getOperand(OperandToAnalysis));
                             arrayName[accessInst] = nameTmp;
                             arrayExpression[accessInst] = constTmp->getUniqueInteger().toString(10, true);
@@ -297,6 +322,7 @@ namespace idxAnalysis {
 #endif
                         }
                     }
+                    BCReference[gepTmp] = cost;
                 }
             }
         }
@@ -310,6 +336,13 @@ namespace idxAnalysis {
         for (std::map<Instruction*, std::string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
             errs() << it->second << " " << arrayExpression[it->first] << "\n";
         }
+        double average_cost = 0.0;
+        errs() << "BC Array cost info: Total number of arrays: " << BCArrayList.size() << "\n";
+        for(std::map<std::string, int>::iterator it = BCArrayList.begin(); it != BCArrayList.end(); ++it) {
+            average_cost += it->second;
+            errs() << it->first << " " << it->second << "\n";
+        }
+        errs() << "BC Average cost: " << average_cost / BCArrayList.size() << "\n";
         return;
     }
     
@@ -318,6 +351,20 @@ namespace idxAnalysis {
         errs() << "\n /* Start to analysis array index\n";
         
         findAllArrayAccesses(F);
+
+        // merge cost value from reference based to array based
+        for(std::map<Instruction*, int>::iterator it = BCReference.begin(); it != BCReference.end(); ++it) {
+            if (isa<GetElementPtrInst>(it->first)) {
+                GetElementPtrInst* gepTmp = dyn_cast<GetElementPtrInst>(it->first);
+                std::string name = getArrayName(gepTmp);
+                if (BCArrayList.find(name) != BCArrayList.end()) 
+                    BCArrayList[name] += it->second;
+                else
+                    BCArrayList[name] = it->second;
+            }
+        }
+
+        BCArrayRatio = BCArrayRatio / BCArrayList.size();
         
         dumpAllInfo();
         
