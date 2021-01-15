@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include "papi_timer.h"
 using namespace std;
 
 #define CLS 64
@@ -29,12 +30,12 @@ map<uint64_t, map<uint64_t, uint64_t>* > RI;
 
 map<uint64_t, uint64_t> refAccessCnt;
 map<uint64_t, uint64_t> srcRef;
-map<string, vector<tuple<vector<uint64_t>, uint64_t>> stat
+map<string, vector<tuple<vector<uint64_t>, uint64_t>>> stat;
 //std::map<uint64_t, std::set<uint64_t> > rtRefSet;
 //std::map<uint64_t, std::set<uint64_t> > rtArrSet;
 void rtHistoCal( uint64_t rt, uint64_t val ) {
     if ( val <= 0) {
-;        return;
+        return;
     }
     if (rtTmp.find(rt) == rtTmp.end()) { 
         rtTmp[rt] = val;
@@ -112,13 +113,13 @@ void rtTmpAccess(int addr) {
         fat[addr] = refT;
         lat[addr] = refT;
     } else {
-    	subBlkRT(refT - lat[addr]);
+    	rtHistoCal(refT - lat[addr], 1);
         lat[addr] = refT;
     }
     return;
 }
-
-void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, uint64_t ref_id) {
+/*
+void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, string ref_id) {
 	addr = addr * DS / CLS;
 	refT++;
 
@@ -132,6 +133,7 @@ void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, uint64_t ref_id) {
 
 	return;	
 }
+*/
 void dumpRtTmp() {
 	cout << "Number of Cache Line: " << fat.size() * DS / CLS << endl;
     uint64_t cnt = 0;
@@ -149,9 +151,9 @@ void dumpRtTmp() {
 }
 
 void dumpStat() {
-    for (map<string, vector<tuple<vector<uint64_t>, uint64_t>>::iterator it = stat.begin(); it != stat.end(); ++it) {
+    for (map<string, vector<tuple<vector<uint64_t>, uint64_t>>>::iterator it = stat.begin(); it != stat.end(); ++it) {
         cout << "Reference: " << it->first << endl;
-        for(vector<tuple<vector<uint64_t>, uint64_t>::iterator vit = it->second.begin(); vit != it->second.end(); ++vit) {
+        for(vector<tuple<vector<uint64_t>, uint64_t>>::iterator vit = it->second.begin(); vit != it->second.end(); ++vit) {
             cout << "(";
             for(vector<uint64_t>::iterator iit = get<0>(*vit).begin(); iit != get<0>(*vit).end(); ++iit) {
                 cout << *iit;

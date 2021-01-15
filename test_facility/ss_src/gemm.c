@@ -15,9 +15,9 @@
     #define NK 128
 #endif
 #ifdef MEDIUM_DATASET
-    #define NI 1024
-    #define NJ 1024
-    #define NK 1024
+    #define NI 1280
+    #define NJ 1280
+    #define NK 1280
 #endif
 #ifdef LARGE_DATASET
     #define NI 2048

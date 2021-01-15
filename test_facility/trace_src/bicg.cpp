@@ -1,15 +1,15 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-    #define STANDARD_DATASET
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
 #endif
 #ifdef MINI_DATASET
     #define NX 32
@@ -19,7 +19,7 @@
     #define NX 1024
     #define NY 1024
 #endif 
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NX 4096
     #define NY 4096
 #endif
@@ -40,25 +40,40 @@
 #define P_OFFSET NX * NY + NY + NX + NX
 
 
+#define A_OFFSET 0
+#define S_OFFSET NX * NY
+#define Q_OFFSET NX * NY + NY
+#define R_OFFSET NX * NY + NY + NX
+#define P_OFFSET NX * NY + NY + NX + NX
+
+
 void bicg_cpu_trace(double* A, double* r, double* s, double* p, double* q, unsigned int nx, int ny) {
  
-	int i,j;
-    
+    int i,j;
+
+    for (i = 0; i < NY; i++)
+    {
+        s[i] = 0.0;
+        rtTmpAccess(S_OFFSET + i);
+    }
+
     for (i = 0; i < NX; i++)
     {
+        q[i] = 0.0;
+        rtTmpAccess(Q_OFFSET + i);
         for (j = 0; j < NY; j++)
         {
             s[j] = s[j] + r[i] * A[i * NY + j];
             q[i] = q[i] + A[i * NY + j] * p[j];
-        	rtTmpAccess(S_OFFSET + j);
-			rtTmpAccess(R_OFFSET + i);
-			rtTmpAccess(A_OFFSET + i * NY + j);
-			rtTmpAccess(S_OFFSET + j);
-			rtTmpAccess(Q_OFFSET + i);
-			rtTmpAccess(A_OFFSET + i * NY + j);
-			rtTmpAccess(P_OFFSET + j);
-			rtTmpAccess(Q_OFFSET + i);
-		}
+            rtTmpAccess(S_OFFSET + j);
+            rtTmpAccess(R_OFFSET + i);
+            rtTmpAccess(A_OFFSET + i * NY + j);
+            rtTmpAccess(S_OFFSET + j);
+            rtTmpAccess(Q_OFFSET + i);
+            rtTmpAccess(A_OFFSET + i * NY + j);
+            rtTmpAccess(P_OFFSET + j);
+            rtTmpAccess(Q_OFFSET + i);
+        }
     }
 
     return;
@@ -91,11 +106,24 @@ int main() {
     InitRD();
 #endif
 
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
+    
     bicg_cpu_trace(A, r, s, p ,q, NX, NY);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

@@ -100,8 +100,9 @@ def main(is_all=False, prog=None, epochs=5):
                         delimiter=",")
                     model_time_list.append(model_time)
                     print("%s\t%.4f%%\t[%.2f vs. %.2f]" % (prog, cal_accuracy(plum_data, model_data), plum_sum, model_sum))
-                print("%s SPEEDUP \t%.2fx" % (prog,
-                    np.mean(plum_time_list) / np.mean(model_time_list)))
+                print("%s SPEEDUP \t%.2fx [%.2f vs. %.2f]" % (prog,
+                    np.mean(plum_time_list) / np.mean(model_time_list),
+                    np.mean(plum_time_list), np.mean(model_time_list)))
             except subprocess.CalledProcessError:
                 print("Compile Error for benchmark %s" % prog)
     else:
@@ -122,8 +123,9 @@ def main(is_all=False, prog=None, epochs=5):
                         delimiter=",")
                 model_time_list.append(model_time)
                 print("%s\t%.4f%%\t[%.2f vs. %.2f]" % (prog, cal_accuracy(plum_data, model_data), plum_sum, model_sum))
-            print("%s SPEEDUP \t%.2fx" % (prog,
-                    np.mean(plum_time_list) / np.mean(model_time_list)))
+            print("%s SPEEDUP \t%.2fx [%.2f vs. %.2f]" % (prog,
+                    np.mean(plum_time_list) / np.mean(model_time_list),
+                    np.mean(plum_time_list), np.mean(model_time_list)))
         except subprocess.CalledProcessError:
             print("Compile Error for benchmark %s" % prog)
 

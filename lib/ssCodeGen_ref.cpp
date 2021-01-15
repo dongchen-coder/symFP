@@ -147,12 +147,9 @@ namespace ssCodeGen_ref {
         errs() << "#include <mutex>\n";
 #endif
         errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "#  include <chrono>\n";
+        errs() << "#  include \"papi_timer.h\"\n";
         errs() << "#endif\n";
         errs() << "using namespace std;\n";
-        errs() << "#ifdef PAPI_TIMER\n";
-        errs() << "using namespace  chrono;\n";
-        errs() << "#endif\n";
         
 #ifdef PARALLEL_CXX_THREAD
         errs() << " mutex mtx;\n";
@@ -1529,7 +1526,8 @@ namespace ssCodeGen_ref {
          */
         errs() << "#ifdef PAPI_TIMER\n";
         errs() << "    // Get starting timepoint\n";
-        errs() << "    auto start = high_resolution_clock::now();\n" ;
+        errs() << "    PAPI_timer_init();\n";
+        errs() << "    PAPI_timer_start();\n";
         errs() << "#endif\n";
         for ( map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 
@@ -1568,19 +1566,14 @@ namespace ssCodeGen_ref {
         errs() << "    rtMerge();\n";
         errs() << "    refRTDump();\n";
 #endif
-        errs() << "    rtDump();\n";
         errs() << "    RTtoMR_AET();\n";
-        errs() << "    dumpMR();\n";
         errs() << "#ifdef PAPI_TIMER\n";
         errs() << "    // Get ending timepoint\n"; 
-        errs() << "    auto stop = high_resolution_clock::now(); \n";
-  
-        errs() << "    // Get duration. Substart timepoints to\n";
-        errs() << "    // get durarion. To cast it to proper unit\n"; 
-        errs() << "    // use duration cast method\n";
-        errs() << "    auto duration = duration_cast<microseconds>(stop - start);\n ";
-        errs() << "    cout << \"Time taken by SPS:  \" << duration.count() << endl; \n";
+        errs() << "    PAPI_timer_end();\n";
+        errs() << "    PAPI_timer_print();\n";
         errs() << "#endif\n";
+        errs() << "    rtDump();\n";
+        errs() << "    dumpMR();\n";
 #elif defined(DumpRefLease)
         errs() << "#ifdef PAPI_TIMER\n";
         errs() << "// Get ending timepoint\n"; 

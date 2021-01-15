@@ -11,8 +11,8 @@
 	#define NJ 1024
 #endif
 #ifdef MEDIUM_DATASET
-	#define NI 4096
-	#define NJ 4096
+	#define NI 1536
+	#define NJ 1536
 #endif
 #ifdef LARGE_DATASET
     #define NI 8192

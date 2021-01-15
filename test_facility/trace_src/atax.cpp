@@ -1,16 +1,16 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
-# endif
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
+#endif
 #ifdef MINI_DATASET
     #define NX 32
     #define NY 32
@@ -19,7 +19,7 @@
     #define NX 1024
     #define NY 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NX 4096
     #define NY 4096
 #endif
@@ -36,45 +36,43 @@
 #define X_OFFSET NX * NY
 #define Y_OFFSET NX * NY + NY
 #define TMP_OFFSET NX * NY + NY + NY
-
-
 void atax_cpu_trace(double* A, double* x, double* y, double* tmp, unsigned int dim_size_x, unsigned int dim_size_y) {
     
-	int i,j;
+    int i,j;
 
- //    for (i= 0; i < NY; i++)
- //    {
- //        y[i] = 0;
- //    	rtTmpAccess(Y_OFFSET + i);
-	// }
+    for (i= 0; i < NY; i++)
+    {
+        y[i] = 0;
+        rtTmpAccess(Y_OFFSET + i);
+    }
 
     for (i = 0; i < NX; i++)
     {
-   //          tmp[i] = 0;
-			// rtTmpAccess(TMP_OFFSET + i);
+            tmp[i] = 0;
+            rtTmpAccess(TMP_OFFSET + i);
+
             for (j = 0; j < NY; j++)
             {
                 tmp[i] = tmp[i] + A[i * NY + j] * x[j];
-            	rtTmpAccess(TMP_OFFSET + i);
-				rtTmpAccess(A_OFFSET + i * NY + j);
-				rtTmpAccess(X_OFFSET + j);
-				rtTmpAccess(TMP_OFFSET + i);
-			}
+                rtTmpAccess(TMP_OFFSET + i);
+                rtTmpAccess(A_OFFSET + i * NY + j);
+                rtTmpAccess(X_OFFSET + j);
+                rtTmpAccess(TMP_OFFSET + i);
+            }
 
             for (j = 0; j < NY; j++)
             {
                 y[j] = y[j] + A[i * NY + j] * tmp[i];
-            	rtTmpAccess(Y_OFFSET + j);
-				rtTmpAccess(A_OFFSET + i * NY + j);
-				rtTmpAccess(TMP_OFFSET + i);
-				rtTmpAccess(Y_OFFSET + j);
-			}
+                rtTmpAccess(Y_OFFSET + j);
+                rtTmpAccess(A_OFFSET + i * NY + j);
+                rtTmpAccess(TMP_OFFSET + i);
+                rtTmpAccess(Y_OFFSET + j);
+            }
     }
 
 
-	return;
+    return;
 }
-
 
 
 int main() {
@@ -95,12 +93,24 @@ int main() {
 #ifdef RD
     InitRD();
 #endif
-    
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif    
     atax_cpu_trace(A, x, y, tmp, NX, NY);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

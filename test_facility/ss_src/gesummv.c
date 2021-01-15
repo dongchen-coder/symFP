@@ -10,10 +10,10 @@
     #define N 1024
 #endif
 #ifdef MEDIUM_DATASET
-    #define N 4096
+    #define N 1536
 #endif
 #ifdef LARGE_DATASET
-    #define N 8192
+    #define N 12288
 #endif
 #ifdef EXTRALARGE_DATASET
     #define N 100000

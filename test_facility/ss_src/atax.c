@@ -13,8 +13,8 @@
     #define N 1024
 #endif
 #ifdef MEDIUM_DATASET
-    #define M 4096
-    #define N 4096
+    #define M 2048
+    #define N 2048
 #endif
 #ifdef LARGE_DATASET
     #define M 8192

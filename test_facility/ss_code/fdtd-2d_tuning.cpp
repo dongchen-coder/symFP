@@ -3208,10 +3208,13 @@ int main() {
     vector<thread> thread_vec;
     for (int t = tlb; t <= tub; t++) {
         /* Currently we consider all even number threads only */
-        if ( t % 2 != 0 ) { continue; }
+        if ( ceil(log2(t)) != floor(log2(t)) ) { continue; }
         generate_per_thread_reuse(t);
         /* iterate each tid and dump its private L2 miss ratio (1MB) */
-        thread_vec.push_back(thread(compute_expected_reuse, t));
+        for (int id = 0; id < t; id++) {
+            cout << RTtoMR_AET_C(privateRT[id], 16384) << " | ";
+        }
+        cout << endl;        thread_vec.push_back(thread(compute_expected_reuse, t));
     }
     /* compute expected rt for each thread count */
     for (vector<thread>::iterator threadit = thread_vec.begin(); threadit != thread_vec.end(); ++threadit) {

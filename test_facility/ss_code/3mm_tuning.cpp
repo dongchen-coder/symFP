@@ -106,15 +106,15 @@ Finish analysis loops */
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 10
-------Sample number: 104
---------Sample number: 1073
-----Sample number: 10
-------Sample number: 104
---------Sample number: 1073
-----Sample number: 10
-------Sample number: 104
---------Sample number: 1073
+----Sample number: 512
+------Sample number: 262144
+--------Sample number: 134217728
+----Sample number: 512
+------Sample number: 262144
+--------Sample number: 134217728
+----Sample number: 512
+------Sample number: 262144
+--------Sample number: 134217728
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
 /* E_addr3	4195328 */
@@ -524,7 +524,7 @@ int calAddrG_addr14( int i, int j, int k) {
 void ref_E_addr3(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -753,7 +753,7 @@ EndSample:
 void ref_E_addr4(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -982,7 +982,7 @@ EndSample:
 void ref_E_addr0(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 262144;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1205,7 +1205,7 @@ EndSample:
 void ref_C_addr6(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1311,7 +1311,7 @@ EndSample:
 void ref_D_addr7(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1417,7 +1417,7 @@ EndSample:
 void ref_A_addr1(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1543,7 +1543,7 @@ EndSample:
 void ref_B_addr2(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1669,7 +1669,7 @@ EndSample:
 void ref_G_addr10(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 262144;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1814,7 +1814,7 @@ EndSample:
 void ref_E_addr11(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1900,7 +1900,7 @@ EndSample:
 void ref_F_addr12(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -1986,7 +1986,7 @@ EndSample:
 void ref_F_addr5(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 104;) {
+    for ( int s = 0; s < 262144;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -2189,7 +2189,7 @@ EndSample:
 void ref_F_addr8(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -2398,7 +2398,7 @@ EndSample:
 void ref_F_addr9(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -2607,7 +2607,7 @@ EndSample:
 void ref_G_addr13(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -2758,7 +2758,7 @@ EndSample:
 void ref_G_addr14(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1073;) {
+    for ( int s = 0; s < 134217728;) {
 SAMPLE:
         int i_Start = rand() % (1024 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
@@ -2963,7 +2963,7 @@ int main() {
     vector<thread> thread_vec;
     for (int t = tlb; t <= tub; t++) {
         /* Currently we consider all even number threads only */
-        if ( t % 2 != 0 ) { continue; }
+        if ( ceil(log2(t)) != floor(log2(t)) ) { continue; }
         generate_per_thread_reuse(t);
         /* iterate each tid and dump its private L2 miss ratio (1MB) */
         thread_vec.push_back(thread(compute_expected_reuse, t));

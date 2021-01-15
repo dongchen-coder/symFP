@@ -1,23 +1,23 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
-# endif    
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
+#endif  
 #ifdef MINI_DATASET
     #define N 32
 #endif
 #ifdef SMALL_DATASET
     #define N 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define N 4096
 #endif
 #ifdef LARGE_DATASET
@@ -44,11 +44,11 @@ void runMvt_trace( double* a, double* x1, double* x2, double* y1, double* y2)
         {
             //x1[i] = x1[i] + a[i][j] * y1[j];
             x1[i] = x1[i] + a[i * N + j] * y1[j];
-		
-			rtTmpAccess(X1_OFFSET + i);
-			rtTmpAccess(A_OFFSET + i * N + j);
-			rtTmpAccess(Y1_OFFSET + j);
-			rtTmpAccess(X1_OFFSET + i);			
+        
+            rtTmpAccess(X1_OFFSET + i);
+            rtTmpAccess(A_OFFSET + i * N + j);
+            rtTmpAccess(Y1_OFFSET + j);
+            rtTmpAccess(X1_OFFSET + i);         
 
         }
     }
@@ -60,10 +60,10 @@ void runMvt_trace( double* a, double* x1, double* x2, double* y1, double* y2)
             //x2[i] = x2[i] + a[j][i] * y2[j];
             x2[i] = x2[i] + a[j * N + i] * y2[j];
 
-			rtTmpAccess(X2_OFFSET + i);
-			rtTmpAccess(A_OFFSET + j * N + i);
-			rtTmpAccess(Y2_OFFSET + j);
-			rtTmpAccess(X2_OFFSET + i);		
+            rtTmpAccess(X2_OFFSET + i);
+            rtTmpAccess(A_OFFSET + j * N + i);
+            rtTmpAccess(Y2_OFFSET + j);
+            rtTmpAccess(X2_OFFSET + i);     
 
         }
     }
@@ -93,12 +93,24 @@ int main(int argc, char const *argv[])
 #ifdef RD
     InitRD();
 #endif
-    
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif    
     runMvt_trace( a, x1, x2, y1, y2);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
 

@@ -169,7 +169,8 @@ namespace modelCodeGen_ref {
         errs() << "map<string, map<uint64_t, double>> refRT;\n";
 #endif
         errs() << "double total_reuse = 0.0;\n";
-        errs() << "double total_neighbor = 0.0;\n";
+        errs() << "double total_src_neighbor = 0.0;\n";
+        errs() << "double total_sink_neighbor = 0.0;\n";
         errs() << "double total_scale = 0.0;\n";
         errs() << "double total_fold = 0.0;\n";
         errs() << "double total_interchunk = 0.0;\n";
@@ -427,7 +428,8 @@ namespace modelCodeGen_ref {
     void ModelCodeGen_ref::statDumpGen() {
         errs() << "/* Dump the reuse statistics */\n";
         errs() << "void statDump() {\n";
-        errs() << "    cout << \"Total Neighboring Reuses: \" << total_neighbor / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Neighboring (SRC) Reuses: \" << total_src_neighbor / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Neighboring (SINK) Reuses: \" << total_src_neighbor / total_reuse << endl;\n";
         errs() << "    cout << \"Total Scaling Reuses: \" << total_scale / total_reuse << endl;\n";
         errs() << "    cout << \"Total Folding Src-Sink Reuses: \" << total_fold / total_reuse << endl;\n";
         errs() << "    cout << \"Total Inter Chunk Reuses: \" << total_interchunk / total_reuse << endl;\n";
@@ -1784,7 +1786,7 @@ namespace modelCodeGen_ref {
         errs() << space << space << space << "cout << \"Find sink in src neighbor at \" << tsrc_neighbor << endl;\n";
         errs() << space << space << space << "cout << \"Neighbor Effect: \" << tsrc_neighbor - tsrc << endl;\n";
         errs() << "#endif\n";
-        errs() << space << space << space << "total_neighbor += 1.0;\n";
+        errs() << space << space << space << "total_src_neighbor += 1.0;\n";
         errs() << space << space << space << "share_reuse += 1.0;\n";
         errs() << space << space << space << "type = 1; // code for src neighboring effect\n";
         
@@ -1805,7 +1807,7 @@ namespace modelCodeGen_ref {
         errs() << space << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM + tsink_neighbor - tsink, step, ReuseType::NEIGHBOR);\n";
         errs() << space << space << space << space << "return 0;\n";
 #else
-        errs() << space << space << space << space << "total_neighbor += 1.0;\n";
+        errs() << space << space << space << space << "total_sink_neighbor += 1.0;\n";
         errs() << space << space << space << space << "share_reuse += 1.0;\n";
         errs() << space << space << space << space << "type = 2; // code for sink neighboring effect\n";
         // errs() << space << space << space << space << "sink_neighbor_delta = tsink_neighbor - tsink;\n";

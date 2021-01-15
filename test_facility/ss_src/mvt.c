@@ -11,7 +11,7 @@
     #define N 1024
 #endif
 #ifdef MEDIUM_DATASET
-    #define N 4096
+    #define N 2048
 #endif
 #ifdef LARGE_DATASET
     #define N 8192

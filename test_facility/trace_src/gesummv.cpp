@@ -1,23 +1,23 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
-# endif
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
+#endif
 #ifdef MINI_DATASET
     #define N 32
 #endif
 #ifdef SMALL_DATASET
     #define N 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define N 4096
 #endif
 #ifdef LARGE_DATASET
@@ -36,38 +36,38 @@
 
 void gesummv_trace(double alpha, double beta, double* A, double* B, double* tmp, double* x, double* y)
 {
-	int i, j;    
+    int i, j;    
 
-	for (i = 0; i < N; i++)
+    for (i = 0; i < N; i++)
     {
         tmp[i] = 0;
         y[i] = 0;
 
-		rtTmpAccess(TMP_OFFSET + i);
-		rtTmpAccess(Y_OFFSET + i);
-	
+        rtTmpAccess(TMP_OFFSET + i);
+        rtTmpAccess(Y_OFFSET + i);
+    
         for (j = 0; j < N; j++)
         {
             tmp[i] = A[i * N + j] * x[j] + tmp[i];
             y[i] = B[i * N + j] * x[j] + y[i];
-        	rtTmpAccess(A_OFFSET + i * N + j);
-			rtTmpAccess(X_OFFSET + j);
-			rtTmpAccess(TMP_OFFSET + i);
-			rtTmpAccess(TMP_OFFSET + i);
-			rtTmpAccess(B_OFFSET + i * N + j);
+            rtTmpAccess(A_OFFSET + i * N + j);
+            rtTmpAccess(X_OFFSET + j);
+            rtTmpAccess(TMP_OFFSET + i);
+            rtTmpAccess(TMP_OFFSET + i);
+            rtTmpAccess(B_OFFSET + i * N + j);
             rtTmpAccess(X_OFFSET + j);
             rtTmpAccess(Y_OFFSET + i);
             rtTmpAccess(Y_OFFSET + i);
-		}
+        }
 
         y[i] = alpha * tmp[i] + beta * y[i];
 
-		rtTmpAccess(TMP_OFFSET + i);
-		rtTmpAccess(Y_OFFSET + i);
-		rtTmpAccess(Y_OFFSET + i);
+        rtTmpAccess(TMP_OFFSET + i);
+        rtTmpAccess(Y_OFFSET + i);
+        rtTmpAccess(Y_OFFSET + i);
     }
 
-	return;
+    return;
 }
 
 int main(int argc, char const *argv[])
@@ -95,12 +95,24 @@ int main(int argc, char const *argv[])
 #ifdef RD
     InitRD();
 #endif
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     
     gesummv_trace(alpha, beta, A, B, tmp, x, y);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

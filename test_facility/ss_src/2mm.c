@@ -24,10 +24,10 @@
 	#define NL 1024
 #endif
 #ifdef LARGE_DATASET
-	#define NI 2048
-	#define NJ 2048
-	#define NL 2048
-	#define NK 2048
+	#define NI 8192
+	#define NJ 8192
+	#define NL 8192
+	#define NK 8192
 #endif
 #ifdef EXTRALARGE_DATASET
 	#define NI 4096

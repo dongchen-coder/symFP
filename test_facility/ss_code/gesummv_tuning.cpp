@@ -2,11 +2,11 @@
  /* Start to analysis array index
 Array index info: Total number of references: 13
 tmp.addr i
-B.addr ((i * 4096) + j)
+B.addr ((i * 12288) + j)
 x.addr j
 y.addr i
 y.addr i
-A.addr ((i * 4096) + j)
+A.addr ((i * 12288) + j)
 y.addr i
 y.addr i
 x.addr j
@@ -42,20 +42,20 @@ double* %y
 
  /* Start analysis loops
 --i
---Loop Bound: (0, 4096)
+--Loop Bound: (0, 12288)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----array access tmp.addr i
 ----array access y.addr i
 ----j
-----Loop Bound: (0, 4096)
+----Loop Bound: (0, 12288)
 ----Loop inc: (j + 1)
 ----Loop predicate: <
-------array access A.addr ((i * 4096) + j)
+------array access A.addr ((i * 12288) + j)
 ------array access x.addr j
 ------array access tmp.addr i
 ------array access tmp.addr i
-------array access B.addr ((i * 4096) + j)
+------array access B.addr ((i * 12288) + j)
 ------array access x.addr j
 ------array access y.addr i
 ------array access y.addr i
@@ -68,23 +68,23 @@ Finish analysis loops */
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 40
-------Sample number: 1677
+----Sample number: 122
+------Sample number: 15099
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
-/* tmp_addr0	32773 */
-/* B_addr6	32773 */
-/* x_addr7	32773 */
-/* y_addr8	32773 */
-/* y_addr1	32773 */
-/* A_addr2	32773 */
-/* y_addr11	32773 */
-/* y_addr12	32773 */
-/* x_addr3	32773 */
-/* tmp_addr4	32773 */
-/* tmp_addr5	32773 */
-/* y_addr9	32773 */
-/* tmp_addr10	32773 */
+/* tmp_addr0	98309 */
+/* B_addr6	98309 */
+/* x_addr7	98309 */
+/* y_addr8	98309 */
+/* y_addr1	98309 */
+/* A_addr2	98309 */
+/* y_addr11	98309 */
+/* y_addr12	98309 */
+/* x_addr3	98309 */
+/* tmp_addr4	98309 */
+/* tmp_addr5	98309 */
+/* y_addr9	98309 */
+/* tmp_addr10	98309 */
 #include <cstdlib>
 #include <cmath>
 #include <functional>
@@ -382,9 +382,9 @@ int calAddry_addr1( int i) {
 }
 /* Array A_addr	i j */ 
 /* i */
-/* A_addr ((i * 4096) + j) 2 */
+/* A_addr ((i * 12288) + j) 2 */
 int calAddrA_addr2( int i, int j) {
-    int result = (((i * 4096) + j)) * 8 / 64;
+    int result = (((i * 12288) + j)) * 8 / 64;
     return result;
 }
 /* Array x_addr	j */ 
@@ -410,9 +410,9 @@ int calAddrtmp_addr5( int i, int j) {
 }
 /* Array B_addr	i j */ 
 /* i */
-/* B_addr ((i * 4096) + j) 6 */
+/* B_addr ((i * 12288) + j) 6 */
 int calAddrB_addr6( int i, int j) {
-    int result = (((i * 4096) + j)) * 8 / 64;
+    int result = (((i * 12288) + j)) * 8 / 64;
     return result;
 }
 /* Array x_addr	j */ 
@@ -460,11 +460,11 @@ int calAddry_addr12( int i) {
 void ref_tmp_addr0(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 40;) {
+    for ( int s = 0; s < 122;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -475,7 +475,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrtmp_addr0( i) == calAddrtmp_addr0(i_Start)) {
@@ -486,7 +486,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr0, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr0, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -494,7 +494,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -512,7 +512,7 @@ SAMPLE:
             if (cntStart == true) cnt++;
             {
             int jLB1 = 0;
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
@@ -525,7 +525,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr0, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr4, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -534,7 +534,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -558,7 +558,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr0, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr5, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -567,7 +567,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -597,7 +597,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr0, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr10, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -605,7 +605,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -630,13 +630,13 @@ EndSample:
 void ref_B_addr6(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -648,7 +648,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             {
@@ -656,7 +656,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -671,7 +671,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrB_addr6, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrB_addr6, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -680,7 +680,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, true, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, true, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -712,13 +712,13 @@ EndSample:
 void ref_x_addr7(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -730,7 +730,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             {
@@ -738,7 +738,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
@@ -750,7 +750,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrx_addr7, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrx_addr3, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -759,7 +759,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -786,7 +786,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrx_addr7, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrx_addr7, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -795,7 +795,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -826,13 +826,13 @@ EndSample:
 void ref_y_addr8(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -844,7 +844,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) {
                 cnt++;
@@ -856,7 +856,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr8, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr1, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -864,7 +864,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -883,7 +883,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -900,7 +900,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr8, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr8, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -909,7 +909,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -934,7 +934,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr8, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr9, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -943,7 +943,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -970,7 +970,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr8, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr11, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -978,7 +978,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1002,7 +1002,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr8, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr12, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1010,7 +1010,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1033,11 +1033,11 @@ EndSample:
 void ref_y_addr1(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 40;) {
+    for ( int s = 0; s < 122;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1048,7 +1048,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) {
                 cnt++;
@@ -1060,7 +1060,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr1, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr1, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1068,7 +1068,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1085,7 +1085,7 @@ SAMPLE:
             cntStart = true;
             {
             int jLB1 = 0;
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -1102,7 +1102,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr1, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr8, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1111,7 +1111,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1135,7 +1135,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr1, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr9, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1144,7 +1144,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1171,7 +1171,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr1, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr11, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1179,7 +1179,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1203,7 +1203,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr1, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr12, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1211,7 +1211,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1234,13 +1234,13 @@ EndSample:
 void ref_A_addr2(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -1252,7 +1252,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             {
@@ -1260,7 +1260,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) {
                     cnt++;
                     if ( calAddrA_addr2( i, j) == calAddrA_addr2(i_Start, j_Start)) {
@@ -1271,7 +1271,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrA_addr2, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrA_addr2, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1280,7 +1280,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, true, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, true, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1316,11 +1316,11 @@ EndSample:
 void ref_y_addr11(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 40;) {
+    for ( int s = 0; s < 122;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1331,7 +1331,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) {
                 cnt++;
@@ -1343,7 +1343,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr11, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr1, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1351,7 +1351,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1367,7 +1367,7 @@ SAMPLE:
             }
             {
             int jLB1 = 0;
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -1384,7 +1384,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr11, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr8, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1393,7 +1393,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1417,7 +1417,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr11, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr9, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1426,7 +1426,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1453,7 +1453,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr11, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr11, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1461,7 +1461,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1486,7 +1486,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr11, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr12, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1494,7 +1494,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1517,11 +1517,11 @@ EndSample:
 void ref_y_addr12(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 40;) {
+    for ( int s = 0; s < 122;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1532,7 +1532,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) {
                 cnt++;
@@ -1544,7 +1544,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr12, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr1, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1552,7 +1552,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1568,7 +1568,7 @@ SAMPLE:
             }
             {
             int jLB1 = 0;
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -1585,7 +1585,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr12, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr8, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1594,7 +1594,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1618,7 +1618,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr12, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr9, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1627,7 +1627,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1654,7 +1654,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr12, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr11, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1662,7 +1662,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1686,7 +1686,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr12, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr12, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1694,7 +1694,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1718,13 +1718,13 @@ EndSample:
 void ref_x_addr3(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -1736,7 +1736,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             {
@@ -1744,7 +1744,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
                     cnt++;
@@ -1756,7 +1756,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrx_addr3, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrx_addr3, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1765,7 +1765,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1793,7 +1793,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrx_addr3, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrx_addr7, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1802,7 +1802,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1832,13 +1832,13 @@ EndSample:
 void ref_tmp_addr4(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -1850,7 +1850,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrtmp_addr0( i) == calAddrtmp_addr4(i_Start, j_Start)) {
@@ -1861,7 +1861,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr4, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr0, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1869,7 +1869,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -1889,7 +1889,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
@@ -1902,7 +1902,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr4, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr4, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1911,7 +1911,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1936,7 +1936,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr4, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr5, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -1945,7 +1945,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -1975,7 +1975,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr4, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr10, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -1983,7 +1983,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2008,13 +2008,13 @@ EndSample:
 void ref_tmp_addr5(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -2026,7 +2026,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrtmp_addr0( i) == calAddrtmp_addr5(i_Start, j_Start)) {
@@ -2037,7 +2037,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr5, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr0, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2045,7 +2045,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2065,7 +2065,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
@@ -2078,7 +2078,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr5, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr4, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2087,7 +2087,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2111,7 +2111,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr5, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr5, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2120,7 +2120,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2151,7 +2151,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr5, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr10, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2159,7 +2159,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2184,13 +2184,13 @@ EndSample:
 void ref_y_addr9(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 1677;) {
+    for ( int s = 0; s < 15099;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
-        if ( (4096 - 0) == 0) goto SAMPLE;
-        int j_Start = rand() % (4096 - 0) + 0;
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
+        if ( (12288 - 0) == 0) goto SAMPLE;
+        int j_Start = rand() % (12288 - 0) + 0;
         if (j_Start % 1 != 0) goto SAMPLE; 
         string idx_string =  to_string(i_Start) + "_" +  to_string(j_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
@@ -2202,7 +2202,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) {
                 cnt++;
@@ -2214,7 +2214,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr9, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr1, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2222,7 +2222,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2241,7 +2241,7 @@ SAMPLE:
             if ( i == i_Start ) {
                 jLB1 = j_Start;
             }
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
@@ -2258,7 +2258,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr9, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr8, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2267,7 +2267,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2291,7 +2291,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr9, _1, j_Start);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr9, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2300,7 +2300,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2328,7 +2328,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr9, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr11, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2336,7 +2336,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2360,7 +2360,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddry_addr9, _1, j_Start);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddry_addr12, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2368,7 +2368,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2391,11 +2391,11 @@ EndSample:
 void ref_tmp_addr10(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 40;) {
+    for ( int s = 0; s < 122;) {
 SAMPLE:
-        int i_Start = rand() % (4096 - 0) + 0;
+        int i_Start = rand() % (12288 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 4096) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 12288) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -2406,7 +2406,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 4096; i=(i + 1)) {
+        for ( int i = iLB0; i < 12288; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrtmp_addr0( i) == calAddrtmp_addr10(i_Start)) {
@@ -2417,7 +2417,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr10, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr0, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2425,7 +2425,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2442,7 +2442,7 @@ SAMPLE:
             if (cntStart == true) cnt++;
             {
             int jLB1 = 0;
-            for ( int j = jLB1; j < 4096; j=(j + 1)) {
+            for ( int j = jLB1; j < 12288; j=(j + 1)) {
                 if (cntStart == true) cnt++;
                 if (cntStart == true) cnt++;
                 if (cntStart == true) {
@@ -2455,7 +2455,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr10, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr4, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2464,7 +2464,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2488,7 +2488,7 @@ SAMPLE:
                             /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                             function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr10, _1);
                             function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr5, _1, j);
-                            /* i 32773 */
+                            /* i 98309 */
                             /* j 8 */
                             /* compute the number of accesses between source and sink chunk */
                             uint64_t middle_accesses = 0;
@@ -2497,7 +2497,7 @@ SAMPLE:
                             cout << " middle_access is " << middle_accesses << endl;
 #endif
                             int reuse_type = -1;
-                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                            uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                             if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                             rtHistoCal(RT, parallel_rt, 1.0);
@@ -2527,7 +2527,7 @@ SAMPLE:
                         /* register the src/sink addr calculation function. Calling this function in other function do not have to know all index variables */
                         function<uint64_t(uint64_t)> srcAddrCal = bind(calAddrtmp_addr10, _1);
                         function<uint64_t(uint64_t)> sinkAddrCal = bind(calAddrtmp_addr10, _1);
-                        /* i 32773 */
+                        /* i 98309 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
                         middle_accesses += 0;
@@ -2535,7 +2535,7 @@ SAMPLE:
                         cout << " middle_access is " << middle_accesses << endl;
 #endif
                         int reuse_type = -1;
-                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 32773, 32773, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
+                        uint64_t parallel_rt = parallel_predict((i_Start -0), (i - 0), cnt, 98309, 98309, middle_accesses, thread_cnt, false, true, reuse_type, srcAddrCal, sinkAddrCal);
                         if (parallel_rt == 0) { goto EndSample; }
 #ifdef DEBUG
                         rtHistoCal(RT, parallel_rt, 1.0);
@@ -2613,10 +2613,13 @@ int main() {
     vector<thread> thread_vec;
     for (int t = tlb; t <= tub; t++) {
         /* Currently we consider all even number threads only */
-        if ( t % 2 != 0 ) { continue; }
+        if ( ceil(log2(t)) != floor(log2(t)) ) { continue; }
         generate_per_thread_reuse(t);
         /* iterate each tid and dump its private L2 miss ratio (1MB) */
-        thread_vec.push_back(thread(compute_expected_reuse, t));
+        for (int id = 0; id < t; id++) {
+            cout << RTtoMR_AET_C(privateRT[id], 16384) << " | ";
+        }
+        cout << endl;        thread_vec.push_back(thread(compute_expected_reuse, t));
     }
     /* compute expected rt for each thread count */
     for (vector<thread>::iterator threadit = thread_vec.begin(); threadit != thread_vec.end(); ++threadit) {

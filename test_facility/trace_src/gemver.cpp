@@ -1,15 +1,15 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-    #define STANDARD_DATASET
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
 #endif
 
 #ifdef MINI_DATASET
@@ -18,7 +18,7 @@
 #ifdef SMALL_DATASET
     #define N 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define N 4096
 #endif
 #ifdef LARGE_DATASET
@@ -41,19 +41,19 @@
 
 void gemver_trace(double alpha, double beta, double* A, double* u1, double* v1, double* u2, double* v2, double* w, double* x, double* y, double* z)
 {
-	int i,j;
+    int i,j;
 
     for (i = 0; i < N; i++)
     {
         for (j = 0; j < N; j++)
         {
             A[i * N + j] = A[i * N + j] + u1[i] * v1[j] + u2[i] * v2[j];
-			rtTmpAccess(A_OFFSET + i * N + j);
-			rtTmpAccess(u1_OFFSET + i);
-			rtTmpAccess(v1_OFFSET + j);
-			rtTmpAccess(u2_OFFSET + i);
-			rtTmpAccess(v2_OFFSET + j);
-			rtTmpAccess(A_OFFSET + i * N + j); 
+            rtTmpAccess(A_OFFSET + i * N + j);
+            rtTmpAccess(u1_OFFSET + i);
+            rtTmpAccess(v1_OFFSET + j);
+            rtTmpAccess(u2_OFFSET + i);
+            rtTmpAccess(v2_OFFSET + j);
+            rtTmpAccess(A_OFFSET + i * N + j); 
        }
     }
 
@@ -62,19 +62,19 @@ void gemver_trace(double alpha, double beta, double* A, double* u1, double* v1, 
         for (j = 0; j < N; j++)
         {
             x[i] = x[i] + beta * A[j * N + i] * y[j];
-			rtTmpAccess(X_OFFSET + i);
-			rtTmpAccess(A_OFFSET + j * N + i);
-			rtTmpAccess(Y_OFFSET + j);
-			rtTmpAccess(X_OFFSET + i);
+            rtTmpAccess(X_OFFSET + i);
+            rtTmpAccess(A_OFFSET + j * N + i);
+            rtTmpAccess(Y_OFFSET + j);
+            rtTmpAccess(X_OFFSET + i);
         }
     }
 
     for (i = 0; i < N; i++)
     {
         x[i] = x[i] + z[i];
-		rtTmpAccess(X_OFFSET + i);
-		rtTmpAccess(Z_OFFSET + i);
-		rtTmpAccess(X_OFFSET + i);
+        rtTmpAccess(X_OFFSET + i);
+        rtTmpAccess(Z_OFFSET + i);
+        rtTmpAccess(X_OFFSET + i);
     }
 
     for (i = 0; i < N; i++)
@@ -82,10 +82,10 @@ void gemver_trace(double alpha, double beta, double* A, double* u1, double* v1, 
         for (j = 0; j < N; j++)
         {
             w[i] = w[i] +  alpha * A[i * N + j] * x[j];
-			rtTmpAccess(W_OFFSET + i);
-			rtTmpAccess(A_OFFSET + i * N + j);
-			rtTmpAccess(X_OFFSET + j);
-			rtTmpAccess(W_OFFSET + i);
+            rtTmpAccess(W_OFFSET + i);
+            rtTmpAccess(A_OFFSET + i * N + j);
+            rtTmpAccess(X_OFFSET + j);
+            rtTmpAccess(W_OFFSET + i);
         }
     }
 }
@@ -125,12 +125,25 @@ int main(int argc, char const *argv[])
 #ifdef RD
     InitRD();
 #endif
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     
     gemver_trace(alpha, beta, A, u1, v1, u2, v2, w, x, y, z);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

@@ -5,7 +5,7 @@ import numpy as np
 import subprocess
 import sys
 import argparse
-
+'''
 BENCHMARK = [
 	"2mm",
 	"3mm",
@@ -23,7 +23,10 @@ BENCHMARK = [
         "jacobi-1d",
         "jacobi-2d"
 ]
-# BENCHMARK = ["stencil", "bicg", "2mm", "syrk"]#, "gemver"]
+'''
+BENCHMARK = [#"adi", "atax", "deriche", "fdtd-2d", "gesummv", "gemver",
+        #"jacobi-2d", "stencil-7p"
+        "2mm"]
 
 TESTBENCH = [
 	"test1",

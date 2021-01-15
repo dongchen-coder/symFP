@@ -100,7 +100,7 @@ add_definitions(-DPARALLEL)
 # add_definitions(-DALL_LEVEL_INTERLEAVING)
 
 # statically find the best thread number with best locality
-add_definitions(-DTHREAD_TUNING)
+# add_definitions(-DTHREAD_TUNING)
 
 # - DUNIFORM_SMOOTHING
 #     Do the RI calibration in uniform distribution

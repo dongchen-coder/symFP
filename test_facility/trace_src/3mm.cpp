@@ -1,15 +1,15 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-    #define STANDARD_DATASET
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
 #endif
 #ifdef MINI_DATASET
     #define NI 32
@@ -25,7 +25,7 @@
     #define NK 128
     #define NM 128
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NI 1024
     #define NJ 1024
     #define NK 1024
@@ -58,7 +58,7 @@
 
 void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
     
-	int i, j, k;
+    int i, j, k;
 
     /* E := A*B */
     for (i = 0; i < NI; i++)
@@ -66,16 +66,16 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
         for (j = 0; j < NJ; j++)
         {
             E[i * NJ + j] = 0;
-			
-			rtTmpAccess(E_OFFSET + i * NJ + j);
-	
+            
+            rtTmpAccess(E_OFFSET + i * NJ + j);
+    
             for (k = 0; k < NK; ++k)
             {
                 E[i * NJ + j] += A[i * NK + k] * B[k * NJ + j];
-				rtTmpAccess(A_OFFSET + i * NK + k);
-				rtTmpAccess(B_OFFSET + k * NJ + j);
-				rtTmpAccess(E_OFFSET + i * NJ + j);
-				rtTmpAccess(E_OFFSET + i * NJ + j);
+                rtTmpAccess(A_OFFSET + i * NK + k);
+                rtTmpAccess(B_OFFSET + k * NJ + j);
+                rtTmpAccess(E_OFFSET + i * NJ + j);
+                rtTmpAccess(E_OFFSET + i * NJ + j);
             }
         }
     }
@@ -87,16 +87,16 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
         {
             F[i * NL + j] = 0;
 
-			rtTmpAccess(F_OFFSET + i * NL + j);
-			
+            rtTmpAccess(F_OFFSET + i * NL + j);
+            
             for (k = 0; k < NM; ++k)
             {
                 F[i * NL + j] += C[i * NM + k] * D[k * NL + j];
-				rtTmpAccess(C_OFFSET + i * NM + k);
-				rtTmpAccess(D_OFFSET + k * NL + j);
-				rtTmpAccess(F_OFFSET + i * NL + j);
-				rtTmpAccess(F_OFFSET + i * NL + j);
-			}
+                rtTmpAccess(C_OFFSET + i * NM + k);
+                rtTmpAccess(D_OFFSET + k * NL + j);
+                rtTmpAccess(F_OFFSET + i * NL + j);
+                rtTmpAccess(F_OFFSET + i * NL + j);
+            }
         }
     }
 
@@ -107,16 +107,16 @@ void mm3_cpu_trace(int *A, int *B, int *C, int *D, int *E, int *F, int *G) {
         {
             G[i * NL + j] = 0;
 
-			rtTmpAccess(G_OFFSET + i * NL + j);
+            rtTmpAccess(G_OFFSET + i * NL + j);
 
             for (k = 0; k < NJ; ++k)
             {
                 G[i * NL + j] += E[i * NJ + k] * F[k * NL + j];
-				rtTmpAccess(E_OFFSET + i * NJ + k);
-				rtTmpAccess(F_OFFSET + k * NL + j);
-				rtTmpAccess(G_OFFSET + i * NL + j);
-				rtTmpAccess(G_OFFSET + i * NL + j);
-			}
+                rtTmpAccess(E_OFFSET + i * NJ + k);
+                rtTmpAccess(F_OFFSET + k * NL + j);
+                rtTmpAccess(G_OFFSET + i * NL + j);
+                rtTmpAccess(G_OFFSET + i * NL + j);
+            }
         }
     }
 
@@ -153,12 +153,24 @@ int main() {
 #ifdef RD
     InitRD();
 #endif
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     
     mm3_cpu_trace(a, b, c, d, e, f, g);
 	
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

@@ -1,17 +1,16 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
-
-# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-#  define STANDARD_DATASET
-# endif
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
+#endif
 #ifdef MINI_DATASET
     #define NI 32
     #define NJ 32
@@ -22,7 +21,7 @@
     #define NJ 256
     #define NK 256
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define NI 1024
     #define NJ 1024
     #define NK 1024
@@ -50,16 +49,16 @@ void gemm_trace(double alpha, double beta, double* A, double* B, double* C) {
         for (j = 0; j < NJ; j++)
         {
             C[i * NJ + j] *= beta;
-			rtTmpAccess(C_OFFSET + i * NJ + j); 
-			rtTmpAccess(C_OFFSET + i * NJ + j);           
+            rtTmpAccess(C_OFFSET + i * NJ + j); 
+            rtTmpAccess(C_OFFSET + i * NJ + j);           
 
             for (k = 0; k < NK; k++)
             {
                 C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-				rtTmpAccess(C_OFFSET + i * NJ + j);
-				rtTmpAccess(A_OFFSET + i * NK + k);
-				rtTmpAccess(B_OFFSET + k * NJ + j);
-				rtTmpAccess(C_OFFSET + i * NJ + j);
+                rtTmpAccess(A_OFFSET + i * NK + k);
+                rtTmpAccess(B_OFFSET + k * NJ + j);
+                rtTmpAccess(C_OFFSET + i * NJ + j);
+                rtTmpAccess(C_OFFSET + i * NJ + j);
             }
         }
     }
@@ -88,12 +87,25 @@ int main()
 #ifdef RD
     InitRD();
 #endif
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     
     gemm_trace(alpha, beta, A, B, C);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     

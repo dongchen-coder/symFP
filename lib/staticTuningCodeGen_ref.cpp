@@ -1615,18 +1615,18 @@ namespace staticTuningCodeGen_ref {
         errs() << space << "vector<thread> thread_vec;\n";
         errs() << space << "for (int t = tlb; t <= tub; t++) {\n";
         errs() << space << space << "/* Currently we consider all even number threads only */\n";
-        errs() << space << space << "if ( t % 2 != 0 ) { continue; }\n";
+        errs() << space << space << "if ( ceil(log2(t)) != floor(log2(t)) ) { continue; }\n";
         errs() << space << space << "generate_per_thread_reuse(t);\n";
         // errs() << space << space << "if (t == THREAD_NUM) {\n";
         // errs() << space << space << space << "mergePrivateRT(privateRT);\n";
         // errs() << space << space << space << "RTtoMR_AET();\n";
         // errs() << space << space << space << "dumpMR();\n";
         // errs() << space << space << "}\n";
-        errs() << space << space << "/* iterate each tid and dump its private L2 miss ratio (1MB) */\n";
+        // errs() << space << space << "/* iterate each tid and dump its private L2 miss ratio (1MB) */\n";
         // errs() << space << space << "for (int id = 0; id < t; id++) {\n";
-        // errs() << space << space << space << "cout << RTtoMR_AET_C(privateRT[id], 16384) << \" \";\n";
+        // errs() << space << space << space << "cout << RTtoMR_AET_C(privateRT[id], 16384) << \" | \";\n";
         // errs() << space << space << "}\n";
-        // errs() << space << space << "cout << \" | \";";
+        // errs() << space << space << "cout << endl;";
         errs() << space << space << "thread_vec.push_back(thread(compute_expected_reuse, t));\n";
         errs() << space << "}\n";
         errs() << space << "/* compute expected rt for each thread count */\n";
@@ -1646,9 +1646,9 @@ namespace staticTuningCodeGen_ref {
         errs() << space << space << space << "min_expected_rt = mit->second;\n";
         errs() << space << space << "}\n";
         errs() << space << "}\n";
-        // errs() << space << "for (map<int, double>::iterator mit = per_tcount_MR.begin(); mit != per_tcount_MR.end(); ++mit) {\n";
-        // errs() << space << space << "cout << mit->second << \" \";\n";
-        // errs() << space << "}\n";
+        // // errs() << space << "for (map<int, double>::iterator mit = per_tcount_MR.begin(); mit != per_tcount_MR.end(); ++mit) {\n";
+        // // errs() << space << space << "cout << mit->second << \" \";\n";
+        // // errs() << space << "}\n";
         /*
             }
          */

@@ -16,11 +16,11 @@
 #endif
 #ifdef LARGE_DATASET
 	#define TSTEPS  50
-	#define N       4096
+	#define N       8192
 #endif
 #ifdef EXTRALARGE_DATASET
 	#define TSTEPS  100
-	#define N       8192
+	#define N       100000
 #endif
 
 #else

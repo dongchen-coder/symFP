@@ -64,7 +64,7 @@ namespace symFP {
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
 #if defined(PARALLEL) 
-            AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
+            // AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
 #   if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
 #   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)

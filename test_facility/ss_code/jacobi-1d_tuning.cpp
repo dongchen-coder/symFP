@@ -28,7 +28,7 @@ double* %B
 
  /* Start analysis loops
 --i
---Loop Bound: (0, 8190)
+--Loop Bound: (0, 2097150)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----array access A.addr i
@@ -36,7 +36,7 @@ double* %B
 ----array access A.addr (i + 2)
 ----array access B.addr (i + 1)
 --i
---Loop Bound: (0, 8190)
+--Loop Bound: (0, 2097150)
 --Loop inc: (i + 1)
 --Loop predicate: <
 ----array access B.addr i
@@ -49,8 +49,8 @@ Finish analysis loops */
  /* Start to analysis the number of samples
 calculating:
 Dump tree:
-----Sample number: 81
-----Sample number: 81
+----Sample number: 1048575
+----Sample number: 1048575
  End of sample analysis */
  // Start to generating Static Sampling Code (reference based)
 /* A_addr0	4 */
@@ -401,11 +401,11 @@ int calAddrA_addr7( int i) {
 void ref_A_addr0(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -416,7 +416,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 8190; i=(i + 1)) {
+        for ( int i = iLB0; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrA_addr0( i) == calAddrA_addr0(i_Start)) {
@@ -519,7 +519,7 @@ SAMPLE:
         }
         {
         int iLB1 = 0;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
@@ -536,10 +536,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -569,11 +569,11 @@ EndSample:
 void ref_A_addr1(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -584,7 +584,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 8190; i=(i + 1)) {
+        for ( int i = iLB0; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrA_addr0( i) == calAddrA_addr1(i_Start)) {
@@ -687,7 +687,7 @@ SAMPLE:
         }
         {
         int iLB1 = 0;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
@@ -704,10 +704,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -737,11 +737,11 @@ EndSample:
 void ref_A_addr2(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -752,7 +752,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 8190; i=(i + 1)) {
+        for ( int i = iLB0; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrA_addr0( i) == calAddrA_addr2(i_Start)) {
@@ -855,7 +855,7 @@ SAMPLE:
         }
         {
         int iLB1 = 0;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
@@ -872,10 +872,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -905,11 +905,11 @@ EndSample:
 void ref_A_addr7(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -920,7 +920,7 @@ SAMPLE:
 
         {
         int iLB1 = i_Start;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
@@ -966,11 +966,11 @@ EndSample:
 void ref_B_addr3(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -981,7 +981,7 @@ SAMPLE:
 
         {
         int iLB0 = i_Start;
-        for ( int i = iLB0; i < 8190; i=(i + 1)) {
+        for ( int i = iLB0; i < 2097150; i=(i + 1)) {
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
             if (cntStart == true) cnt++;
@@ -1022,7 +1022,7 @@ SAMPLE:
         }
         {
         int iLB1 = 0;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrB_addr4( i) == calAddrB_addr3(i_Start)) {
@@ -1036,10 +1036,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -1073,10 +1073,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -1110,10 +1110,10 @@ SAMPLE:
                         /* i 4 */
                         /* compute the number of accesses between source and sink chunk */
                         uint64_t middle_accesses = 0;
-                        if (isCompleteChunk(8190, thread_cnt)) {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                        if (isCompleteChunk(2097150, thread_cnt)) {
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 1) * (CHUNK_SIZE * thread_cnt)) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         } else {
-                                    middle_accesses += ((getChunkNum(8190, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (8190 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
+                                    middle_accesses += ((getChunkNum(2097150, thread_cnt) - getChunkID((i_Start -0), thread_cnt) - 2) * CHUNK_SIZE * thread_cnt + (2097150 % (CHUNK_SIZE * thread_cnt))) * 4 + getChunkID((i - 0), thread_cnt) * CHUNK_SIZE * thread_cnt * 4;
                         }
                         middle_accesses += 0;
 #ifdef DEBUG
@@ -1144,11 +1144,11 @@ EndSample:
 void ref_B_addr4(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1159,7 +1159,7 @@ SAMPLE:
 
         {
         int iLB1 = i_Start;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrB_addr4( i) == calAddrB_addr4(i_Start)) {
@@ -1267,11 +1267,11 @@ EndSample:
 void ref_B_addr5(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1282,7 +1282,7 @@ SAMPLE:
 
         {
         int iLB1 = i_Start;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrB_addr4( i) == calAddrB_addr5(i_Start)) {
@@ -1390,11 +1390,11 @@ EndSample:
 void ref_B_addr6(int thread_cnt, map<uint64_t, double> & RT) {
     /* Generating sampling loop */
     set<string> record;
-    for ( int s = 0; s < 81;) {
+    for ( int s = 0; s < 1048575;) {
 SAMPLE:
-        int i_Start = rand() % (8190 - 0) + 0;
+        int i_Start = rand() % (2097150 - 0) + 0;
         if (i_Start % 1 != 0) goto SAMPLE; 
-        if (i_Start + thread_cnt * CHUNK_SIZE > 8190) { goto SAMPLE; }
+        if (i_Start + thread_cnt * CHUNK_SIZE > 2097150) { goto SAMPLE; }
         string idx_string =  to_string(i_Start) + "_" ;
         if ( record.find(idx_string) != record.end() ) goto SAMPLE;
         record.insert( idx_string );
@@ -1405,7 +1405,7 @@ SAMPLE:
 
         {
         int iLB1 = i_Start;
-        for ( int i = iLB1; i < 8190; i=(i + 1)) {
+        for ( int i = iLB1; i < 2097150; i=(i + 1)) {
             if (cntStart == true) {
                 cnt++;
                 if ( calAddrB_addr4( i) == calAddrB_addr6(i_Start)) {
@@ -1560,7 +1560,7 @@ int main() {
     vector<thread> thread_vec;
     for (int t = tlb; t <= tub; t++) {
         /* Currently we consider all even number threads only */
-        if ( t % 2 != 0 ) { continue; }
+        if ( ceil(log2(t)) != floor(log2(t)) ) { continue; }
         generate_per_thread_reuse(t);
         /* iterate each tid and dump its private L2 miss ratio (1MB) */
         thread_vec.push_back(thread(compute_expected_reuse, t));

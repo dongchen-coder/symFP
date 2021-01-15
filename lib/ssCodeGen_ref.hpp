@@ -28,9 +28,9 @@ using namespace std;
 // #define SEARCH_REUSE_SAME_LOOP
 //#define SEARCH_REUSE_DIFFERENT_LOOPS
 
-#define DumpRTMR
+// #define DumpRTMR
 // #define REFERENCE_GROUP
-// #define DumpRefLease
+#define DumpRefLease
 
 namespace ssCodeGen_ref {
     struct StaticSamplingCodeGen_ref : public FunctionPass {

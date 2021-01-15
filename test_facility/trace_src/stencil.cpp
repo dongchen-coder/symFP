@@ -1,16 +1,16 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+    #include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+    #include "reda-spatial.h"
 #endif
 
 
-#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
-    #define STANDARD_DATASET
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
 #endif
 #ifdef MINI_DATASET
     #define DIM_SIZE 64
@@ -18,7 +18,7 @@
 #ifdef SMALL_DATASET
     #define DIM_SIZE 1024
 #endif
-#ifdef STANDARD_DATASET
+#ifdef MEDIUM_DATASET
     #define DIM_SIZE 2048
 #endif
 #ifdef EXTRALARGE_DATASET
@@ -30,9 +30,9 @@
 
 
 bool varify(double * b, double * a) {
-    for (int i = 1; i < DIM_SIZE+1; i++) {
-        for (int j = 1; j < DIM_SIZE+1; j++) {
-            if (b[i * (DIM_SIZE+2) + j] != a[i*(DIM_SIZE+2)+j] + a[i*(DIM_SIZE+2)+j + 1] + a[i*(DIM_SIZE+2)+j - 1] + a[(i-1)*(DIM_SIZE+2)+j] + a[(i+1)*(DIM_SIZE+2)+j]) {
+    for (int i = 0; i < DIM_SIZE; i++) {
+        for (int j = 0; j < DIM_SIZE; j++) {
+            if (b[(i+1) * (DIM_SIZE) + j+1] != a[(i+1)*(DIM_SIZE)+j+1] + a[(i+1)*(DIM_SIZE)+j + 2] + a[(i+1)*(DIM_SIZE)+j] + a[(i)*(DIM_SIZE)+j + 1] + a[(i+2)*(DIM_SIZE)+j+1]) {
                 return false;
             }
         }
@@ -41,16 +41,27 @@ bool varify(double * b, double * a) {
 }
 
 void stencil_trace(double *a, double *b, unsigned int dim_size) {
-    for (int i = 1; i < dim_size+1; i++) {
-        for (int j = 1; j < dim_size+1; j++) {
-            b[i* (DIM_SIZE + 2) +j] =  a[i* (DIM_SIZE + 2)+j] + a[i* (DIM_SIZE + 2)+j + 1] + a[i* (DIM_SIZE + 2)+j - 1] + a[(i-1)* (DIM_SIZE + 2) +j] + a[(i+1)* (DIM_SIZE + 2) +j];
 
-            rtTmpAccess(i * (DIM_SIZE + 2) + j, {i, j}, "A[i][j]");
-            rtTmpAccess(i * (DIM_SIZE + 2) + j + 1, {i, j}, "A[i][j+1]");
-            rtTmpAccess(i * (DIM_SIZE + 2) + j - 1, {i, j}, "A[i][j-1]");
-            rtTmpAccess( (i-1) * (DIM_SIZE + 2) + j, {i, j}, "A[i-1][j]");
-            rtTmpAccess( (i+1) * (DIM_SIZE + 2) + j, {i, j}, "A[i+1][j]");
-            rtTmpAccess(i * (DIM_SIZE + 2) + j + (DIM_SIZE + 2)* (DIM_SIZE + 2), {i, j}, "B[i][j]");
+    for (int i = 0; i < DIM_SIZE; i++) {
+        for (int j = 0; j < DIM_SIZE; j++) {
+            b[(DIM_SIZE)*(i+1)+j+1] = a[(DIM_SIZE)*(i+1)+j+1] 
+                        + a[(DIM_SIZE)*(i+1)+j+2] 
+                        + a[(DIM_SIZE)*(i+1)+j]
+                        + a[(DIM_SIZE)*i+j+1]
+                        + a[(DIM_SIZE)*(i+2)+j+1];
+            // rtTmpAccess(i * (DIM_SIZE) + j + 1, {i, j}, "A[i][j]");
+            // rtTmpAccess(i * (DIM_SIZE) + j + 2, {i, j}, "A[i][j+1]");
+            // rtTmpAccess(i * (DIM_SIZE) + j, {i, j}, "A[i][j-1]");
+            // rtTmpAccess( (i) * (DIM_SIZE) + j + 1, {i, j}, "A[i-1][j]");
+            // rtTmpAccess( (i+2) * (DIM_SIZE) + j + 1, {i, j}, "A[i+1][j]");
+            // rtTmpAccess(i * (DIM_SIZE) + j + 1 + (DIM_SIZE) * (DIM_SIZE), {i, j}, "B[i][j]");
+
+            rtTmpAccess((i+1) * (DIM_SIZE) + (j+1));
+            rtTmpAccess((i+1) * (DIM_SIZE) + (j+2));
+            rtTmpAccess((i+1) * (DIM_SIZE) + (j));
+            rtTmpAccess( i * (DIM_SIZE) + (j+1));
+            rtTmpAccess( (i+2) * (DIM_SIZE) + (j+1));
+            rtTmpAccess(i * (DIM_SIZE) + (j+1) + (DIM_SIZE)* (DIM_SIZE));
         }
     }
     return;
@@ -69,14 +80,25 @@ int main() {
 #ifdef RD
     InitRD();
 #endif
-    
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     stencil_trace(a, b, DIM_SIZE);
     
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
-    dumpStat();
 #endif
     
 #ifdef RD

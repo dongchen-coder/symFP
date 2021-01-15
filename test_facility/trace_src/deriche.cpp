@@ -1,21 +1,37 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+	#include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+	#include "reda-spatial.h"
 #endif
 
 #include<math.h>
 
-#ifdef ORG
-	#define W 1024
-	#define H 1024
-#elif defined(TX)
-#elif defined(FX)
-#elif defined(EX)
+#if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET) && !defined(MEDIUM_DATASET)
+    #define LARGE_DATASET
+#endif
+#ifdef MINI_DATASET
+    #define W 32
+    #define H 32
+#endif
+#ifdef SMALL_DATASET
+    #define W 1024
+    #define H 1024
+#endif 
+#ifdef MEDIUM_DATASET
+    #define W 4096
+    #define H 4096
+#endif
+#ifdef LARGE_DATASET
+    #define W 8192
+    #define H 8192
+#endif
+#ifdef EXTRALARGE_DATASET
+    #define W 100000
+    #define H 100000
 #endif
 
 #define EXP_FUN(x) exp(x)
@@ -143,12 +159,25 @@ int main() {
 #ifdef RD
     InitRD();
 #endif
+
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif
     
 	deriche_trace(y1, imgIn, y2, imgOut, alpha);
 
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
 

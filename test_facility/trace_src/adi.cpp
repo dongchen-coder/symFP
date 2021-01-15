@@ -1,19 +1,35 @@
-#include "../utility/data_size.h"
+#include "data_size.h"
 
 #ifdef PROFILE_RT
-#include "../utility/rt.h"
+	#include "rt.h"
 #endif
 
 #ifdef RD
-#include "../utility/reda-spatial.h"
+	#include "reda-spatial.h"
 #endif
 
-#ifdef ORG
-	#define N 1024
-	#define TSTEPS 10
-#elif defined (TX)
-#elif defined (FX)
-#elif defined (EX)
+# if !defined(MINI_DATASET) && !defined(SMALL_DATASET) && !defined(MEDIUM_DATASET) && !defined(LARGE_DATASET) && !defined(EXTRALARGE_DATASET)
+#  define LARGE_DATASET
+# endif
+#ifdef MINI_DATASET
+	#define TSTEPS  2
+	#define N       32
+#endif
+#ifdef SMALL_DATASET
+	#define TSTEPS  1
+    #define N       1024
+#endif 
+#ifdef MEDIUM_DATASET
+	#define TSTEPS  50
+	#define N       2048
+#endif
+#ifdef LARGE_DATASET
+	#define TSTEPS  50
+	#define N       4096
+#endif
+#ifdef EXTRALARGE_DATASET
+	#define TSTEPS  100
+	#define N       8192
 #endif
 
 #define P_OFFSET 0
@@ -118,12 +134,23 @@ int main() {
 #ifdef RD
     InitRD();
 #endif
-    
+#ifdef PAPI_TIMER
+    // Get starting timepoint
+    PAPI_timer_init();
+    PAPI_timer_start();
+#endif    
 	adi_trace(p, q, v, u);
 	
 #ifdef PROFILE_RT
-    dumpRtTmp();
     RTtoMR_AET();
+#endif 
+#ifdef PAPI_TIMER
+    // Get ending timepoint
+    PAPI_timer_end();
+    PAPI_timer_print();
+#endif
+#ifdef PROFILE_RT
+    dumpRtTmp();
     dumpMR();
 #endif
     
