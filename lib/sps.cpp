@@ -30,6 +30,7 @@
         /* parallel 1:1 interleaving static sampling gen */
 #       include "uiAccCodeGen_ref.hpp"
 #       include "uiIterCodeGen_ref.hpp"
+#       include "uiAccCodeGenOpt_ref.hpp"
 #   elif defined(RANDOM_INTERLEAVING)
         /* parallel random interleaving static sampling gen */
 #       include "riAccCodeGen_ref.hpp"
@@ -68,7 +69,7 @@ namespace symFP {
 #   if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
 #   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
-            AU.addRequired<uiAccCodeGen_ref::AccLevelUISamplingCodeGen_ref>();
+            AU.addRequired<uiAccCodeGenOpt_ref::AccLevelUISamplingCodeGenOpt_ref>();
 #   elif defined(RANDOM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<riIterCodeGen_ref::IterLevelRICodeGen_ref>();
 #   elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)

@@ -1,5 +1,5 @@
-#ifndef uiAccCodeGen_ref_hpp
-#define uiAccCodeGen_ref_hpp
+#ifndef uiAccCodeGenOpt_ref_hpp
+#define uiAccCodeGenOpt_ref_hpp
 
 #include <map>
 
@@ -28,10 +28,10 @@ using namespace llvm;
 // #define DumpRefLease
 // #define PSCODEGEN_DEBUG
 
-namespace uiAccCodeGen_ref {
-    struct AccLevelUISamplingCodeGen_ref : public FunctionPass {
+namespace uiAccCodeGenOpt_ref {
+    struct AccLevelUISamplingCodeGenOpt_ref : public FunctionPass {
         static char ID;
-        AccLevelUISamplingCodeGen_ref();
+        AccLevelUISamplingCodeGenOpt_ref();
         
         std::map<Instruction*, std::string> arrayName;
         std::map<Instruction*, std::string> arrayExpression;
@@ -58,6 +58,8 @@ namespace uiAccCodeGen_ref {
         void addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         
         void subBlkRTGen(); 
+        /* This code used to speedup the reuse search process */
+        void rtSearchOptGen();
         void rtHistoGen();
 #ifdef DumpRTMR
         void rtDumpGen();
@@ -152,6 +154,7 @@ namespace uiAccCodeGen_ref {
             bool isFirstOutLoop, 
             std::string refName, 
             int useID, 
+            int sample_number,
             std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, 
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> sampleIDVs, 

@@ -1,13 +1,13 @@
-#include "uiAccCodeGen_ref.hpp"
+#include "uiAccCodeGenOpt_ref.hpp"
 
 
-namespace uiAccCodeGen_ref {
-    char AccLevelUISamplingCodeGen_ref::ID = 0;
-    static RegisterPass<AccLevelUISamplingCodeGen_ref> X("uiAccCodeGen_ref", "parallel 1:1 uniform interleaving static sampling code generating pass (access based)", false, false);
+namespace uiAccCodeGenOpt_ref {
+    char AccLevelUISamplingCodeGenOpt_ref::ID = 0;
+    static RegisterPass<AccLevelUISamplingCodeGenOpt_ref> X("uiAccCodeGenOpt_ref", "optimizaed parallel 1:1 uniform interleaving static sampling code generating pass (access based)", false, false);
 
-    AccLevelUISamplingCodeGen_ref::AccLevelUISamplingCodeGen_ref() : FunctionPass(ID) {}
+    AccLevelUISamplingCodeGenOpt_ref::AccLevelUISamplingCodeGenOpt_ref() : FunctionPass(ID) {}
 
-    void AccLevelUISamplingCodeGen_ref::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void AccLevelUISamplingCodeGenOpt_ref::numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->AA != NULL) {
             if (refToSameArrayCnt.find(arrayName[LoopRefTree->AA]) == refToSameArrayCnt.end()) {
@@ -28,7 +28,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void AccLevelUISamplingCodeGenOpt_ref::numberLoops(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree->L != NULL) {
             if (loopNumber.find(LoopRefTree->L) == loopNumber.end()) {
@@ -45,7 +45,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void AccLevelUISamplingCodeGenOpt_ref::initIndvName(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         if (LoopRefTree == NULL) {
             return;
@@ -69,7 +69,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::initArrayName() {
+    void AccLevelUISamplingCodeGenOpt_ref::initArrayName() {
         
         for (std::map<Instruction*, std::string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
             it->second.replace(std::find(it->second.begin(), it->second.end(), '.'), std::find(it->second.begin(), it->second.end(), '.') +1, 1, '_');
@@ -78,7 +78,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::vector<string> indvs) {
+    void AccLevelUISamplingCodeGenOpt_ref::addrCalFuncGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree, std::vector<string> indvs) {
         
         if (LoopRefTree->L != NULL) {
             for (std::vector<Value*>::iterator it = LoopRefTree->LIS->IDV->begin(), eit = LoopRefTree->LIS->IDV->end(); it != eit; ++it) {
@@ -118,7 +118,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void AccLevelUISamplingCodeGenOpt_ref::addrCalFuncGenTop(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         
         std::vector<string> indvs;
         addrCalFuncGen(LoopRefTree, indvs);
@@ -126,9 +126,9 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::headerGen() {
-        
+    void AccLevelUISamplingCodeGenOpt_ref::headerGen() {
         errs() << "#include <map>\n";
+        errs() << "#include <unordered_map>\n";
         errs() << "#include <set>\n";
         errs() << "#include <vector>\n";
         errs() << "#include <cstdlib>\n";
@@ -168,11 +168,57 @@ namespace uiAccCodeGen_ref {
 #endif
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
+        errs() << "std::unordered_map<string, uint64_t> RefIDMap;\n";
+        errs() << "// access time -> bit mask, need to clear for every iteration sample\n";
+        errs() << "std::unordered_map<uint64_t, uint64_t> RefBitmapAccessTrace;\n";
+        errs() << "// address -> access time, need to clear for every iteration sample\n";
+        errs() << "std::unordered_map<int, uint64_t> LAT;\n";
+        errs() << "// bit mask -> reuse\n";
+        errs() << "std::unordered_map<uint64_t, uint64_t> ReuseFindHistory;\n";
         return;
     }
 
+    void AccLevelUISamplingCodeGenOpt_ref::rtSearchOptGen() {
+        errs() << "/* Reset the metadata for each sample */\n";
+        errs() << "void reset() {\n";
+        errs() << "    LAT.clear();\n";
+        errs() << "    RefBitmapAccessTrace.clear();\n";
+        errs() << "}\n";
+        errs() << "/* Build the bitmap for each source access */\n";
+        errs() << "uint64_t buildReferenceBitmap(string ref, vector<int> iteration) {\n";
+        errs() << "    /* |- ref id (8bits) -|- iteration (14bits each) -| */\n";
+        errs() << "    uint64_t bitmap = 0UL;\n";
+        errs() << "    bitmap |= (RefIDMap[ref] << 56);\n";
+        errs() << "    int i = 2;\n";
+        errs() << "    vector<int>::iterator vit = iteration.begin();\n";
+        errs() << "    for (; vit != iteration.end() && i >= 0; ++vit) {\n";
+        errs() << "        uint64_t iv = (uint64_t)(*vit);\n";
+        errs() << "        bitmap |= (iv << (i * 14));\n";
+        errs() << "        i -= 1;\n";
+        errs() << "    }\n";
+        errs() << "    return bitmap;\n";
+        errs() << "}\n";
+        errs() << "/* if the iterated reference does not form a reuse with the sampler, we store its information here to see if it could form a reuse pair with other iterated reference access */\n";
+        errs() << "bool updateReuseMetadata(uint64_t refbitmap, int addr, uint64_t timer) {\n";
+        errs() << "    uint64_t reuse = 0UL;\n";
+        errs() << "    if (LAT.find(addr) != LAT.end()) {\n";
+        errs() << "        uint64_t last_access_time = LAT[addr];\n";
+        errs() << "        uint64_t src_ref_bitmask = RefBitmapAccessTrace[last_access_time];\n";
+        errs() << "        if (timer < last_access_time) {\n";
+        errs() << "            cout << \"Error for address \" << addr << endl;\n";
+        errs() << "        }\n";
+        errs() << "        reuse = timer - last_access_time;\n";
+        errs() << "        rtHistoCal(RT, reuse, 1.0);\n";
+        errs() << "        ReuseFindHistory[src_ref_bitmask] = reuse;\n";
+        errs() << "    }\n";
+        errs() << "    RefBitmapAccessTrace[timer] = refbitmap;\n";
+        errs() << "    LAT[addr] = timer;\n";
+        errs() << "    return reuse != 0UL;\n";
+        errs() << "}\n";
+    }
+
 #ifdef DumpRTMR
-    void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::rtHistoGen() {
         errs() << "void rtHistoCal( map<uint64_t, double> &rth, uint64_t rt, double val ) {\n";
         errs() << "    if ( val <= 0) {\n;";
         errs() << "        return;\n";
@@ -229,7 +275,7 @@ namespace uiAccCodeGen_ref {
     }
 
 #elif defined(DumpRefLease)
-    void AccLevelUISamplingCodeGen_ref::rtHistoGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::rtHistoGen() {
         errs() << "map<uint64_t, map<uint64_t, uint64_t>* > RI;\n";
         errs() << "map<uint64_t, map<uint64_t, double>* > hits;\n";
         errs() << "map<uint64_t, map<uint64_t, double>* > costs;\n";
@@ -259,7 +305,7 @@ namespace uiAccCodeGen_ref {
 #endif
 
     /* Generate the function to calculate the bins */
-    void AccLevelUISamplingCodeGen_ref::subBlkRTGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::subBlkRTGen() {
         string space = "    ";
         errs() << "void subBlkRT(map<uint64_t, double> &rth, int rt, double cnt) {\n";
         errs() << space + "int msb = 0;\n";
@@ -311,7 +357,7 @@ namespace uiAccCodeGen_ref {
     
     
 #ifdef DumpRTMR
-    void AccLevelUISamplingCodeGen_ref::rtDumpGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::rtDumpGen() {
         
         errs() << "void rtDump() {\n";
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
@@ -335,7 +381,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::rtToMRGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::rtToMRGen() {
         
         errs() << "void RTtoMR_AET() {\n";
         
@@ -387,7 +433,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::mrDumpGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::mrDumpGen() {
         
         errs() << "void dumpMR() {\n";
         
@@ -423,7 +469,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
 #elif defined(DumpRefLease)
-    void AccLevelUISamplingCodeGen_ref::accessRatioCalGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::accessRatioCalGen() {
         errs() << "void accessRatioCal() {\n";
         errs() << "    double total_access_cnt = 0;\n";
         errs() << "\n";
@@ -444,7 +490,7 @@ namespace uiAccCodeGen_ref {
         errs() << "}\n";
     }
     
-    void AccLevelUISamplingCodeGen_ref::initHitsCostsGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::initHitsCostsGen() {
         errs() << "void initHitsCosts() {\n";
             
         errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
@@ -472,7 +518,7 @@ namespace uiAccCodeGen_ref {
             
         errs() << "}\n";
     }
-    void AccLevelUISamplingCodeGen_ref::getPPUCGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::getPPUCGen() {
         errs() << "double getPPUC(uint64_t ref_id, uint64_t oldLease, uint64_t newLease) {\n";
             
         errs() << "    if (hits.find(ref_id) == hits.end() || costs.find(ref_id) == costs.end()) {\n";
@@ -497,7 +543,7 @@ namespace uiAccCodeGen_ref {
         errs() << "    return double((*hits[ref_id])[newLease] - (*hits[ref_id])[oldLease]) / ((*costs[ref_id])[newLease] - (*costs[ref_id])[oldLease]);\n";
         errs() << "}\n";
     }
-    void AccLevelUISamplingCodeGen_ref::getMaxPPUCGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::getMaxPPUCGen() {
         errs() << "void getMaxPPUC(bool*finished, uint64_t* ref_to_assign, uint64_t* newLease) {\n";
             
         errs() << "    double maxPPUC = -1;\n";
@@ -528,7 +574,7 @@ namespace uiAccCodeGen_ref {
         errs() << "    return;\n";
         errs() << "}\n";
     }
-	void AccLevelUISamplingCodeGen_ref::DumpRIGen() {
+	void AccLevelUISamplingCodeGenOpt_ref::DumpRIGen() {
         errs() << "void dumpRI() {\n";
         errs() << "    uint64_t total_number_of_ri = 0;\n";
         errs() << "    for (map<uint64_t, map<uint64_t, uint64_t>* >::iterator ref_it = RI.begin(), ref_eit = RI.end(); ref_it != ref_eit; ++ref_it) {\n";
@@ -543,7 +589,7 @@ namespace uiAccCodeGen_ref {
         errs() << "    cout << \"Average RISETSIZE for each reference \" << double(total_number_of_ri) / RI.size() << endl;\n";
         errs() << "}\n";
 	}
-    void AccLevelUISamplingCodeGen_ref::RLGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::RLGen() {
         errs() << "void RL_main(uint64_t CacheSize) {\n";
         errs() << "    initHitsCosts();\n";
         errs() << "    accessRatioCal();\n";
@@ -574,7 +620,7 @@ namespace uiAccCodeGen_ref {
 #endif
 
 #if defined(REFERENCE_GROUP)
-    void AccLevelUISamplingCodeGen_ref::rtMergeGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::rtMergeGen() {
         errs() << "/* Merge the refRT to RT */\n";
         errs() << "void rtMerge() {\n";
         errs() << "    for(map<string, map<uint64_t, double>>::iterator it = refRT.begin(); it != refRT.end(); ++it) {\n";
@@ -592,7 +638,7 @@ namespace uiAccCodeGen_ref {
     }
 #endif
 #if defined(UNIFORM_SMOOTHING) || defined(GAUSSIAN_SMOOTHING)
-    void AccLevelUISamplingCodeGen_ref::filterArrayAccesses() {
+    void AccLevelUISamplingCodeGenOpt_ref::filterArrayAccesses() {
         for(map<Instruction*, vector<string>>::iterator mit = arrayAccessVariable.begin(); mit != arrayAccessVariable.end(); ++mit) {
             errs() << "/* Array " << arrayName[mit->first] << "\t";
             for(vector<string>::iterator vit = (mit->second).begin(); vit != (mit->second).end(); ++vit) {
@@ -619,7 +665,7 @@ namespace uiAccCodeGen_ref {
     }
 #endif
 #if defined(UNIFORM_SMOOTHING)
-    void AccLevelUISamplingCodeGen_ref::UniformDistrGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::UniformDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto Uniformly. Equally splite the RT to a range of bins */\n";
         errs() << "void uniform_smoothing(map<uint64_t, double> &rth, bool enable, bool scale) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
@@ -683,7 +729,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
 #ifdef REFERENCE_GROUP
-    void AccLevelUISamplingCodeGen_ref::GroupUniformDistrGen(string space) {
+    void AccLevelUISamplingCodeGenOpt_ref::GroupUniformDistrGen(string space) {
         filterArrayAccesses();
         errs() << "void group_uniform_smoothing() {\n";
         double sensitive_ratio = (double)outMostIndependentArrayRef.size() / refNumber.size();
@@ -712,7 +758,7 @@ namespace uiAccCodeGen_ref {
     }
 #endif
 #elif defined(GAUSSIAN_SMOOTHING)
-    void AccLevelUISamplingCodeGen_ref::GaussianDistrGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::GaussianDistrGen() {
         errs() << "/* Smoothing the per-reference RTHisto based on Gasussian */\n";
         errs() << "void gaussian_smoothing(map<uint64_t, double> &rth, bool scale, double sigma, bool enable) {\n";
         errs() << "    map<uint64_t, double> tmp;\n";
@@ -750,7 +796,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
 #ifdef REFERENCE_GROUP
-    void AccLevelUISamplingCodeGen_ref::GroupGaussianDistrGen(string space) {
+    void AccLevelUISamplingCodeGenOpt_ref::GroupGaussianDistrGen(string space) {
         filterArrayAccesses();
         errs() << "void group_gaussian_smoothing(double sigma) {\n";
         double sensitive_ratio = (double)outMostIndependentArrayRef.size() / refNumber.size();
@@ -779,7 +825,7 @@ namespace uiAccCodeGen_ref {
     }
 #endif
 #endif
-    string AccLevelUISamplingCodeGen_ref::getBound(Value *bound) {
+    string AccLevelUISamplingCodeGenOpt_ref::getBound(Value *bound) {
         
         if (isa<Instruction>(bound)) {
             
@@ -815,7 +861,7 @@ namespace uiAccCodeGen_ref {
         return "";
     }
     
-    string AccLevelUISamplingCodeGen_ref::getBound_Start(Value *bound) {
+    string AccLevelUISamplingCodeGenOpt_ref::getBound_Start(Value *bound) {
         
         if (isa<Instruction>(bound)) {
             
@@ -851,7 +897,7 @@ namespace uiAccCodeGen_ref {
         return "";
     }
 
-    string AccLevelUISamplingCodeGen_ref::getLoopInc(Value *inc) {
+    string AccLevelUISamplingCodeGenOpt_ref::getLoopInc(Value *inc) {
         if (isa<Instruction>(inc)) {
             Instruction *inst = cast<Instruction>(inc);
             switch (inst->getOpcode()) {
@@ -877,7 +923,7 @@ namespace uiAccCodeGen_ref {
         return "";
     }
     
-    std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> AccLevelUISamplingCodeGen_ref::findLoops(
+    std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> AccLevelUISamplingCodeGenOpt_ref::findLoops(
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
         string refName, 
         int useID, 
@@ -915,11 +961,11 @@ namespace uiAccCodeGen_ref {
         return loopRes;
     }
 
-    uint64_t AccLevelUISamplingCodeGen_ref::getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node) {
+    uint64_t AccLevelUISamplingCodeGenOpt_ref::getOuterMostLoopIterationSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode * node) {
         return ((uint64_t) stoi(getBound((*node->LIS->LB)[0].second)) - (uint64_t) stoi(getBound((*node->LIS->LB)[0].first))) / (uint64_t) stoi(getLoopInc((*node->LIS->INC)[0]));
     }
 
-    uint64_t AccLevelUISamplingCodeGen_ref::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
+    uint64_t AccLevelUISamplingCodeGenOpt_ref::computeIterSpace(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* LoopRefTree) {
         uint64_t iterSpace = 0;
         if (LoopRefTree->next != NULL) {
             for (vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = LoopRefTree->next->begin(), eit = LoopRefTree->next->end(); it != eit; ++it) {
@@ -939,7 +985,7 @@ namespace uiAccCodeGen_ref {
     /* x is the input matrix */
     /* y is the input result */
     /* length */
-    void AccLevelUISamplingCodeGen_ref::searchReuseDifferentLoopsUpdateFuncGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::searchReuseDifferentLoopsUpdateFuncGen() {
         errs() << "void updateCoefficient(float* a, int** x, int length, int* y) {\n";
         errs() << "    double** x_tmp = new double*[length];\n";
         errs() << "    for (int i = 0; i < length; i++) {\n";
@@ -992,7 +1038,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::searchReuseDifferentLoopsCalFuncGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::searchReuseDifferentLoopsCalFuncGen() {
         
         errs() << "int calWithCoefficient(float* a, int *x, int length) {\n";
         errs() << "    float tmp = 0;\n";
@@ -1006,7 +1052,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    bool AccLevelUISamplingCodeGen_ref::searchReuseDifferentLoopsInitGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
+    bool AccLevelUISamplingCodeGenOpt_ref::searchReuseDifferentLoopsInitGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
@@ -1064,7 +1110,7 @@ namespace uiAccCodeGen_ref {
         return GenFlag;
     }
     
-    bool AccLevelUISamplingCodeGen_ref::searchReuseDifferentLoopsBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
+    bool AccLevelUISamplingCodeGenOpt_ref::searchReuseDifferentLoopsBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, bool GenFlag, std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *> currentLoops, string space) {
         
         if (loops.size() != 0 && GenFlag == false) {
             if (LoopRefTree == loops[0]) {
@@ -1179,7 +1225,7 @@ namespace uiAccCodeGen_ref {
     
 
     /* Search result reuse (Same loop) */
-    void AccLevelUISamplingCodeGen_ref::searchReuseSameLoopInitGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
+    void AccLevelUISamplingCodeGenOpt_ref::searchReuseSameLoopInitGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, string space) {
         
         //errs() << "Search result reuse: (ref name " << refName << " ) ( ID " << useID << " ) ( numOfLoops " << loops.size() << " )\n";
 
@@ -1199,7 +1245,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
+    void AccLevelUISamplingCodeGenOpt_ref::searchReuseSameLoopBodyGen(std::string refName, int useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops,  string space) {
         
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator ait = loops.back()->next->begin(), eit = loops.back()->next->end(); ait != eit; ++ait) {
             if ((*ait)->isThreadNode) { continue; }
@@ -1270,12 +1316,13 @@ namespace uiAccCodeGen_ref {
     }
     
     /* Generating Reuse Search */
-    bool AccLevelUISamplingCodeGen_ref::refRTSearchGen(
+    bool AccLevelUISamplingCodeGenOpt_ref::refRTSearchGen(
         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, 
         bool GenFlag,
         bool isFirstNestLoop, 
         std::string refName, 
         int useID, 
+        int sample_number,
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, 
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> sampleIDVs, 
@@ -1524,7 +1571,6 @@ namespace uiAccCodeGen_ref {
                         errs() << space + "        for ( int tid = t_Start; tid < THREAD_NUM; tid++) {\n"; 
                         errs() << space + "            nv[tid] = v;\n";
                         errs() << space + "            nv[tid][0] = v[0] + chunk_size * (tid - t_Start);\n";
-                        // errs() << space + "            vector<int> tmp;\n";
                         // errs() << space + "            for (int vi = 0; vi < v.size(); vi++ ) {\n";
                         // errs() << space + "                if (vi == 0) {\n";
                         // errs() << space + "                    tmp.push_back(v[0] + chunk_size * (tid - t_Start));\n";
@@ -1561,24 +1607,35 @@ namespace uiAccCodeGen_ref {
                             }
                         }
                         errs() << "\", cnt: \" << cnt << \")\t\";\n";
-                        errs() << "#endif\n";                  
-                        errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
-                        string tmp = "";
+                        errs() << "#endif\n";        
+                        string addr_cal_str = "calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";  
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
-                            tmp += "nv[nvi][" + std::to_string(i) + "], ";
+                            addr_cal_str += "nv[nvi][" + std::to_string(i) + "], ";
                         }
                         if (currentLoops.size() != 0) {
-                            tmp.pop_back();
-                            tmp.pop_back();
+                            addr_cal_str.pop_back();
+                            addr_cal_str.pop_back();
                         }
+                        addr_cal_str += ")";
+                        errs() << space + "        int addr = " << addr_cal_str << ";\n";   
+                        // errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
+                        errs() << space + "        if ( addr";
+                        // string tmp = "";
+                        // for (unsigned i = 0; i < currentLoops.size(); i++) {
+                        //     tmp += "nv[nvi][" + std::to_string(i) + "], ";
+                        // }
+                        // if (currentLoops.size() != 0) {
+                        //     tmp.pop_back();
+                        //     tmp.pop_back();
+                        // }
 
-                        errs() << tmp + ")";
+                        // errs() << tmp + ")";
                         errs() << " == ";
                         
                         errs() << "calAddr" + refName + std::to_string(useID);
                         errs() << "(";
                         
-                        tmp = "";
+                        string tmp = "";
                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                             for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
                                 tmp += indvName[(*(*it)->LIS->IDV)[i]];
@@ -1612,20 +1669,30 @@ namespace uiAccCodeGen_ref {
                             }
                         }
                         errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
-                        // errs() << space + "            if (cnt == 2907  || cnt == 2955) { exit(1); }\n";
-                        errs() << "#else\n";
-
 #ifdef REFERENCE_GROUP
                         // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
                         errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
 #else
                         // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
 #endif
                         errs() << "#endif\n";
+                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
+                        errs() << space + "            reset();\n";
                         errs() << space + "            goto EndSample;\n";
                         
+                        errs() << space + "        } else {\n";
+                                // uint64_t bitmap = buildReferenceBitmap("x1_addr1", nv[nvi]);
+                                // bool find_reuse = updateReuseMetadata(bitmap, calAddrx1_addr0( nv[nvi][0], nv[nvi][1]), cnt);
+                                // if (find_reuse) {
+                                //     s++;
+                                //     if (s >= 10485) { goto EndSample; }
+                                // }
+                        errs() << space + "            uint64_t bitmap = buildReferenceBitmap(\"" << refName + to_string(refNumber[LoopRefTree->AA]) << "\", nv[nvi]);\n";
+                        errs() << space + "            bool find_reuse = updateReuseMetadata(bitmap, addr, cnt);\n";
+                        errs() << space + "            if (find_reuse) {\n";
+                        errs() << space + "                s++;\n";
+                        errs() << space + "                if ( s >= " << to_string(sample_number) << " ) { goto EndSample; } \n";
+                        errs() << space + "            }\n";
                         errs() << space + "        }\n";
                         errs() << space + "    }\n";
                         if (useID == refNumber[LoopRefTree->AA]) {
@@ -1694,7 +1761,7 @@ namespace uiAccCodeGen_ref {
                         continue;
                     }
                 }
-                GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, loops, currentLoops_New, sampleIDVs, space + "    ");
+                GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, sample_number, loops, currentLoops_New, sampleIDVs, space + "    ");
             }
             if (LoopRefTree->L != NULL && GenFlag == true) {
                 if (find(outloops.begin(), outloops.end(), LoopRefTree) != outloops.end()) {
@@ -1717,7 +1784,7 @@ namespace uiAccCodeGen_ref {
     }
 
 
-    void AccLevelUISamplingCodeGen_ref::refRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID) {
+    void AccLevelUISamplingCodeGenOpt_ref::refRTBodyGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree, string refName, int useID) {
         
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops = findLoops(LoopRefTree, refName, useID, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), false);
         
@@ -1745,6 +1812,7 @@ namespace uiAccCodeGen_ref {
 #if SAMPLING ==2
         errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
+        uint64_t sample_number = 0UL;
         errs() << space + "set<string> record;\n";
         
         errs() << space + "for ( int s = 0; s < ";
@@ -1753,6 +1821,7 @@ namespace uiAccCodeGen_ref {
 		} else {
         	if (sampleNum.find(loops.back()) != sampleNum.end()) {
             	errs() << std::to_string(sampleNum[loops.back()]);
+                sample_number = (uint64_t)sampleNum[loops.back()];
         	} else {
             	errs() << "ERROR in finding bounds\n";
         	}
@@ -1762,7 +1831,7 @@ namespace uiAccCodeGen_ref {
         if (loops.size() == 0) {
             errs() << space + "/* Generating reuse search code */\n";
             errs() << "\n";
-            refRTSearchGen(LoopRefTree, false, true, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
+            refRTSearchGen(LoopRefTree, false, true, refName, useID, sample_number, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
             errs() << space + "s++;\n";
             errs() << space + "}\n";
             return;
@@ -1848,8 +1917,17 @@ namespace uiAccCodeGen_ref {
 */
         
         errs() << space + "if ( record.find(idx_string) != record.end() ) goto SAMPLE;\n";
-        
         errs() << space + "record.insert( idx_string );\n";
+        errs() << space << "uint64_t sample_bitmap = buildReferenceBitmap(\"" << refName + to_string(useID) << "\", {";
+        idx_string_tmp = "";
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+            for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]] + "_Start, ";
+            }
+        }
+        idx_string_tmp.pop_back();
+        errs() << idx_string_tmp << "});\n";
+        errs() << space << "if (ReuseFindHistory.find(sample_bitmap) != ReuseFindHistory.end()) { goto SAMPLE; }\n";
         errs() << "#ifdef DEBUG\n";
         errs() << space + "cout << \"[" + refName + to_string(useID) + "]Samples: \" << idx_string << endl;\n";
         errs() << "#endif\n";
@@ -1872,14 +1950,14 @@ namespace uiAccCodeGen_ref {
         errs() << space + "/* Vector that contains the interleaved iteration, avoid duplicate declaration */\n";
         errs() << space + "vector<vector<int>> nv(THREAD_NUM);\n";
         errs() << space + "int chunk_size, chunk_num, c_Start, ci_Start;\n";
-        refRTSearchGen(LoopRefTree, false, true, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
+        refRTSearchGen(LoopRefTree, false, true, refName, useID, sample_number, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
         errs() << "EndSample:\n";
         errs() << space + "s++;\n";
         errs() << space + "}\n";
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
+    void AccLevelUISamplingCodeGenOpt_ref::refRTGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
         /*
         for (std::map<string, int>::iterator it = refToSameArrayCnt.begin(), eit = refToSameArrayCnt.end(); it != eit; ++it) {
             for (int i = 0; i < it->second; i++) {
@@ -1904,7 +1982,7 @@ namespace uiAccCodeGen_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGen_ref::mainGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::mainGen() {
     
         errs() << "int main() {\n";
         
@@ -1982,7 +2060,7 @@ namespace uiAccCodeGen_ref {
     }
     
     
-    bool AccLevelUISamplingCodeGen_ref::runOnFunction(Function &F) {
+    bool AccLevelUISamplingCodeGenOpt_ref::runOnFunction(Function &F) {
     
         errs() << " // Start to generating Static Sampling Code (reference based)\n";
         
@@ -2009,6 +2087,9 @@ namespace uiAccCodeGen_ref {
 
         /* generate subBlkRT function */
         subBlkRTGen();
+
+        /* generate functions to speedup the reuse searching */
+        rtSearchOptGen();
 
 #if defined(REFERENCE_GROUP)
         rtMergeGen();
@@ -2076,7 +2157,7 @@ namespace uiAccCodeGen_ref {
         return false;
     }
     
-    void AccLevelUISamplingCodeGen_ref::getAnalysisUsage(AnalysisUsage &AU) const {
+    void AccLevelUISamplingCodeGenOpt_ref::getAnalysisUsage(AnalysisUsage &AU) const {
         AU.setPreservesAll();
         AU.addRequired<idxAnalysis::IndexAnalysis>();
         AU.addRequired<argAnalysis::ArgumentAnalysis>();
