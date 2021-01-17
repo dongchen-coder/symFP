@@ -169,18 +169,14 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
         errs() << "std::unordered_map<string, uint64_t> RefIDMap;\n";
-        errs() << "// access time -> bit mask, need to clear for every iteration sample\n";
-        errs() << "std::unordered_map<uint64_t, uint64_t> RefBitmapAccessTrace;\n";
-        errs() << "// address -> access time, need to clear for every iteration sample\n";
-        errs() << "std::unordered_map<int, uint64_t> LAT;\n";
         errs() << "// bit mask -> reuse\n";
-        errs() << "std::unordered_map<uint64_t, uint64_t> ReuseFindHistory;\n";
+        errs() << "unordered_map<uint64_t, uint64_t> ReuseFindHistory;\n";
         return;
     }
 
     void AccLevelUISamplingCodeGenOpt_ref::rtSearchOptGen() {
         errs() << "/* Reset the metadata for each sample */\n";
-        errs() << "void reset() {\n";
+        errs() << "void reset(unordered_map<int, uint64_t> &LAT, unordered_map<uint64_t, uint64_t> &RefBitmapAccessTrace) {\n";
         errs() << "    LAT.clear();\n";
         errs() << "    RefBitmapAccessTrace.clear();\n";
         errs() << "}\n";
@@ -199,7 +195,7 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "    return bitmap;\n";
         errs() << "}\n";
         errs() << "/* if the iterated reference does not form a reuse with the sampler, we store its information here to see if it could form a reuse pair with other iterated reference access */\n";
-        errs() << "bool updateReuseMetadata(uint64_t refbitmap, int addr, uint64_t timer) {\n";
+        errs() << "bool updateReuseMetadata(unordered_map<int, uint64_t> &LAT, unordered_map<uint64_t, uint64_t> &RefBitmapAccessTrace, uint64_t refbitmap, int addr, uint64_t timer) {\n";
         errs() << "    uint64_t reuse = 0UL;\n";
         errs() << "    if (LAT.find(addr) != LAT.end()) {\n";
         errs() << "        uint64_t last_access_time = LAT[addr];\n";
@@ -1677,7 +1673,7 @@ namespace uiAccCodeGenOpt_ref {
 #endif
                         errs() << "#endif\n";
                         errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
-                        errs() << space + "            reset();\n";
+                        errs() << space + "            reset(LAT, RefBitmapAccessTrace);\n";
                         errs() << space + "            goto EndSample;\n";
                         
                         errs() << space + "        } else {\n";
@@ -1688,7 +1684,7 @@ namespace uiAccCodeGenOpt_ref {
                                 //     if (s >= 10485) { goto EndSample; }
                                 // }
                         errs() << space + "            uint64_t bitmap = buildReferenceBitmap(\"" << refName + to_string(refNumber[LoopRefTree->AA]) << "\", nv[nvi]);\n";
-                        errs() << space + "            bool find_reuse = updateReuseMetadata(bitmap, addr, cnt);\n";
+                        errs() << space + "            bool find_reuse = updateReuseMetadata(LAT, RefBitmapAccessTrace, bitmap, addr, cnt);\n";
                         errs() << space + "            if (find_reuse) {\n";
                         errs() << space + "                s++;\n";
                         errs() << space + "                if ( s >= " << to_string(sample_number) << " ) { goto EndSample; } \n";
@@ -1836,6 +1832,11 @@ namespace uiAccCodeGenOpt_ref {
             errs() << space + "}\n";
             return;
         }
+
+        errs() << space + "// access time -> bit mask, need to clear for every iteration sample\n";
+        errs() << space + "unordered_map<uint64_t, uint64_t> RefBitmapAccessTrace;\n";
+        errs() << space + "// address -> access time, need to clear for every iteration sample\n";
+        errs() << space + "unordered_map<int, uint64_t> LAT;\n";
 
         errs() << "SAMPLE:\n";
         
@@ -1996,8 +1997,13 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "    PAPI_timer_start();\n";
         errs() << "#endif\n";
         errs() << space + "/* " << refNumber.size() << " */\n";
+        /* Generate the RefName to RefID mapping */
+        int refidx = 0;
         for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
-
+            errs() << space + "RefIDMap[\"" << arrayName[it->first] + std::to_string(it->second) << "\"] = " << to_string(refidx) << ";\n";
+            refidx += 1;
+        }
+        for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 #ifdef PARALLEL_CXX_THREAD
             /*
                 errs() << space + "std::thread t_"+ (*it).first + "_" +std::to_string(i)+ "(";

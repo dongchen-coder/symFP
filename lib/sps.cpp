@@ -70,6 +70,7 @@ namespace symFP {
             AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
 #   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
             AU.addRequired<uiAccCodeGenOpt_ref::AccLevelUISamplingCodeGenOpt_ref>();
+            // AU.addRequired<uiAccCodeGen_ref::AccLevelUISamplingCodeGen_ref>();
 #   elif defined(RANDOM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<riIterCodeGen_ref::IterLevelRICodeGen_ref>();
 #   elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
