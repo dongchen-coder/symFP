@@ -1593,28 +1593,47 @@ namespace uiAccCodeGen_ref {
                         }
                         errs() << tmp + ")) {\n";
 
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout << \"[" << refName << std::to_string(useID) << " --> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << "] @ (\" << ";
+                        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
+                        errs() << space + "            cout << cnt << \" " << refName << std::to_string(useID) << " (\" << ";
                         for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
                             for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
                                 errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
                                 if (it != loops.end()-1) {
-                                    errs() << " << \", \" << ";
+                                    errs() << " << \",\" << ";
                                 }
                             }
                         }
-                        errs() << " << \") --> (\" << ";
+                        errs() << "<< \") -> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << " (\" << " ;
                         tmp = "";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "]";
                             if (i != currentLoops.size() - 1) {
-                                tmp += " << \", \" << ";
+                                tmp += " << \",\" << ";
                             }
                         }
-                        errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
+                        errs() << tmp << " << \")\" << endl;\n";
+
+
+                        // errs() << space + "            cout << \"[" << refName << std::to_string(useID) << " --> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << "] @ (\" << ";
+                        // for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+                        //     for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+                        //         errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+                        //         if (it != loops.end()-1) {
+                        //             errs() << " << \", \" << ";
+                        //         }
+                        //     }
+                        // }
+                        // errs() << " << \") --> (\" << ";
+                        // tmp = "";
+                        // for (unsigned i = 0; i < currentLoops.size(); i++) {
+                        //     tmp += "nv[nvi][" + std::to_string(i) + "]";
+                        //     if (i != currentLoops.size() - 1) {
+                        //         tmp += " << \", \" << ";
+                        //     }
+                        // }
+                        // errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
                         // errs() << space + "            if (cnt == 2907  || cnt == 2955) { exit(1); }\n";
-                        errs() << "#else\n";
+                        errs() << "#endif\n";
 
 #ifdef REFERENCE_GROUP
                         // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
@@ -1623,7 +1642,6 @@ namespace uiAccCodeGen_ref {
                         // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
                         errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
 #endif
-                        errs() << "#endif\n";
                         errs() << space + "            goto EndSample;\n";
                         
                         errs() << space + "        }\n";

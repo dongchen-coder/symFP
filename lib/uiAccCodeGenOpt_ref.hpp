@@ -47,6 +47,7 @@ namespace uiAccCodeGenOpt_ref {
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> outloops;
         
         std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, uint64_t> sampleNum;
+        std::map<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*, vector<Instruction*>> refPerOutMostLoop;
 
         void filterArrayAccesses();
         void numberRefToSameArray(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
@@ -59,6 +60,7 @@ namespace uiAccCodeGenOpt_ref {
         
         void subBlkRTGen(); 
         /* This code used to speedup the reuse search process */
+        void sampleStructGen();
         void rtSearchOptGen();
         void rtHistoGen();
 #ifdef DumpRTMR
@@ -154,7 +156,6 @@ namespace uiAccCodeGenOpt_ref {
             bool isFirstOutLoop, 
             std::string refName, 
             int useID, 
-            int sample_number,
             std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, 
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
             vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> sampleIDVs, 
@@ -167,7 +168,7 @@ namespace uiAccCodeGenOpt_ref {
             std::string refName, 
             int useID);
         
-        void mainGen();
+        void mainGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree);
         
         bool runOnFunction(Function &F) override;
         void getAnalysisUsage(AnalysisUsage &AU) const override;

@@ -136,6 +136,9 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "#include <cmath>\n";
         errs() << "#include <numeric>\n";
         errs() << "#include <utility>\n";
+        errs() << "#include <stdlib.h>\n";
+        errs() << "#include <time.h>\n";
+        // errs() << "#include \"plum_util.h\"\n";
 #ifdef PARALLEL_CXX_THREAD
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
@@ -168,18 +171,86 @@ namespace uiAccCodeGenOpt_ref {
 #endif
         errs() << "std::map<uint64_t, double> RT;\n";
         errs() << "std::map<uint64_t, double> MR;\n";
+        errs() << "/*\n";
         errs() << "std::unordered_map<string, uint64_t> RefIDMap;\n";
+        errs() << "// RefID -> sample found already\n";
+        errs() << "std::unordered_map<uint64_t, uint64_t> RefIDSamples;\n";
+        errs() << "// RefID -> total samples\n";
+        errs() << "std::unordered_map<uint64_t, uint64_t> RefIDSampleNumMapping;\n";
         errs() << "// bit mask -> reuse\n";
         errs() << "unordered_map<uint64_t, uint64_t> ReuseFindHistory;\n";
+        errs() << "*/\n";
         return;
     }
 
+    void AccLevelUISamplingCodeGenOpt_ref::sampleStructGen() {
+        string space = "    ";
+        errs() << "struct Sample {\n";
+        errs() << "public:\n";
+        errs() << space << "string name;\n";
+        errs() << space << "vector<int> ivs;\n";
+        errs() << space << "Sample() {}\n";
+        errs() << space << "Sample(string ref, vector<int> iter) {\n";
+        errs() << space << space << "name = ref;\n";
+        errs() << space << space << "ivs = iter;\n";
+        errs() << space << "}\n";
+        errs() << space << "string toString() {\n";
+        errs() << space << space << "string s = \"[\" + name + \"] {\";\n";
+        errs() << space << space << "vector<int>::iterator it;\n";
+        errs() << space << space << "for (it = ivs.begin(); it != ivs.end(); ++it) {\n";
+        errs() << space << space << space << "s += to_string(*it) + \",\";\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "s.pop_back();\n";
+        errs() << space << space << "s += \"}\";\n";
+        errs() << space << space << "return s;\n";
+        errs() << space << "}\n";
+        errs() << space << "int compare(struct Sample other) {\n";
+        errs() << space << space << "if (ivs.size() != other.ivs.size()) { return 2; }\n";
+        errs() << space << space << "vector<int>::iterator selfit = ivs.begin();\n";
+        errs() << space << space << "vector<int>::iterator otherit = other.ivs.begin();\n";
+        errs() << space << space << "while (selfit != ivs.end() && otherit != other.ivs.end()) {\n";
+        errs() << space << space << "     if (*selfit < *otherit) {\n"; 
+        errs() << space << space << "         return -1;\n"; 
+        errs() << space << space << "     } else if (*selfit > *otherit) {\n";
+        errs() << space << space << "         return 1;\n";
+        errs() << space << space << "     }\n";
+        errs() << space << space << "     selfit++;\n";
+        errs() << space << space << "     otherit++;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "return 0;\n";
+        errs() << space << "}\n";
+        errs() << space << "bool operator==(const struct Sample & other) const {\n";
+        errs() << space << "int i = 0;\n";
+        errs() << space << "for (i = 0; i < ivs.size(); i++) {\n";
+        errs() << space << "    if (ivs[i] != other.ivs[i]) {\n";
+        errs() << space << "        return false;\n";
+        errs() << space << "    }\n";
+        errs() << space << "}\n";
+        errs() << space << space << "return name == other.name;\n";
+        errs() << space << "}\n";
+        errs() << "};\n";
+        errs() << "// Hash function for Iteration\n";
+        errs() << "struct SampleHasher {\n";
+        errs() << "    size_t operator()(const struct Sample &iter) const {\n";
+        errs() << "        using std::string;\n";
+        errs() << "        using std::size_t;\n";
+        errs() << "        using std::hash;\n";
+        errs() << "       size_t hash_val = hash<string>()(iter.name);\n";
+        errs() << "        uint64_t bitmap = 0UL;\n";
+        errs() << "        int i = 2;\n";
+        errs() << "        for (auto iv : iter.ivs) {\n";
+        errs() << "            bitmap |= ((uint64_t)iv << (i * 14));\n";
+        errs() << "            i -= 1;\n";
+        errs() << "            if (i < 0) { break; }\n";
+        errs() << "        }\n";
+        errs() << "        hash_val ^= hash<uint64_t>()(bitmap);\n";
+        errs() << "        return hash_val;\n";
+        errs() << "    }\n";
+        errs() << "};\n";
+        errs() << "typedef struct Sample Sample;\n";
+    }
+
     void AccLevelUISamplingCodeGenOpt_ref::rtSearchOptGen() {
-        errs() << "/* Reset the metadata for each sample */\n";
-        errs() << "void reset(unordered_map<int, uint64_t> &LAT, unordered_map<uint64_t, uint64_t> &RefBitmapAccessTrace) {\n";
-        errs() << "    LAT.clear();\n";
-        errs() << "    RefBitmapAccessTrace.clear();\n";
-        errs() << "}\n";
         errs() << "/* Build the bitmap for each source access */\n";
         errs() << "uint64_t buildReferenceBitmap(string ref, vector<int> iteration) {\n";
         errs() << "    /* |- ref id (8bits) -|- iteration (14bits each) -| */\n";
@@ -196,16 +267,28 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "}\n";
         errs() << "/* if the iterated reference does not form a reuse with the sampler, we store its information here to see if it could form a reuse pair with other iterated reference access */\n";
         errs() << "bool updateReuseMetadata(unordered_map<int, uint64_t> &LAT, unordered_map<uint64_t, uint64_t> &RefBitmapAccessTrace, uint64_t refbitmap, int addr, uint64_t timer) {\n";
+        errs() << "    int enable_opt = rand() % 100 + 1;\n";
         errs() << "    uint64_t reuse = 0UL;\n";
         errs() << "    if (LAT.find(addr) != LAT.end()) {\n";
         errs() << "        uint64_t last_access_time = LAT[addr];\n";
         errs() << "        uint64_t src_ref_bitmask = RefBitmapAccessTrace[last_access_time];\n";
+        errs() << "        uint64_t src_ref_id = (src_ref_bitmask >> 56);\n";
         errs() << "        if (timer < last_access_time) {\n";
         errs() << "            cout << \"Error for address \" << addr << endl;\n";
         errs() << "        }\n";
-        errs() << "        reuse = timer - last_access_time;\n";
-        errs() << "        rtHistoCal(RT, reuse, 1.0);\n";
-        errs() << "        ReuseFindHistory[src_ref_bitmask] = reuse;\n";
+        errs() << "        /* update reuse iff this src reference id haven't found enough samples yet */\n";
+         /// TODO: 1024 should be replaced by the actual sample number of the src_ref_id
+        errs() << "        if ( enable_opt <= 5 && (RefIDSamples.find(src_ref_id) == RefIDSamples.end() || RefIDSamples[src_ref_id] < RefIDSampleNumMapping[src_ref_id])) {\n";
+        errs() << "            reuse = timer - last_access_time;\n";
+        errs() << "            cout << enable_opt << \" Update Reuse \" << reuse << \" for reference \" << src_ref_id << endl;\n";
+        errs() << "            rtHistoCal(RT, reuse, 1.0);\n";
+        errs() << "            ReuseFindHistory[src_ref_bitmask] = reuse;\n";
+        errs() << "            if (RefIDSamples.find(src_ref_id) != RefIDSamples.end()) {\n";
+        errs() << "                RefIDSamples[src_ref_id] += 1;\n";
+        errs() << "            } else {\n";
+        errs() << "                RefIDSamples[src_ref_id] = 1UL;\n";
+        errs() << "            }\n";
+        errs() << "        }\n";
         errs() << "    }\n";
         errs() << "    RefBitmapAccessTrace[timer] = refbitmap;\n";
         errs() << "    LAT[addr] = timer;\n";
@@ -1318,7 +1401,6 @@ namespace uiAccCodeGenOpt_ref {
         bool isFirstNestLoop, 
         std::string refName, 
         int useID, 
-        int sample_number,
         std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> loops, 
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> currentLoops, 
         vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*> sampleIDVs, 
@@ -1592,6 +1674,16 @@ namespace uiAccCodeGenOpt_ref {
                         errs() << space + "    /* Remove those invalid interleaving */\n";
                         errs() << space + "    if (nv[nvi].size() <= 0) { continue; }\n";
                         errs() << space + "    if (nv[nvi][0] > BLIST[nvi][1]) { break; }\n";
+                        if (useID == refNumber[LoopRefTree->AA]) {
+                            errs() << space + "    if (";
+                            for (unsigned i = 0; i < currentLoops.size(); i++) {
+                                if (i != 0) {
+                                    errs() << " && ";
+                                }
+                                errs() << "nv[nvi][" + std::to_string(i) + "] == " + indvName[(*currentLoops[i]->LIS->IDV)[0]] + "_Start";
+                            }
+                            errs() << ") { cntStart = true; }\n";
+                        }
                         errs() << space + "    if (cntStart == true) {\n";
                         errs() << space + "        cnt++;\n";
                         errs() << "#ifdef DEBUG\n";
@@ -1614,93 +1706,113 @@ namespace uiAccCodeGenOpt_ref {
                         }
                         addr_cal_str += ")";
                         errs() << space + "        int addr = " << addr_cal_str << ";\n";   
-                        // errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
-                        errs() << space + "        if ( addr";
-                        // string tmp = "";
-                        // for (unsigned i = 0; i < currentLoops.size(); i++) {
-                        //     tmp += "nv[nvi][" + std::to_string(i) + "], ";
-                        // }
-                        // if (currentLoops.size() != 0) {
-                        //     tmp.pop_back();
-                        //     tmp.pop_back();
-                        // }
-
-                        // errs() << tmp + ")";
-                        errs() << " == ";
-                        
-                        errs() << "calAddr" + refName + std::to_string(useID);
-                        errs() << "(";
-                        
+                        errs() << space + "        Sample iter(\"" << refName + std::to_string(useID) << "\", {";
                         string tmp = "";
-                        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
-                            for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
-                                tmp += indvName[(*(*it)->LIS->IDV)[i]];
-                                tmp += "_Start";
-                                tmp += ", ";
-                            }
-                        }
-
-                        if (loops.size() != 0) {
-                            tmp.pop_back();
-                            tmp.pop_back();
-                        }
-                        errs() << tmp + ")) {\n";
-
-                        errs() << "#ifdef DEBUG\n";
-                        errs() << space + "            cout << \"[" << refName << std::to_string(useID) << " --> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << "] @ (\" << ";
-                        for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
-                            for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
-                                errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
-                                if (it != loops.end()-1) {
-                                    errs() << " << \", \" << ";
-                                }
-                            }
-                        }
-                        errs() << " << \") --> (\" << ";
-                        tmp = "";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "]";
                             if (i != currentLoops.size() - 1) {
-                                tmp += " << \", \" << ";
+                                tmp += ", ";
                             }
                         }
-                        errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
-#ifdef REFERENCE_GROUP
-                        // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
-                        errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
-#else
-                        // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
-#endif
-                        errs() << "#endif\n";
-                        errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
-                        errs() << space + "            reset(LAT, RefBitmapAccessTrace);\n";
-                        errs() << space + "            goto EndSample;\n";
+                        errs() << tmp << "});\n";
+                        errs() << space + "        if (LAT.find(addr) != LAT.end()) {\n";
+                        errs() << space + "            rtHistoCal(RT, cnt - LAT[addr], 1.0);\n";
+                        errs() << space + "            Sample srcSample = LATSampleIterMap[LAT[addr]];\n";
+                        errs() << space + "            LAT.erase(addr);\n";
+                        errs() << space + "            samples.erase(srcSample);\n";
+                        errs() << space + "            if (samples.size() == 0) { goto EndSample; }\n";
+                        errs() << space + "        }\n";
+                        errs() << space + "        if (samples.find(iter) != samples.end()) {\n";
+                        errs() << space + "            LAT[addr] = cnt;\n";
+                        errs() << space + "            LATSampleIterMap[cnt] = iter;\n";
+                        errs() << space + "        }\n";
+                        // errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
+//                         errs() << space + "        if ( addr";
+//                         // string tmp = "";
+//                         // for (unsigned i = 0; i < currentLoops.size(); i++) {
+//                         //     tmp += "nv[nvi][" + std::to_string(i) + "], ";
+//                         // }
+//                         // if (currentLoops.size() != 0) {
+//                         //     tmp.pop_back();
+//                         //     tmp.pop_back();
+//                         // }
+
+//                         // errs() << tmp + ")";
+//                         errs() << " == ";
                         
-                        errs() << space + "        } else {\n";
+//                         errs() << "calAddr" + refName + std::to_string(useID);
+//                         errs() << "(";
+                        
+//                         tmp = "";
+//                         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+//                             for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+//                                 tmp += indvName[(*(*it)->LIS->IDV)[i]];
+//                                 tmp += "_Start";
+//                                 tmp += ", ";
+//                             }
+//                         }
+
+//                         if (loops.size() != 0) {
+//                             tmp.pop_back();
+//                             tmp.pop_back();
+//                         }
+//                         errs() << tmp + ")) {\n";
+
+//                         errs() << "#ifdef DEBUG\n";
+//                         errs() << space + "            cout << \"[" << refName << std::to_string(useID) << " --> " << refName << std::to_string(refNumber[LoopRefTree->AA]) << "] @ (\" << ";
+//                         for ( vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>::iterator it = loops.begin(), eit = loops.end(); it != eit; ++it) {
+//                             for (unsigned long i = 0; i < (*it)->LIS->IDV->size(); i++) {
+//                                 errs() << indvName[(*(*it)->LIS->IDV)[i]] << "_Start";
+//                                 if (it != loops.end()-1) {
+//                                     errs() << " << \", \" << ";
+//                                 }
+//                             }
+//                         }
+//                         errs() << " << \") --> (\" << ";
+//                         tmp = "";
+//                         for (unsigned i = 0; i < currentLoops.size(); i++) {
+//                             tmp += "nv[nvi][" + std::to_string(i) + "]";
+//                             if (i != currentLoops.size() - 1) {
+//                                 tmp += " << \", \" << ";
+//                             }
+//                         }
+//                         errs() << tmp + " << \"), \" << cnt << \") \" << endl;\n";
+// #ifdef REFERENCE_GROUP
+//                         // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+//                         errs() << space + "            refRTHistoCal(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
+// #else
+//                         // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
+// #endif
+//                         errs() << "#endif\n";
+//                         errs() << space + "            rtHistoCal(RT, cnt, 1.0);\n";
+//                         errs() << space + "            reset(LAT, RefBitmapAccessTrace);\n";
+//                         errs() << space + "            goto EndSample;\n";
+                        
+//                         errs() << space + "        } else {\n";
                                 // uint64_t bitmap = buildReferenceBitmap("x1_addr1", nv[nvi]);
                                 // bool find_reuse = updateReuseMetadata(bitmap, calAddrx1_addr0( nv[nvi][0], nv[nvi][1]), cnt);
                                 // if (find_reuse) {
                                 //     s++;
                                 //     if (s >= 10485) { goto EndSample; }
                                 // }
-                        errs() << space + "            uint64_t bitmap = buildReferenceBitmap(\"" << refName + to_string(refNumber[LoopRefTree->AA]) << "\", nv[nvi]);\n";
-                        errs() << space + "            bool find_reuse = updateReuseMetadata(LAT, RefBitmapAccessTrace, bitmap, addr, cnt);\n";
-                        errs() << space + "            if (find_reuse) {\n";
-                        errs() << space + "                s++;\n";
-                        errs() << space + "                if ( s >= " << to_string(sample_number) << " ) { goto EndSample; } \n";
-                        errs() << space + "            }\n";
-                        errs() << space + "        }\n";
+                        // errs() << space + "            uint64_t bitmap = buildReferenceBitmap(\"" << refName + to_string(refNumber[LoopRefTree->AA])  << "\", nv[nvi]);\n";
+                        // errs() << space + "            bool find_reuse = updateReuseMetadata(LAT, RefBitmapAccessTrace, bitmap, addr, cnt);\n"; 
+                        // errs() << space + "            if (find_reuse) {\n";
+                        // errs() << space + "                s++;\n";
+                        // errs() << space + "                if ( s >= total_samples) { goto EndSample; } \n";
+                        // errs() << space + "            }\n";
+                        // errs() << space + "        }\n";
                         errs() << space + "    }\n";
-                        if (useID == refNumber[LoopRefTree->AA]) {
-                            errs() << space + "    if (";
-                            for (unsigned i = 0; i < currentLoops.size(); i++) {
-                                if (i != 0) {
-                                    errs() << " && ";
-                                }
-                                errs() << "nv[nvi][" + std::to_string(i) + "] == " + indvName[(*currentLoops[i]->LIS->IDV)[0]] + "_Start";
-                            }
-                            errs() << ") { cntStart = true; }\n";
-                        }
+                        // if (useID == refNumber[LoopRefTree->AA]) {
+                        //     errs() << space + "    if (";
+                        //     for (unsigned i = 0; i < currentLoops.size(); i++) {
+                        //         if (i != 0) {
+                        //             errs() << " && ";
+                        //         }
+                        //         errs() << "nv[nvi][" + std::to_string(i) + "] == " + indvName[(*currentLoops[i]->LIS->IDV)[0]] + "_Start";
+                        //     }
+                        //     errs() << ") { cntStart = true; }\n";
+                        // }
                         errs() << space + "    }\n";
 #ifdef PARALLEL
                         errs() << "#ifdef DEBUG\n";
@@ -1757,7 +1869,7 @@ namespace uiAccCodeGenOpt_ref {
                         continue;
                     }
                 }
-                GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, sample_number, loops, currentLoops_New, sampleIDVs, space + "    ");
+                GenFlag = refRTSearchGen(*it, GenFlag, isFirstNestLoop, refName, useID, loops, currentLoops_New, sampleIDVs, space + "    ");
             }
             if (LoopRefTree->L != NULL && GenFlag == true) {
                 if (find(outloops.begin(), outloops.end(), LoopRefTree) != outloops.end()) {
@@ -1808,35 +1920,34 @@ namespace uiAccCodeGenOpt_ref {
 #if SAMPLING ==2
         errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
-        uint64_t sample_number = 0UL;
+        // errs() << space + "srand(time(NULL));\n";
         errs() << space + "set<string> record;\n";
-        
-        errs() << space + "for ( int s = 0; s < ";
-		if (loops.size() == 0) {
-			errs() << "1";
-		} else {
-        	if (sampleNum.find(loops.back()) != sampleNum.end()) {
-            	errs() << std::to_string(sampleNum[loops.back()]);
-                sample_number = (uint64_t)sampleNum[loops.back()];
-        	} else {
-            	errs() << "ERROR in finding bounds\n";
-        	}
-		}
-        errs() << ";) {\n";
+         errs() << space + "// access time -> Sample Object\n";
+        errs() << space + "unordered_map<uint64_t, Sample> LATSampleIterMap;\n";
+        errs() << space + "// address -> access time\n";
+        errs() << space + "unordered_map<int, uint64_t> LAT;\n";
+        errs() << space + "unordered_map<Sample, int, SampleHasher> samples;\n";
+        errs() << space + "Sample s_Start;\n";
+        errs() << space << "uint64_t total_samples = ";
+        if (loops.size() == 0) {
+            errs() << "1";
+        } else {
+            if (sampleNum.find(loops.back()) != sampleNum.end()) {
+                errs() << std::to_string(sampleNum[loops.back()]) << ";\n";
+            } else {
+                errs() << "ERROR in finding bounds;\n";
+            }
+        }
+        errs() << space + "for ( uint64_t s = 0; s < total_samples; ) {\n";
         
         if (loops.size() == 0) {
             errs() << space + "/* Generating reuse search code */\n";
             errs() << "\n";
-            refRTSearchGen(LoopRefTree, false, true, refName, useID, sample_number, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
+            refRTSearchGen(LoopRefTree, false, true, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
             errs() << space + "s++;\n";
             errs() << space + "}\n";
             return;
         }
-
-        errs() << space + "// access time -> bit mask, need to clear for every iteration sample\n";
-        errs() << space + "unordered_map<uint64_t, uint64_t> RefBitmapAccessTrace;\n";
-        errs() << space + "// address -> access time, need to clear for every iteration sample\n";
-        errs() << space + "unordered_map<int, uint64_t> LAT;\n";
 
         errs() << "SAMPLE:\n";
         
@@ -1854,7 +1965,7 @@ namespace uiAccCodeGenOpt_ref {
                 }
                
 				/* generate sampling statement */ 
-                errs() << space + "    int " + indvName[(*(*lit)->LIS->IDV)[i]] + "_Start" + " = ";
+                errs() << space + "    int " + indvName[(*(*lit)->LIS->IDV)[i]] + "Sample" + " = ";
                 sampleIDVs.push_back((*lit));
 
                 if ( (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_SLE || (*(*lit)->LIS->PREDICATE)[i] == llvm::CmpInst::ICMP_ULE ) {
@@ -1871,9 +1982,9 @@ namespace uiAccCodeGenOpt_ref {
                 }
 
                 errs() << ";\n";
-                errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
+                errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "Sample % " <<  getLoopInc((*(*lit)->LIS->INC)[i]) << " != 0) goto SAMPLE; \n";
                 if (find(outloops.begin(), outloops.end(), *lit) != outloops.end()) {
-                    errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "_Start + THREAD_NUM * CHUNK_SIZE > " << getBound_Start((*(*lit)->LIS->LB)[i].second) << ") { goto SAMPLE; }\n";
+                    errs() << space << "    if (" << indvName[(*(*lit)->LIS->IDV)[i]] << "Sample + THREAD_NUM * CHUNK_SIZE > " << getBound_Start((*(*lit)->LIS->LB)[i].second) << ") { goto SAMPLE; }\n";
                 }
             }
         }
@@ -1882,7 +1993,7 @@ namespace uiAccCodeGenOpt_ref {
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
             for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
                 idx_string_tmp += "std::to_string(";
-                idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]] + "_Start";
+                idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]] + "Sample";
                 idx_string_tmp += ") + \"_\" + ";
             }
         }
@@ -1916,24 +2027,33 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space + "    idx_string = " + idx_string_tmp + ";\n";
         errs() << space + "}\n";
 */
-        
         errs() << space + "if ( record.find(idx_string) != record.end() ) goto SAMPLE;\n";
         errs() << space + "record.insert( idx_string );\n";
-        errs() << space << "uint64_t sample_bitmap = buildReferenceBitmap(\"" << refName + to_string(useID) << "\", {";
+        errs() << space + "Sample sample(\"" << refName + to_string(useID) << "\", {";
         idx_string_tmp = "";
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
             for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
-                idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]] + "_Start, ";
+                idx_string_tmp += indvName[(*(*lit)->LIS->IDV)[i]] + "Sample, ";
             }
         }
         idx_string_tmp.pop_back();
+        idx_string_tmp.pop_back();
         errs() << idx_string_tmp << "});\n";
-        errs() << space << "if (ReuseFindHistory.find(sample_bitmap) != ReuseFindHistory.end()) { goto SAMPLE; }\n";
         errs() << "#ifdef DEBUG\n";
-        errs() << space + "cout << \"[" + refName + to_string(useID) + "]Samples: \" << idx_string << endl;\n";
+        errs() << space + "cout << \"Samples:\"" << " << sample.toString() << endl;\n";
         errs() << "#endif\n";
+        errs() << space + "samples[sample] = 1;";
+        errs() << space + "if (s == 0 || sample.compare(s_Start) < 0) { s_Start = sample; }\n";
+        errs() << space + "s += 1UL;\n";
+        errs() << space + "}\n";
 #endif
-  
+        int idx = 0;
+        for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
+            for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
+                errs() << space + "int " << indvName[(*(*lit)->LIS->IDV)[i]] + "_Start = s_Start.ivs[" << to_string(idx) << "];\n";
+            }
+            idx += 1;
+        }
         errs() << space + "uint64_t cnt = 0;\n";
         errs() << space + "bool cntStart = false;\n";
         errs() << "\n";
@@ -1951,10 +2071,10 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space + "/* Vector that contains the interleaved iteration, avoid duplicate declaration */\n";
         errs() << space + "vector<vector<int>> nv(THREAD_NUM);\n";
         errs() << space + "int chunk_size, chunk_num, c_Start, ci_Start;\n";
-        refRTSearchGen(LoopRefTree, false, true, refName, useID, sample_number, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
+        refRTSearchGen(LoopRefTree, false, true, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
         errs() << "EndSample:\n";
-        errs() << space + "s++;\n";
-        errs() << space + "}\n";
+        // errs() << space + "s++;\n";
+        errs() << space + "return;\n";
         return;
     }
     
@@ -1983,7 +2103,7 @@ namespace uiAccCodeGenOpt_ref {
         return;
     }
     
-    void AccLevelUISamplingCodeGenOpt_ref::mainGen() {
+    void AccLevelUISamplingCodeGenOpt_ref::mainGen(loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *LoopRefTree) {
     
         errs() << "int main() {\n";
         
@@ -1998,11 +2118,23 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "#endif\n";
         errs() << space + "/* " << refNumber.size() << " */\n";
         /* Generate the RefName to RefID mapping */
-        int refidx = 0;
-        for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
-            errs() << space + "RefIDMap[\"" << arrayName[it->first] + std::to_string(it->second) << "\"] = " << to_string(refidx) << ";\n";
-            refidx += 1;
-        }
+        // errs() << space << "/* RefName to RefID mapping and RefName to Total sample mapping */\n";
+        // int refidx = 0;
+        // for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
+        //     errs() << space + "RefIDMap[\"" << arrayName[it->first] + std::to_string(it->second) << "\"] = " << to_string(refidx) << ";\n";
+        //     refidx += 1;
+        //     loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* sampleNumLoop = findLoops(LoopRefTree, arrayName[it->first], it->second, std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>(), false).back();
+        //     uint64_t total_samples = 0UL;
+        //     if (sampleNumLoop) {
+        //         if (sampleNum.find(sampleNumLoop) != sampleNum.end()) {
+        //             total_samples = (uint64_t)sampleNum[sampleNumLoop];
+        //         } else {
+        //             errs() << "ERROR in finding bounds\n";
+        //         }
+        //     }
+        //     errs() << space << "RefIDSampleNumMapping[RefIDMap[\"" << arrayName[it->first] + to_string(it->second) << "\"]] = " << to_string(total_samples) << ";\n";
+        // }
+
         for (std::map<Instruction*, int>::iterator it = refNumber.begin(), eit = refNumber.end(); it != eit; ++it) {
 #ifdef PARALLEL_CXX_THREAD
             /*
@@ -2084,9 +2216,11 @@ namespace uiAccCodeGenOpt_ref {
         initIndvName(LoopRefTree);
 #ifdef PARALLEL
         outloops = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().outMostLoops;
+        refPerOutMostLoop = getAnalysis<loopTreeTransform::ParallelLoopTreeTransform>().refPerOutMostLoop;
 #endif
         /* generate headers */
         headerGen();
+        sampleStructGen();
 
         /* generate rtHistoCal function */
         rtHistoGen();
@@ -2095,7 +2229,7 @@ namespace uiAccCodeGenOpt_ref {
         subBlkRTGen();
 
         /* generate functions to speedup the reuse searching */
-        rtSearchOptGen();
+        // rtSearchOptGen();
 
 #if defined(REFERENCE_GROUP)
         rtMergeGen();
@@ -2158,7 +2292,7 @@ namespace uiAccCodeGenOpt_ref {
         refRTGen(LoopRefTree);
         
         /* generate main function */
-        mainGen();
+        mainGen(LoopRefTree);
 
         return false;
     }
