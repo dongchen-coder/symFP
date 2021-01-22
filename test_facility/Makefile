@@ -45,7 +45,7 @@ DIS= $(LLVM_BIN_DIR)/llvm-dis
 CHK_SIZE=4
 TNUM=4
 BENCH=2mm
-CONSTANT_FLAG = -DTHREAD_LB=2 -DTHREAD_UB=64 -DCHUNK_SIZE=$(CHK_SIZE) -DBIN_SIZE=64 -DTHREAD_NUM=$(TNUM) -DPAPI_TIMER #-DDEBUG
+CONSTANT_FLAG = -DTHREAD_LB=2 -DTHREAD_UB=64 -DCHUNK_SIZE=$(CHK_SIZE) -DBIN_SIZE=64 -DTHREAD_NUM=$(TNUM) -DPAPI_TIMER
 
 all_bench = stencil 2mm 3mm adi atax bicg cholesky correlation covariance deriche doitgen durbin fdtd-2d floyd-warshall gemm gemver gesummv gramschmidt heat-3d jacobi-1d jacobi-2d lu ludcmp mvt nussinov seidel-2d symm syr2k syrk trisolv trmm
 
@@ -55,8 +55,8 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-test_bench = $(BENCH)
-# test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen
+# test_bench = $(BENCH)
+test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen
 # test_bench =  symm gramschmidt syrk# 2mm adi atax jacobi-2d fdtd-2d deriche gesummv gemver
 # check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 
@@ -167,13 +167,19 @@ test_plumopt_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp ;)
-	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plumopt_t$(TNUM) ;)
+	# $(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plumopt_t$(TNUM) ;)
 
 test_model_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_model_t$(TNUM).cpp ;)
 	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 $(SS_DIR)/$(name)_model_t$(TNUM).cpp -lpthread -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_model_t$(TNUM) ;)
+
+test_modelopt_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_modelopt_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_modelopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_modelopt_t$(TNUM) ;)
 
 test_smoothing_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)

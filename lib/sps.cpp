@@ -40,6 +40,7 @@
 #       include "staticTuningCodeGen_ref.hpp"
 #   else 
 #       include "modelCodeGen_ref.hpp"
+#       include "modelCodeGenOpt_ref.hpp"
 #   endif
 #endif
 
@@ -65,7 +66,7 @@ namespace symFP {
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
 #if defined(PARALLEL) 
-            // AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
+            AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
 #   if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
 #   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
@@ -80,7 +81,8 @@ namespace symFP {
 #   elif defined(THREAD_TUNING)
             AU.addRequired<staticTuningCodeGen_ref::TuningCodeGen_ref>();
 #   else 
-            AU.addRequired<modelCodeGen_ref::ModelCodeGen_ref>();
+            // AU.addRequired<modelCodeGen_ref::ModelCodeGen_ref>();
+            AU.addRequired<modelCodeGenOpt_ref::ModelCodeGenOpt_ref>();
 #   endif
 #elif defined(REF_PAIR)
             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();

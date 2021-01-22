@@ -36,6 +36,8 @@ add_library(LLVMSPS MODULE
   modelCodeGen_ref.hpp
   modelCodeGen_ref.cpp
 
+  modelCodeGenOpt_ref.hpp
+  modelCodeGenOpt_ref.cpp
   # rsCodeGen_ref.hpp
   # rsCodeGen_ref.cpp
 
@@ -89,7 +91,7 @@ add_definitions(-DPARALLEL)
 #     Uniform Interleaving
 # By default is uniform interleaving
 # add_definitions(-DRANDOM_INTERLEAVING)
-add_definitions(-DUNIFORM_INTERLEAVING)
+# add_definitions(-DUNIFORM_INTERLEAVING)
 
 # - DACC_LEVEL_INTERLEAVING:
 #     Do Interleaving per each access
@@ -99,7 +101,7 @@ add_definitions(-DUNIFORM_INTERLEAVING)
 #     Do interleaving for all references and interations
 # By default is 1:1 interleaving in data granularity
 # add_definitions(-DITER_LEVEL_INTERLEAVING)
-add_definitions(-DACC_LEVEL_INTERLEAVING)
+# add_definitions(-DACC_LEVEL_INTERLEAVING)
 # add_definitions(-DALL_LEVEL_INTERLEAVING)
 
 # statically find the best thread number with best locality

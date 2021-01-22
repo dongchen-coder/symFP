@@ -189,10 +189,16 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "public:\n";
         errs() << space << "string name;\n";
         errs() << space << "vector<int> ivs;\n";
+        errs() << space << "int cid; // chunk this sample locates\n";
+        errs() << space << "int tid; // thread this sample belongs\n";
+        errs() << space << "int pos; // thread local position\n";
         errs() << space << "Sample() {}\n";
         errs() << space << "Sample(string ref, vector<int> iter) {\n";
         errs() << space << space << "name = ref;\n";
         errs() << space << space << "ivs = iter;\n";
+        errs() << space << space << "cid = floor(iter[0] / (CHUNK_SIZE * THREAD_NUM));\n";
+        errs() << space << space << "tid = iter[0] / CHUNK_SIZE - floor(iter[0] / (CHUNK_SIZE * THREAD_NUM)) * THREAD_NUM;\n";
+        errs() << space << space << "pos = iter[0] \% CHUNK_SIZE;\n";
         errs() << space << "}\n";
         errs() << space << "string toString() {\n";
         errs() << space << space << "string s = \"[\" + name + \"] {\";\n";
@@ -206,8 +212,27 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space << "}\n";
         errs() << space << "int compare(struct Sample other) {\n";
         errs() << space << space << "if (ivs.size() != other.ivs.size()) { return 2; }\n";
-        errs() << space << space << "vector<int>::iterator selfit = ivs.begin();\n";
-        errs() << space << space << "vector<int>::iterator otherit = other.ivs.begin();\n";
+        errs() << space << space << "/* compare the chunk id */ ;\n";
+        errs() << space << space << "if (cid < other.cid) {\n";
+        errs() << space << space << space << "return -1;\n";
+        errs() << space << space << "} else if (cid > other.cid) {\n";
+        errs() << space << space << space << "return 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/* the same chunk. compare the thread local position. */ ;\n";
+        errs() << space << space << "if (pos < other.pos) {\n";
+        errs() << space << space << space << "return -1;\n";
+        errs() << space << space << "} else if (pos > other.pos) {\n";
+        errs() << space << space << space << "return 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/* the same thread local position. compare the thread */ ;\n";
+        errs() << space << space << "if (tid < other.tid) {\n";
+        errs() << space << space << space << "return -1;\n";
+        errs() << space << space << "} else if (tid > other.tid) {\n";
+        errs() << space << space << space << "return 1;\n";
+        errs() << space << space << "}\n";
+        errs() << space << space << "/* the same thread. compare the rest loop induction variables */ ;\n";
+        errs() << space << space << "vector<int>::iterator selfit = ivs.begin()+1;\n";
+        errs() << space << space << "vector<int>::iterator otherit = other.ivs.begin()+1;\n";
         errs() << space << space << "while (selfit != ivs.end() && otherit != other.ivs.end()) {\n";
         errs() << space << space << "     if (*selfit < *otherit) {\n"; 
         errs() << space << space << "         return -1;\n"; 
@@ -217,6 +242,7 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space << space << "     selfit++;\n";
         errs() << space << space << "     otherit++;\n";
         errs() << space << space << "}\n";
+        errs() << space << space << "/* all equal, these two samples are equal */ ;\n";
         errs() << space << space << "return 0;\n";
         errs() << space << "}\n";
         errs() << space << "bool operator==(const struct Sample & other) const {\n";
@@ -1706,7 +1732,7 @@ namespace uiAccCodeGenOpt_ref {
                         }
                         addr_cal_str += ")";
                         errs() << space + "        int addr = " << addr_cal_str << ";\n";   
-                        errs() << space + "        Sample iter(\"" << refName + std::to_string(useID) << "\", {";
+                        errs() << space + "        Sample iter(\"" << refName + to_string(refNumber[LoopRefTree->AA]) << "\", {";
                         string tmp = "";
                         for (unsigned i = 0; i < currentLoops.size(); i++) {
                             tmp += "nv[nvi][" + std::to_string(i) + "]";
@@ -1718,6 +1744,9 @@ namespace uiAccCodeGenOpt_ref {
                         errs() << space + "        if (LAT.find(addr) != LAT.end()) {\n";
                         errs() << space + "            rtHistoCal(RT, cnt - LAT[addr], 1.0);\n";
                         errs() << space + "            Sample srcSample = LATSampleIterMap[LAT[addr]];\n";
+                        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
+                        errs() << space + "             cout << \"[\" << cnt - LAT[addr] << \"] \" <<  srcSample.toString() << \" -> \" << iter.toString() << endl;\n";
+                        errs() << "#endif\n";
                         errs() << space + "            LAT.erase(addr);\n";
                         errs() << space + "            samples.erase(srcSample);\n";
                         errs() << space + "            if (samples.size() == 0) { goto EndSample; }\n";
@@ -1725,6 +1754,9 @@ namespace uiAccCodeGenOpt_ref {
                         errs() << space + "        if (samples.find(iter) != samples.end()) {\n";
                         errs() << space + "            LAT[addr] = cnt;\n";
                         errs() << space + "            LATSampleIterMap[cnt] = iter;\n";
+                        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
+                        errs() << space + "            cout << \"Update LAT and LATSampleIterMap for sample: \" <<  iter.toString() << endl;\n";
+                        errs() << "#endif\n";
                         errs() << space + "        }\n";
                         // errs() << space + "        if ( calAddr" + refName + std::to_string(refNumber[LoopRefTree->AA]) + "( ";
 //                         errs() << space + "        if ( addr";
@@ -1927,7 +1959,7 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space + "// address -> access time\n";
         errs() << space + "unordered_map<int, uint64_t> LAT;\n";
         errs() << space + "unordered_map<Sample, int, SampleHasher> samples;\n";
-        errs() << space + "Sample s_Start;\n";
+        errs() << space + "Sample sStart;\n";
         errs() << space << "uint64_t total_samples = ";
         if (loops.size() == 0) {
             errs() << "1";
@@ -2039,18 +2071,18 @@ namespace uiAccCodeGenOpt_ref {
         idx_string_tmp.pop_back();
         idx_string_tmp.pop_back();
         errs() << idx_string_tmp << "});\n";
-        errs() << "#ifdef DEBUG\n";
+        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
         errs() << space + "cout << \"Samples:\"" << " << sample.toString() << endl;\n";
         errs() << "#endif\n";
-        errs() << space + "samples[sample] = 1;";
-        errs() << space + "if (s == 0 || sample.compare(s_Start) < 0) { s_Start = sample; }\n";
+        errs() << space + "samples[sample] = 1;\n";
+        errs() << space + "if (s == 0 || sample.compare(sStart) < 0) { sStart = sample; }\n";
         errs() << space + "s += 1UL;\n";
         errs() << space + "}\n";
 #endif
         int idx = 0;
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
             for (unsigned long i = 0; i < (*lit)->LIS->IDV->size(); i++) {
-                errs() << space + "int " << indvName[(*(*lit)->LIS->IDV)[i]] + "_Start = s_Start.ivs[" << to_string(idx) << "];\n";
+                errs() << space + "int " << indvName[(*(*lit)->LIS->IDV)[i]] + "_Start = sStart.ivs[" << to_string(idx) << "];\n";
             }
             idx += 1;
         }
