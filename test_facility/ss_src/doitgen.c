@@ -3,9 +3,9 @@
 #   define STANDARD_DATASET
 #  endif
 #  ifdef MINI_DATASET
-#   define NQ 32
-#   define NR 32
-#   define NP 32
+#   define NQ 4
+#   define NR 16
+#   define NP 4
 #  endif
 
 #  ifdef SMALL_DATASET

@@ -126,7 +126,7 @@ namespace riCodeGen_ref {
     
     void AllLevelRICodeGen_ref::headerGen() {
         
-        errs() << "#define DEBUG\n";
+        // errs() << "#define DEBUG\n";
         
         errs() << "#include <map>\n";
         errs() << "#include <set>\n";
@@ -141,6 +141,9 @@ namespace riCodeGen_ref {
         errs() << "#include <thread>\n";
         errs() << "#include <mutex>\n";
 #endif
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << "#  include \"papi_timer.h\"\n";
+        errs() << "#endif\n";
 #ifdef PARALLEL
         errs() << "#ifndef THREAD_NUM\n";
         errs() << "#    define THREAD_NUM   4\n";
@@ -687,6 +690,7 @@ namespace riCodeGen_ref {
                         
                         loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* nextRef = findFirstRefAfterRef(root, node);
                         if (nextRef != NULL) {
+                            errs() << space + "    /* if (*it) == node && it_next != eit && nextRef != NULL */\n";
                             errs() << space + "    progress[tid_to_run].second = \"" + arrayName[nextRef->AA] + std::to_string(refNumber[nextRef->AA]) + "\";\n";
                         } else {
                             errs() << space + "    progress[tid_to_run].second = \"\";\n";
@@ -705,12 +709,16 @@ namespace riCodeGen_ref {
                     } else {
                         int i = currentLoops.size()-1;
                         for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::reverse_iterator rit = currentLoops.rbegin(); rit != currentLoops.rend(); ++rit) {
-                            
+                            bool findFirstAAFromCurrLoopsI = false;
                             if (i == currentLoops.size()-1) {
                                 loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefInLoop(currentLoops[i]);
+                                errs() << space + "    /* i == currentLoops.size() -1 */\n";
                                 if (firstAA == NULL) {
+                                    errs() << space + "    /* i == currentLoops.size()-1 && it_next == eit && firstAA == NULL */\n";
                                     errs() << space + "    progress[tid_to_run].second =\";\n";
                                 } else {
+                                    findFirstAAFromCurrLoopsI = true;
+                                    errs() << space + "    /* i == currentLoops.size()-1 && it_next == eit && firstAA != NULL */\n";
                                     errs() << space + "    progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
                                 }
                             } else {
@@ -721,15 +729,23 @@ namespace riCodeGen_ref {
                                 loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* firstAA = findFirstRefAfterLoop(root, currentLoops[i+1]);
                                 if (firstAA == NULL) {
                                     firstAA = findFirstRefInLoop(currentLoops[i]);
+                                    findFirstAAFromCurrLoopsI = (firstAA != NULL);
                                 }
                                 if (firstAA == NULL) {
                                     errs() << space + "    progress[tid_to_run].second = \"\";\n";
                                 } else {
+                                    errs() << space + "    /* i != currentLoops.size()-1 && it_next == eit && firstAA != NULL*/\n";
+                                    if (findFirstAAFromCurrLoopsI) {
+                                        errs() << space + "    /* find firstAA from currentLoops[i] */\n";
+                                    } else {
+                                        errs() << space + "    /* find firstAA from currentLoops[i+1] */\n";
+                                    }
                                     errs() << space + "    progress[tid_to_run].second = \"" + arrayName[firstAA->AA] + to_string(refNumber[firstAA->AA]) << "\";\n";
                                 }
                                 
                                 // if next ref is after loop
                                 if (find(currentLoops[i]->next->begin(), currentLoops[i]->next->end(), firstAA) != currentLoops[i]->next->end()) {
+                                    errs() << space + "    /* next ref is after loop */\n";
                                     bool afterLoopFlag = false;
                                     for(vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator it = currentLoops[i]->next->begin(); it != currentLoops[i]->next->end(); ++it) {
                                         if (*it == currentLoops[i+1]) {
@@ -768,21 +784,27 @@ namespace riCodeGen_ref {
                                 }
                             }
                             
-                            string inc = "1";
-                            if (i == currentLoops.size()-1) {
-                                inc = "1";
-                                string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
-                                string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
-                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
-                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
-                            } else {
-                                string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
-                                string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
-                                if (i == 0) {
-                                    upper_bound = "BLIST[tid_to_run][1]+1";
+                            if (findFirstAAFromCurrLoopsI) {
+                                string inc = "1";
+                                if (i == currentLoops.size()-1 && i != 0) {
+                                    inc = "1";
+                                    string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
+                                    string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
+                                    errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
+                                    errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
+                                } else {
+                                    string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
+                                    string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
+                                    if (i == 0) {
+                                        upper_bound = "BLIST[tid_to_run][1]+1";
+                                    }
+                                    errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? 1 : 0;\n";
+                                    errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +" ;\n";
+                                    // errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + 1) == " + upper_bound + " ? 1 : 0;\n";
+                                    // errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + 1) == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + 1;\n";
                                 }
-                                errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? 1 : 0;\n";
-                                errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + nextInc"+ to_string(i+1) +" ;\n";
+                            } else {
+                                break;
                             }
                             
                             i--;
@@ -976,15 +998,14 @@ namespace riCodeGen_ref {
                 errs() << space + "    while ( !candidate_thread_pool.empty()) {\n";
                 errs() << space + "        int tid_to_run = candidate_thread_pool[rand() % candidate_thread_pool.size()];\n";
                 errs() << "#ifdef DEBUG\n";
-                errs() << space + "        //cout << \"run thread \" << tid_to_run << \" @ \";\n";
-                errs() << space + "        //cout << progress[tid_to_run].second << \" \";\n";
-                errs() << space + "        //for (int i = 0; i < progress[tid_to_run].first.size(); i++) cout << progress[tid_to_run].first[i] << \" \";\n";
-                errs() << space + "        //cout << endl;\n";
+                errs() << space + "        cout << \"run thread \" << tid_to_run << \" @ \";\n";
+                errs() << space + "        cout << progress[tid_to_run].second << \" \";\n";
+                errs() << space + "        for (int i = 0; i < progress[tid_to_run].first.size(); i++) cout << progress[tid_to_run].first[i] << \" \";\n";
+                errs() << space + "        cout << endl;\n";
                 errs() << "#endif\n";
                 space += "    ";
             }
-        }
-        else if (LoopRefTree->AA != NULL) {
+        } else if (LoopRefTree->AA != NULL) {
             errs() << space + "if (progress[tid_to_run].second == \"" + arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA]) + "\") {\n";
             errs() << space + "    cnt++;\n";
             errs() << space + "    int access = calAddr"+arrayName[LoopRefTree->AA] + std::to_string(refNumber[LoopRefTree->AA])+"(";
@@ -1007,7 +1028,7 @@ namespace riCodeGen_ref {
             errs() << "<< \")\" << endl;\n";
             errs() << "#endif\n";
             //errs() << space + "        subBlkRT(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]));\n";
-            errs() << space + "        rtHistoCal(RT, cnt - get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]), 1);\n";
+            errs() << space + "        rtHistoCal(RT, cnt - (uint64_t)get<0>(LAT_" + arrayName[LoopRefTree->AA] + "[access]), 1.0);\n";
             errs() << space + "    }\n";
             errs() << space + "    LAT_" + arrayName[LoopRefTree->AA] + "[access] = make_tuple(cnt, cid);\n";
             
@@ -1070,19 +1091,27 @@ namespace riCodeGen_ref {
         errs() << "int main() {\n";
         
         string space = "    ";
+        // add timer
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << space << "PAPI_timer_init();\n";
+        errs() << space << "PAPI_timer_start();\n";
+        errs() << "#endif\n";
         errs() << "    interleaving();\n";
+
+        errs() << "    RTtoMR_AET();\n";
+        errs() << "#ifdef PAPI_TIMER\n";
+        errs() << "    PAPI_timer_end();\n";
+        errs() << "    PAPI_timer_print();\n";
+        errs() << "#endif\n";
 
 #ifdef DumpRTMR
 #ifdef REFERENCE_GROUP
-        
-        errs() << "    refRTDump();\n";
         // errs() << "    gaussian_distr();\n";
         // errs() << "    uniform_distr();\n";
         errs() << "    refRTDump();\n";  
         errs() << "    rtMerge();\n";
 #endif
         errs() << "    rtDump();\n";
-        errs() << "    RTtoMR_AET();\n";
         errs() << "    dumpMR();\n";
 #elif defined(DumpRefLease)
         errs() << "    RL_main(0);\n";

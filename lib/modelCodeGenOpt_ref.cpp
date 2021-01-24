@@ -1885,7 +1885,7 @@ namespace modelCodeGenOpt_ref {
         errs() << space << space << space << "parallel_smoothing(rt, tsrc_neighbor - tsrc, step, ReuseType::NEIGHBOR);\n";
         errs() << space << space << space << "return 0;\n";
 #else
-        errs() << space << space << space << "return tsrc_neighbor - tsrc;\n";
+        errs() << space << space << space << "return rt; // tsrc_neighbor - tsrc;\n";
 #endif
         errs() << space << space << "} else if (tsink_neighbor >= 0) {\n";
         errs() << "#ifdef DEBUG\n";

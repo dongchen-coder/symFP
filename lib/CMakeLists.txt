@@ -47,8 +47,8 @@ add_library(LLVMSPS MODULE
   riAccCodeGen_ref.hpp
   riAccCodeGen_ref.cpp
 
-  # riCodeGen_ref.hpp
-  # riCodeGen_ref.cpp
+  riCodeGen_ref.hpp
+  riCodeGen_ref.cpp
 
   uiIterCodeGen_ref.hpp
   uiIterCodeGen_ref.cpp

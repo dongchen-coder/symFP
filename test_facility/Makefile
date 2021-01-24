@@ -181,6 +181,12 @@ test_modelopt_gen:
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_modelopt_t$(TNUM).cpp ;)
 	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_modelopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_modelopt_t$(TNUM) ;)
 
+test_random_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_random_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_random_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_random_t$(TNUM) ;)
+
 test_smoothing_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
