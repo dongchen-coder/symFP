@@ -136,6 +136,7 @@ namespace uiAccCodeGenOpt_ref {
         errs() << "#include <cmath>\n";
         errs() << "#include <numeric>\n";
         errs() << "#include <utility>\n";
+        errs() << "#include <cassert>\n";
         errs() << "#include <stdlib.h>\n";
         errs() << "#include <time.h>\n";
         // errs() << "#include \"plum_util.h\"\n";
@@ -201,13 +202,13 @@ namespace uiAccCodeGenOpt_ref {
         errs() << space << space << "pos = iter[0] \% CHUNK_SIZE;\n";
         errs() << space << "}\n";
         errs() << space << "string toString() {\n";
-        errs() << space << space << "string s = \"[\" + name + \"] {\";\n";
+        errs() << space << space << "string s = name + \" (\";\n";
         errs() << space << space << "vector<int>::iterator it;\n";
         errs() << space << space << "for (it = ivs.begin(); it != ivs.end(); ++it) {\n";
         errs() << space << space << space << "s += to_string(*it) + \",\";\n";
         errs() << space << space << "}\n";
         errs() << space << space << "s.pop_back();\n";
-        errs() << space << space << "s += \"}\";\n";
+        errs() << space << space << "s += \")\";\n";
         errs() << space << space << "return s;\n";
         errs() << space << "}\n";
         errs() << space << "int compare(struct Sample other) {\n";
@@ -1658,6 +1659,10 @@ namespace uiAccCodeGenOpt_ref {
                         tmp.pop_back();
                         // tmp += indvName[(*LoopRefTree->LIS->IDV)[0]];
                         errs() << tmp + " };\n";
+                        // errs() << space + "        /* Generates the thread pool from 0 to THREAD_NUM-1 */\n";
+                        // errs() << space + "        thread_pool.resize(THREAD_NUM);\n";
+                        // errs() << space + "        assert(thread_pool.size() == THREAD_NUM);\n";
+                        // errs() << space + "        iota(thread_pool.begin(), thread_pool.end(), 0);\n";
                         errs() << space + "        /* Interleaving */\n";
                         if (currentLoops.size() == 0) {
                             errs() << space + "        t_Start = ((" + indvName[(*(sampleIDVs.front())->LIS->IDV)[0]] + " - " + getBound_Start((*LoopRefTree->LIS->LB)[0].first) + ") / chunk_size) % THREAD_NUM;\n";
@@ -1672,6 +1677,12 @@ namespace uiAccCodeGenOpt_ref {
                         errs() << space + "        }\n";
                         errs() << space + "        cout << \")\" << endl;\n";
                         errs() << "#endif\n";
+                        // errs() << space + "        int nvidx = 0;\n";
+                        // errs() << space + "        while (thread_pool.size() > 0) {\n";
+                        // errs() << space + "            int tid = rand() % thread_pool.size();\n";
+                        // errs() << space + "            nv[nvidx] = v;\n";
+                        // errs() << space + "            nv[nvidx][0] = v[0] + chunk_size * (thread_pool[tid] - t_Start);\n";
+                        // errs() << space + "            nv[nvidx][0] = v[0] + chunk_size * (tid - t_Start);\n";
                         errs() << space + "        for ( int tid = t_Start; tid < THREAD_NUM; tid++) {\n"; 
                         errs() << space + "            nv[tid] = v;\n";
                         errs() << space + "            nv[tid][0] = v[0] + chunk_size * (tid - t_Start);\n";
@@ -1685,11 +1696,13 @@ namespace uiAccCodeGenOpt_ref {
                         // errs() << space + "            if (tmp.size() > 0) { nv[tid] = tmp; }\n";
                         errs() << "#ifdef DEBUG\n";
                         errs() << space + "            cout << \"(\";\n";
-                        errs() << space + "            for (vector<int>::iterator it = nv[tid].begin(); it != nv[tid].end(); it++) {\n";
+                        errs() << space + "            for (vector<int>::iterator it = nv[nvidx].begin(); it != nv[nvidx].end(); it++) {\n";
                         errs() << space + "                cout << *it << \", \";\n"; 
                         errs() << space + "            }\n";
                         errs() << space + "            cout << \")\" << endl;\n";
                         errs() << "#endif\n";
+                        // errs() << space + "            thread_pool.erase(thread_pool.begin()+tid);\n";
+                        // errs() << space + "            nvidx += 1;\n";
                         errs() << space + "        }\n";
                     }
                 }
@@ -1745,16 +1758,21 @@ namespace uiAccCodeGenOpt_ref {
                         errs() << space + "            rtHistoCal(RT, cnt - LAT[addr], 1.0);\n";
                         errs() << space + "            Sample srcSample = LATSampleIterMap[LAT[addr]];\n";
                         errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
-                        errs() << space + "             cout << \"[\" << cnt - LAT[addr] << \"] \" <<  srcSample.toString() << \" -> \" << iter.toString() << endl;\n";
+                        errs() << space + "             cout << cnt - LAT[addr] << \" \" <<  srcSample.toString() << \" -> \" << iter.toString() << endl;\n";
                         errs() << "#endif\n";
                         errs() << space + "            LAT.erase(addr);\n";
                         errs() << space + "            samples.erase(srcSample);\n";
-                        errs() << space + "            if (samples.size() == 0) { goto EndSample; }\n";
+                        errs() << space + "            if (samples.size() == 0) {\n";
+                        errs() << "#if defined(DEBUG)\n";
+                        errs() << space + "                cout << \"Terminates at Iteration: \"" << " << iter.toString() << endl;\n";
+                        errs() << "#endif\n";
+                        errs() << space + "                goto EndSample;\n";
+                        errs() << space + "            }\n";
                         errs() << space + "        }\n";
                         errs() << space + "        if (samples.find(iter) != samples.end()) {\n";
                         errs() << space + "            LAT[addr] = cnt;\n";
                         errs() << space + "            LATSampleIterMap[cnt] = iter;\n";
-                        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
+                        errs() << "#if defined(DEBUG)\n";
                         errs() << space + "            cout << \"Update LAT and LATSampleIterMap for sample: \" <<  iter.toString() << endl;\n";
                         errs() << "#endif\n";
                         errs() << space + "        }\n";
@@ -1954,7 +1972,7 @@ namespace uiAccCodeGenOpt_ref {
         string space = "    ";
         // errs() << space + "srand(time(NULL));\n";
         errs() << space + "set<string> record;\n";
-         errs() << space + "// access time -> Sample Object\n";
+        errs() << space + "// access time -> Sample Object\n";
         errs() << space + "unordered_map<uint64_t, Sample> LATSampleIterMap;\n";
         errs() << space + "// address -> access time\n";
         errs() << space + "unordered_map<int, uint64_t> LAT;\n";
@@ -2071,13 +2089,16 @@ namespace uiAccCodeGenOpt_ref {
         idx_string_tmp.pop_back();
         idx_string_tmp.pop_back();
         errs() << idx_string_tmp << "});\n";
-        errs() << "#if defined(INTERLEAVE_DEBUG) || defined(DEBUG)\n";
+        errs() << "#if defined(DEBUG)\n";
         errs() << space + "cout << \"Samples:\"" << " << sample.toString() << endl;\n";
         errs() << "#endif\n";
         errs() << space + "samples[sample] = 1;\n";
         errs() << space + "if (s == 0 || sample.compare(sStart) < 0) { sStart = sample; }\n";
         errs() << space + "s += 1UL;\n";
         errs() << space + "}\n";
+        errs() << "#if defined(DEBUG)\n";
+        errs() << space + "cout << \"Starts from Sample:\"" << " << sStart.toString() << endl;\n";
+        errs() << "#endif\n";
 #endif
         int idx = 0;
         for (std::vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode*>::iterator lit = loops.begin(), elit = loops.end(); lit != elit; ++lit) {
@@ -2102,6 +2123,7 @@ namespace uiAccCodeGenOpt_ref {
         }
         errs() << space + "/* Vector that contains the interleaved iteration, avoid duplicate declaration */\n";
         errs() << space + "vector<vector<int>> nv(THREAD_NUM);\n";
+        // errs() << space + "vector<int> thread_pool(THREAD_NUM);\n";
         errs() << space + "int chunk_size, chunk_num, c_Start, ci_Start;\n";
         refRTSearchGen(LoopRefTree, false, true, refName, useID, loops, vector<loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode *>(), sampleIDVs, "    ");
         errs() << "EndSample:\n";

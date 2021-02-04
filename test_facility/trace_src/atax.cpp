@@ -43,31 +43,44 @@ void atax_cpu_trace(double* A, double* x, double* y, double* tmp, unsigned int d
     for (i= 0; i < NY; i++)
     {
         y[i] = 0;
-        rtTmpAccess(Y_OFFSET + i);
+        // rtTmpAccess(Y_OFFSET + i);
+        rtTmpAccess(Y_OFFSET + i, "y_addr0", {i});
     }
 
     for (i = 0; i < NX; i++)
     {
-            tmp[i] = 0;
-            rtTmpAccess(TMP_OFFSET + i);
+        tmp[i] = 0;
+        // rtTmpAccess(TMP_OFFSET + i);
+        rtTmpAccess(TMP_OFFSET + i, "tmp_addr0", {i});
+        for (j = 0; j < NY; j++)
+        {
+            tmp[i] = tmp[i] + A[i * NY + j] * x[j];
+            // rtTmpAccess(TMP_OFFSET + i);
+            // rtTmpAccess(A_OFFSET + i * NY + j);
+            // rtTmpAccess(X_OFFSET + j);
+            // rtTmpAccess(TMP_OFFSET + i);
+            rtTmpAccess(TMP_OFFSET + i, "tmp_addr1", {i, j});
+            rtTmpAccess(A_OFFSET + i * NY + j, "A_addr0", {i, j});
+            rtTmpAccess(X_OFFSET + j, "x_addr0", {i, j});
+            rtTmpAccess(TMP_OFFSET + i, "tmp_addr2", {i, j});
+        }
+    }
 
-            for (j = 0; j < NY; j++)
-            {
-                tmp[i] = tmp[i] + A[i * NY + j] * x[j];
-                rtTmpAccess(TMP_OFFSET + i);
-                rtTmpAccess(A_OFFSET + i * NY + j);
-                rtTmpAccess(X_OFFSET + j);
-                rtTmpAccess(TMP_OFFSET + i);
-            }
+    for (i = 0; i < NX; i++)
+    {
 
-            for (j = 0; j < NY; j++)
-            {
-                y[j] = y[j] + A[i * NY + j] * tmp[i];
-                rtTmpAccess(Y_OFFSET + j);
-                rtTmpAccess(A_OFFSET + i * NY + j);
-                rtTmpAccess(TMP_OFFSET + i);
-                rtTmpAccess(Y_OFFSET + j);
-            }
+        for (j = 0; j < NY; j++)
+        {
+            y[i] = y[i] + A[j * NY + i] * tmp[j];
+            // rtTmpAccess(Y_OFFSET + i);
+            // rtTmpAccess(A_OFFSET + j * NY + i);
+            // rtTmpAccess(TMP_OFFSET + j);
+            // rtTmpAccess(Y_OFFSET + i);
+            rtTmpAccess(Y_OFFSET + i, "y_addr1", {i, j});
+            rtTmpAccess(A_OFFSET + j * NY + i, "A_addr1", {i, j});
+            rtTmpAccess(TMP_OFFSET + j, "tmp_addr3", {i, j});
+            rtTmpAccess(Y_OFFSET + i, "y_addr2",{i, j});
+        }
     }
 
 

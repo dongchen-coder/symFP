@@ -57,7 +57,7 @@ cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_
 
 # test_bench = $(BENCH)
 test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen
-# test_bench =  symm gramschmidt syrk# 2mm adi atax jacobi-2d fdtd-2d deriche gesummv gemver
+# test_bench = atax bicg mvt deriche gesummv gemver gemm
 # check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 
 check_bench = stencil
@@ -156,7 +156,9 @@ trace_ref_osl_run:
 	# $(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_osl_trace > $(TRACE_REF_OSL_RESULT_DIR)/$(name)_ref_osl_trace_result.txt ;)
 
 test_trace_run:
-	$(foreach name, $(test_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DSMALL_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DMINI_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
+	$(foreach name, $(test_bench), $(BIN_DIR)/$(name)_trace > $(TRACE_RESULT_DIR)/$(name)-trace_result.txt ;)
+
 test_plum_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
@@ -167,7 +169,7 @@ test_plumopt_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp ;)
-	# $(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plumopt_t$(TNUM) ;)
+	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plumopt_t$(TNUM) ;)
 
 test_model_gen:
 	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)

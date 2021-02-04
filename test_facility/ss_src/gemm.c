@@ -45,12 +45,9 @@ void gemm(int ni, int nj, int nk, double alpha, double beta, double* A, double* 
         for (j = 0; j < NJ; j++)
         {
             C[i * NJ + j] *= beta;
-        }
-        for (k = 0; k < NK; k++)
-        {
-            for (j = 0; j < NJ; j++)
+            for (k = 0; k < NK; k++)
             {
-                C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
+                C[i * NJ + j] += alpha * A[i * NJ + j] * B[j * NJ + k];
             }
         }
     }

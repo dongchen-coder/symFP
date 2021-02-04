@@ -45,10 +45,14 @@ void runMvt_trace( double* a, double* x1, double* x2, double* y1, double* y2)
             //x1[i] = x1[i] + a[i][j] * y1[j];
             x1[i] = x1[i] + a[i * N + j] * y1[j];
         
-            rtTmpAccess(X1_OFFSET + i);
-            rtTmpAccess(A_OFFSET + i * N + j);
-            rtTmpAccess(Y1_OFFSET + j);
-            rtTmpAccess(X1_OFFSET + i);         
+            // rtTmpAccess(X1_OFFSET + i);
+            // rtTmpAccess(A_OFFSET + i * N + j);
+            // rtTmpAccess(Y1_OFFSET + j);
+            // rtTmpAccess(X1_OFFSET + i);
+            rtTmpAccess(X1_OFFSET + i, "x1_addr0", {i, j});
+            rtTmpAccess(A_OFFSET + i * N + j, "A_addr0", {i, j});
+            rtTmpAccess(Y1_OFFSET + j, "y1_addr0", {i, j});
+            rtTmpAccess(X1_OFFSET + i, "x1_addr1", {i, j});         
 
         }
     }
@@ -60,10 +64,14 @@ void runMvt_trace( double* a, double* x1, double* x2, double* y1, double* y2)
             //x2[i] = x2[i] + a[j][i] * y2[j];
             x2[i] = x2[i] + a[j * N + i] * y2[j];
 
-            rtTmpAccess(X2_OFFSET + i);
-            rtTmpAccess(A_OFFSET + j * N + i);
-            rtTmpAccess(Y2_OFFSET + j);
-            rtTmpAccess(X2_OFFSET + i);     
+            // rtTmpAccess(X2_OFFSET + i);
+            // rtTmpAccess(A_OFFSET + j * N + i);
+            // rtTmpAccess(Y2_OFFSET + j);
+            // rtTmpAccess(X2_OFFSET + i);
+            rtTmpAccess(X2_OFFSET + i, "x2_addr0", {i, j});
+            rtTmpAccess(A_OFFSET + j * N + i, "A_addr1", {i, j});
+            rtTmpAccess(Y2_OFFSET + j, "y2_addr0", {i, j});
+            rtTmpAccess(X2_OFFSET + i, "x2_addr1", {i, j});     
 
         }
     }

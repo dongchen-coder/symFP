@@ -7,9 +7,9 @@
 # endif
 #ifdef MINI_DATASET
 	#define NI 32
-	#define NJ 32
-	#define NK 32
-	#define NL 32
+	#define NJ 10
+	#define NK 10
+	#define NL 10
 #endif
 #ifdef SMALL_DATASET
 	#define NI 128

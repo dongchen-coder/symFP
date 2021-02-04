@@ -61,18 +61,24 @@ void bicg_cpu_trace(double* A, double* r, double* s, double* p, double* q, unsig
     {
         q[i] = 0.0;
         rtTmpAccess(Q_OFFSET + i);
-        for (j = 0; j < NY; j++)
+        for (j = 0; j< NY; j++) 
         {
-            s[j] = s[j] + r[i] * A[i * NY + j];
             q[i] = q[i] + A[i * NY + j] * p[j];
-            rtTmpAccess(S_OFFSET + j);
-            rtTmpAccess(R_OFFSET + i);
-            rtTmpAccess(A_OFFSET + i * NY + j);
-            rtTmpAccess(S_OFFSET + j);
             rtTmpAccess(Q_OFFSET + i);
             rtTmpAccess(A_OFFSET + i * NY + j);
             rtTmpAccess(P_OFFSET + j);
             rtTmpAccess(Q_OFFSET + i);
+        }
+    }
+    for (i = 0; i < NX; i++)
+    {
+        for (j = 0; j < NY; j++)
+        {
+            s[i] = s[i] + r[j] * A[j * NY + i];
+            rtTmpAccess(S_OFFSET + i);
+            rtTmpAccess(R_OFFSET + j);
+            rtTmpAccess(A_OFFSET + j * NY + i);
+            rtTmpAccess(S_OFFSET + i);
         }
     }
 

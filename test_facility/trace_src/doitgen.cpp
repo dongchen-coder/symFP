@@ -42,8 +42,8 @@
 #  endif
 
 #define SUM_OFFSET 0
-#define A_OFFSET NP
-#define C4_OFFSET NP + NR * NQ * NP
+#define A_OFFSET NP * NQ * NR
+#define C4_OFFSET NP * NQ * NR + NR * NQ * NP
 
 void doitgen_trace(double* sum, double* A, double* C4) {
 
@@ -52,19 +52,19 @@ void doitgen_trace(double* sum, double* A, double* C4) {
 	for (r = 0; r < NR; r++) {
 		for (q = 0; q < NQ; q++)  {
 			for (p = 0; p < NP; p++)  {
-				sum[p] = 0.0;
-				rtTmpAccess(SUM_OFFSET + p);
+				sum[r * NQ * NP + q * NP + p] = 0.0;
+				rtTmpAccess(SUM_OFFSET + r * NQ * NP + q * NP + p);
 				for (s = 0; s < NP; s++) {
-					sum[p] += A[r * NQ * NP + q * NP + s] * C4[s * NP + p];
+					// sum[r * NQ * NP + q * NP + p] += A[r * NQ * NP + q * NP + s] * C4[s * NP + p];
 					rtTmpAccess(A_OFFSET + r * NQ * NP + q * NP + s);
 					rtTmpAccess(C4_OFFSET + s * NP + p);
-					rtTmpAccess(SUM_OFFSET + p);
-					rtTmpAccess(SUM_OFFSET + p);
+					rtTmpAccess(SUM_OFFSET + r * NQ * NP + q * NP + p);
+					rtTmpAccess(SUM_OFFSET + r * NQ * NP + q * NP + p);
 				}
 			}
 			for (p = 0; p < NP; p++) {
-				A[r * NQ * NP + q * NP + p] = sum[p];
-				rtTmpAccess(SUM_OFFSET + p);
+				A[r * NQ * NP + q * NP + p] = sum[r * NQ * NP + q * NP + p];
+				rtTmpAccess(SUM_OFFSET + r * NQ * NP + q * NP + p);
 				rtTmpAccess(A_OFFSET + r * NQ * NP + q * NP + p);
 			}
     	}
@@ -74,7 +74,7 @@ void doitgen_trace(double* sum, double* A, double* C4) {
 
 int main() {
 	
-	double * sum = (double *) malloc(NP * sizeof(double));
+	double * sum = (double *) malloc(NP * NQ * NR * sizeof(double));
 	double * A = (double *) malloc(NR * NQ * NP * sizeof(double));
 	double * C4 = (double *) malloc(NP * NP);
 	

@@ -4,6 +4,8 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <string>
+#include <unordered_map>
 #include "papi_timer.h"
 using namespace std;
 
@@ -14,6 +16,61 @@ using namespace std;
 #endif
 
 using namespace std;
+
+/**
+ * struct for each address
+ */
+struct ref_t {
+	string refid;
+	vector<int> iteration;
+	uint64_t addr; // should be in the cacheline granularity
+
+	// comparator for ref_t
+	bool operator==(const ref_t &other) const {
+		bool equal = addr == other.addr && refid == other.refid && (iteration.size() == other.iteration.size());
+		if (equal) {
+			for (int i = 0; i < iteration.size(); i++) {
+				if (iteration[i] != other.iteration[i]) {
+					equal = false;
+					break;
+				}
+			}
+		}
+		return equal;
+
+	}
+	string toString() {
+		string tmp = refid + " （";
+		for (auto i: iteration) {
+			tmp += (to_string(i) + ",");
+		}
+		tmp.pop_back();
+		tmp += ")";
+		return tmp;
+	}
+};
+
+typedef struct ref_t ref_t;
+
+// Hash function for ref_t
+struct RefHasher
+{
+	size_t operator()(const ref_t &r) const {
+		using std::size_t;
+		using std::hash;
+		using std::string;
+
+		size_t hash_val;
+		hash_val = hash<string>()(r.refid);
+		for (auto i : r.iteration) {
+			hash_val ^= (hash<int>()(i) << 1);
+		}
+		hash_val ^= (hash<uint64_t>()(r.addr) >> 1);
+		return hash_val;
+	}
+
+};
+
 /* first access time */
 std::map<int, int> fat;
 /* last access time */
@@ -23,11 +80,11 @@ std::map<uint64_t, uint64_t> rtTmp;
 unsigned long long refT = 0;
 
 std::map<uint64_t, double> RT;
+std::unordered_map<uint64_t, ref_t> LATRefMap; 
 
 std::map<uint64_t, double> MR;
 
 map<uint64_t, map<uint64_t, uint64_t>* > RI;
-
 map<uint64_t, uint64_t> refAccessCnt;
 map<uint64_t, uint64_t> srcRef;
 map<string, vector<tuple<vector<uint64_t>, uint64_t>>> stat;
@@ -74,7 +131,24 @@ void updateStat(map<string, vector<tuple<vector<uint64_t>, uint64_t>>> & stat, s
     return;
 }
 
-void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t array_id) {
+void rtTmpAccess(uint64_t addr, string ref, vector<int> iteration) {
+
+    addr = addr * DS / CLS;
+    ref_t reuseSink = { .refid = ref, .iteration=iteration, .addr=addr  };
+    refT++;
+    if (lat.find(addr) != lat.end()) {
+    	ref_t reuseSrc = LATRefMap[lat[addr]];
+    	cout << refT - lat[addr] << " " << reuseSrc.toString() << " -> " << reuseSink.toString() << endl;;
+    	rtHistoCal(refT - lat[addr], 1);
+    	LATRefMap.erase(lat[addr]);
+    }
+    lat[addr] = refT;
+    LATRefMap[refT] = reuseSink;
+    return;
+}
+
+/*
+void rtTmpAccess(uint64_t addr, string ref_id, uint64_t array_id) {
 	addr = addr * DS / CLS;
 	refT++;
 
@@ -92,7 +166,7 @@ void rtTmpAccess(uint64_t addr, uint64_t ref_id, uint64_t array_id) {
             (*RI[sourceRef])[ri] = 1;
         }
     }
-    lat[addr] = refT;
+    lat[addr] = refTs;
     srcRef[addr] = ref_id;
 
 	if (refAccessCnt.find(ref_id) != refAccessCnt.end()) {
@@ -118,6 +192,7 @@ void rtTmpAccess(int addr) {
     }
     return;
 }
+*/
 /*
 void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, string ref_id) {
 	addr = addr * DS / CLS;
@@ -256,9 +331,9 @@ void dumpMR() {
 				break;
 			}
 		}
-		cout << it1->first << " " << it1->second << endl;
+		cout << it1->first << ", " << it1->second << endl;
 		if (it1 != it2) {
-			cout << it2->first << " " << it2->second << endl;
+			cout << it2->first << ", " << it2->second << endl;
 		}
 		it1 = ++it2;
 		it2 = it1;

@@ -13,9 +13,9 @@
 #endif
 #ifdef MINI_DATASET
     #define NI 32
-    #define NJ 32
-    #define NK 32
-    #define NL 32
+    #define NJ 8
+    #define NK 8
+    #define NL 8
 #endif
 #ifdef SMALL_DATASET
     #define NI 128
@@ -58,27 +58,28 @@ void mm2_trace(double* tmp, double* A, double* B, double* C, double* D, double a
     for (i = 0; i < NI; i++) {
         for (j = 0; j < NJ; j++) {
             tmp[i * NJ + j] = 0.0;
-            rtTmpAccess(TMP_OFFSET + i * NJ + j);
+            // rtTmpAccess(TMP_OFFSET + i * NJ + j);
+            rtTmpAccess(TMP_OFFSET + i * NJ + j, "tmp_addr0", {i, j});
             for (k = 0; k < NK; ++k) {
                 tmp[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-                rtTmpAccess(A_OFFSET + i * NK + k);
-                rtTmpAccess(B_OFFSET + k * NJ + j);
-                rtTmpAccess(TMP_OFFSET + i * NJ + j);
-                rtTmpAccess(TMP_OFFSET + i * NJ + j);
+                rtTmpAccess(A_OFFSET + i * NK + k, "A_addr0", {i, j, k});
+                rtTmpAccess(B_OFFSET + k * NJ + j, "B_addr0", {i, j, k});
+                rtTmpAccess(TMP_OFFSET + i * NJ + j, "tmp_addr1", {i, j, k});
+                rtTmpAccess(TMP_OFFSET + i * NJ + j, "tmp_addr2", {i, j, k});
             }
         }
     }
     for (i = 0; i < NI; i++) {
         for (j = 0; j < NL; j++) {
             D[i * NL + j] *= beta;
-            rtTmpAccess(D_OFFSET + i * NL + j);
-            rtTmpAccess(D_OFFSET + i * NL + j);
+            rtTmpAccess(D_OFFSET + i * NL + j, "D_addr0", {i, j});
+            rtTmpAccess(D_OFFSET + i * NL + j, "D_addr1", {i, j});
             for (k = 0; k < NJ; ++k) {
                 D[i * NL + j] += tmp[i * NJ + k] * C[k * NL + j];
-                rtTmpAccess(TMP_OFFSET + i * NJ + k);
-                rtTmpAccess(C_OFFSET + k * NL + j);
-                rtTmpAccess(D_OFFSET + i * NL + j);
-                rtTmpAccess(D_OFFSET + i * NL + j);
+                rtTmpAccess(TMP_OFFSET + i * NJ + k, "tmp_addr3", {i, j, k});
+                rtTmpAccess(C_OFFSET + k * NL + j, "C_addr0", {i, j, k});
+                rtTmpAccess(D_OFFSET + i * NL + j, "D_addr2", {i, j, k});
+                rtTmpAccess(D_OFFSET + i * NL + j, "D_addr3", {i, j, k});
             }
         }
     }

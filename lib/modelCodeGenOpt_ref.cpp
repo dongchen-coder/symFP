@@ -164,6 +164,9 @@ namespace modelCodeGenOpt_ref {
         errs() << "mutex mtx;\n";
 #endif
         errs() << "map<uint64_t, double> RT;\n";
+        errs() << "map<uint64_t, double> interceptRT;\n";
+        errs() << "map<uint64_t, double> scaleRT;\n";
+        errs() << "map<uint64_t, double> otherRT;\n";
         errs() << "map<uint64_t, double> MR;\n";
         // errs() << "std::unordered_map<string, uint64_t> RefIDMap;\n";
         errs() << "uint64_t sample_sum = 0;\n";
@@ -177,6 +180,7 @@ namespace modelCodeGenOpt_ref {
         errs() << "double total_fold = 0.0;\n";
         errs() << "double total_interchunk = 0.0;\n";
         errs() << "double share_reuse = 0.0;\n";
+        errs() << "double total_smaller_reuse = 0.0;\n";
 #ifdef SMOOTHING
         errs() << "enum class ReuseType {\n";
         errs() << "    INTER_CHUNK,\n";
@@ -394,7 +398,32 @@ namespace modelCodeGenOpt_ref {
     
 #ifdef DumpRTMR
     void ModelCodeGenOpt_ref::rtDumpGen() {
-        errs() << "void rtDump() {\n";
+        errs() << "void rtDistribution() {\n";
+        errs() << "    uint64_t maxInterceptRT = 0UL;\n";
+        errs() << "    int i = 0;\n";
+        errs() << "    map<uint64_t, double>::iterator mit = interceptRT.begin();\n";
+        errs() << "    for (; mit != interceptRT.end(); ++mit) {\n";
+        errs() << "        if (mit->first > maxInterceptRT) { maxInterceptRT = mit->first; }\n";
+        errs() << "    }\n";
+        errs() << "    for (; mit != interceptRT.end(); ++mit) {\n";
+        errs() << "        for (i = 1; i <= maxInterceptRT; i++) {\n";
+        errs() << "            rtHistoCal(RT, i, mit->second / maxInterceptRT);\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    mit = scaleRT.begin();\n";
+        errs() << "    for (; mit != scaleRT.end(); ++mit) {\n";
+        errs() << "        uint64_t scaleRI = mit->first;\n";
+        errs() << "        for (i = (scaleRI / THREAD_NUM); i <= scaleRI; i++) {\n";
+        errs() << "            rtHistoCal(RT, i, mit->second / (scaleRI * (THREAD_NUM - 1) / THREAD_NUM));\n";
+        errs() << "        }\n";
+        errs() << "    }\n";
+        errs() << "    mit = otherRT.begin();\n";
+        errs() << "    for(; mit != otherRT.end(); ++mit) {\n";
+        errs() << "       rtHistoCal(RT, mit->first, mit->second);\n";
+        errs() << "    }\n";
+        errs() << "    return;\n";
+        errs() << "}\n";
+        errs() << "void rtDump() {\n"; 
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
         errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
         errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
@@ -524,10 +553,11 @@ namespace modelCodeGenOpt_ref {
         errs() << "/* Dump the reuse statistics */\n";
         errs() << "void statDump() {\n";
         errs() << "    cout << \"Total Neighboring (SRC) Reuses: \" << total_src_neighbor / total_reuse << endl;\n";
-        errs() << "    cout << \"Total Neighboring (SINK) Reuses: \" << total_src_neighbor / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Neighboring (SINK) Reuses: \" << total_sink_neighbor / total_reuse << endl;\n";
         errs() << "    cout << \"Total Scaling Reuses: \" << total_scale / total_reuse << endl;\n";
         errs() << "    cout << \"Total Folding Src-Sink Reuses: \" << total_fold / total_reuse << endl;\n";
         errs() << "    cout << \"Total Inter Chunk Reuses: \" << total_interchunk / total_reuse << endl;\n";
+        errs() << "    cout << \"Total Intercept Reuses: \" << total_smaller_reuse / total_reuse << endl;\n";
         errs() << "    cout << \"Total Shared Reuses: \" << share_reuse / total_reuse << endl;\n";
         errs() << "    cout << \"Total Reuses: \" << total_reuse << endl;\n";
         errs() << "    return;\n";
@@ -1241,14 +1271,26 @@ namespace modelCodeGenOpt_ref {
                     }
                     errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", cnt, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, step, " << is_normal_ref << ", " << is_in_same_loop << ", reuse_type, srcAddrCal, sinkAddrCal);\n";
 #else
-                    errs() << space + "            uint64_t parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", ris, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, " << is_normal_ref << ", " << is_in_same_loop << ", reuse_type, srcAddrCal, sinkAddrCal);\n";
+                    errs() << space + "            pair<uint64_t, int> parallel_rt = parallel_predict(" << outermost_src_indv << ", " << outermost_sink_indv << ", ris, " << to_string(outMostLoopPerIterationSpace[refName +  to_string(useID)]) << ", " << to_string(outMostLoopPerIterationSpace[refName +  to_string(refNumber[LoopRefTree->AA])]) << ", middle_accesses, " << is_normal_ref << ", " << is_in_same_loop << ", reuse_type, srcAddrCal, sinkAddrCal);\n";
 #endif
 #ifdef REFERENCE_GROUP
                     // errs() << space + "            refSubBlkRT(refRT, cnt, 1.0, \"" + refName + std::to_string(useID) + "\");\n";
                     errs() << space + "            refRTHistoCal(refRT, parallel_rt, 1.0, \"" + refName + std::to_string(useID) + "\"";
 #else
-                    // errs() << space + "            subBlkRT(RT, cnt, 1.0);\n";
-                    errs() << space + "            if (parallel_rt != 0) { rtHistoCal(RT, parallel_rt, 1.0); }\n";
+                    errs() << space + "            rtHistoCal(RT, get<0>(parallel_rt), 1.0);\n";
+                    // errs() << space + "            if (get<0>(parallel_rt) != 0) {\n";
+                    // errs() << space << space + "            switch(get<1>(parallel_rt)) {\n";
+                    // errs() << space << space + "            case 0: // inter-chunk\n";
+                    // errs() << space << space << space + "            rtHistoCal(otherRT, get<0>(parallel_rt), 1.0);\n";
+                    // errs() << space << space << space + "            break;\n";
+                    // errs() << space << space + "            case 3: // scale\n";
+                    // errs() << space << space << space + "            rtHistoCal(otherRT, get<0>(parallel_rt), 1.0);\n";
+                    // errs() << space << space << space + "            break;\n";
+                    // errs() << space << space + "            default:\n";
+                    // errs() << space << space << space + "            rtHistoCal(interceptRT, get<0>(parallel_rt), 1.0);\n";
+                    // errs() << space << space << space + "            break;\n";
+                    // errs() << space << space + "            }\n";
+                    // errs() << space + "            }\n";
 #endif
 #ifdef PROFILE_SEARCH_REUSE
                     errs() << space + "        actural = cnt;\n";
@@ -1381,6 +1423,7 @@ namespace modelCodeGenOpt_ref {
 #if SAMPLING ==2
         errs() << "    /* Generating sampling loop */\n";
         string space = "    ";
+        /* container to store the metadata used to speedup the search process */
         errs() << space + "set<string> record;\n";
         errs() << space + "// access time -> Sample Object\n";
         errs() << space + "unordered_map<uint64_t, Sample> LATSampleIterMap;\n";
@@ -1409,11 +1452,7 @@ namespace modelCodeGenOpt_ref {
             return;
         }
 
-        /* container to store the metadata used to speedup the search process */
-        errs() << space + "// access time -> bit mask, need to clear for every iteration sample\n";
-        errs() << space + "unordered_map<uint64_t, uint64_t> RefBitmapAccessTrace;\n";
-        errs() << space + "// address -> access time, need to clear for every iteration sample\n";
-        errs() << space + "unordered_map<int, uint64_t> LAT;\n";
+
 
         errs() << "SAMPLE:\n";
         
@@ -1658,6 +1697,7 @@ namespace modelCodeGenOpt_ref {
 #ifdef REFERENCE_GROUP
         errs() << "    rtMerge();\n";
 #endif
+        // errs() << "    rtDistribution();\n";
         errs() << "    RTtoMR_AET();\n";
         errs() << "#ifdef PAPI_TIMER\n";
         errs() << "    PAPI_timer_end();\n";
@@ -1839,7 +1879,7 @@ namespace modelCodeGenOpt_ref {
 #ifdef SMOOTHING
         errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, uint64_t step, bool is_normal_ref, bool is_in_same_loop, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
 #else
-        errs() << "uint64_t parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, bool is_normal_ref, bool is_in_same_loop, int & type, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
+        errs() << "pair<uint64_t, int> parallel_predict(uint64_t i_src, uint64_t i_sink, uint64_t rt, uint64_t lsrc, uint64_t lsink, uint64_t middle_accesses, bool is_normal_ref, bool is_in_same_loop, int & type, function<uint64_t(uint64_t)> srcAddrCal, function<uint64_t(uint64_t)> sinkAddrCal) {\n";
 #endif
         errs() << "#ifdef DEBUG\n";
         errs() << space << "cout << \"rt \" << rt << endl;\n";
@@ -1864,7 +1904,8 @@ namespace modelCodeGenOpt_ref {
 #else
         errs() << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * THREAD_NUM * (lsrc*(THREAD_NUM - tsrc) + lsink * tsink) + CHUNK_SIZE * THREAD_NUM * lsrc - (THREAD_NUM - 1) * middle_accesses + dT;\n";
 #endif
-        errs() << space << space << "return parallel_rt;\n";
+        errs() << space << space << "if (parallel_rt < rt) { total_smaller_reuse += 1.0; }\n";
+        errs() << space << space << "return make_pair(parallel_rt, 0);\n";
         errs() << space << "} else if (!is_normal_ref) {\n";
         errs() << space << space << "/* intra chunk reuse */\n";
         errs() << "#ifdef DEBUG\n";
@@ -1885,7 +1926,8 @@ namespace modelCodeGenOpt_ref {
         errs() << space << space << space << "parallel_smoothing(rt, tsrc_neighbor - tsrc, step, ReuseType::NEIGHBOR);\n";
         errs() << space << space << space << "return 0;\n";
 #else
-        errs() << space << space << space << "return rt; // tsrc_neighbor - tsrc;\n";
+        errs() << space << space << "if ((tsrc_neighbor - tsrc) < rt) { total_smaller_reuse += 1.0; }\n";
+        errs() << space << space << space << "return make_pair(tsrc_neighbor - tsrc, 1);\n";
 #endif
         errs() << space << space << "} else if (tsink_neighbor >= 0) {\n";
         errs() << "#ifdef DEBUG\n";
@@ -1902,7 +1944,8 @@ namespace modelCodeGenOpt_ref {
         errs() << space << space << space << space << "share_reuse += 1.0;\n";
         errs() << space << space << space << space << "type = 2; // code for sink neighboring effect\n";
         // errs() << space << space << space << space << "sink_neighbor_delta = tsink_neighbor - tsink;\n";
-        errs() << space << space << space << space << "return rt * THREAD_NUM + tsink_neighbor - tsink;\n";
+        errs() << space << space << "if ((rt * THREAD_NUM + tsink_neighbor - tsink) < rt) { total_smaller_reuse += 1.0; }\n";
+        errs() << space << space << space << space << "return make_pair(rt * THREAD_NUM + tsink_neighbor - tsink, 2);\n";
 #endif
         errs() << space << space << space << "}\n";
         errs() << space << space << "}\n";
@@ -1919,7 +1962,7 @@ namespace modelCodeGenOpt_ref {
         errs() << space << space << space << "parallel_smoothing(rt, rt * THREAD_NUM, rt, ReuseType::SCALE);\n";
         errs() << space << space << space << "return 0;\n";
 #else
-        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM;\n";
+        errs() << space << space << space << "parallel_rt = rt * THREAD_NUM; // * THREAD_NUM;\n";
         errs() << space << space << space << "type = 3; // code for scaling effect\n";
 #endif
         errs() << space << space << "} else if (getThreadLocalPos(i_src) <= getThreadLocalPos(i_sink)) { // src-sink order\n";
@@ -1937,6 +1980,8 @@ namespace modelCodeGenOpt_ref {
         errs() << space << space << space << "return 0;\n";
 #else
         errs() << space << space << space << "parallel_rt = rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + abs(dT);\n";
+        errs() << space << space << space << "if (parallel_rt < rt) { total_smaller_reuse += 1.0; }\n";
+
 #endif
         errs() << space << space << "} else { // sink-src order\n";
         errs() << space << space << space << "if ((rt * THREAD_NUM - CHUNK_SIZE * lsrc * THREAD_NUM * dT + dT) < 0) { printf(\"REVERSE ORDER NEGATIVE PRI\\n\"); }\n";
@@ -1945,10 +1990,10 @@ namespace modelCodeGenOpt_ref {
         errs() << "#endif\n";
         errs() << space << space << space << "// parallel_rt = CHUNK_SIZE * lsrc * THREAD_NUM * dT - (rt * THREAD_NUM) - abs(dT);\n";
         errs() << space << space << space << "type = 5; // code for sink-src order folding effect\n";
-        errs() << space << space << space << "return 0;\n";
+        errs() << space << space << space << "return make_pair(0UL, -1);\n";
         errs() << space << space << "}\n";
         errs() << space << "}\n";
-        errs() << space << "return parallel_rt + sink_neighbor_delta;\n";
+        errs() << space << "return make_pair(parallel_rt + sink_neighbor_delta, type);\n";
         errs() << "}\n";
     }
 

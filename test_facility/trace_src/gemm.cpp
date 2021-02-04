@@ -54,9 +54,9 @@ void gemm_trace(double alpha, double beta, double* A, double* B, double* C) {
 
             for (k = 0; k < NK; k++)
             {
-                C[i * NJ + j] += alpha * A[i * NK + k] * B[k * NJ + j];
-                rtTmpAccess(A_OFFSET + i * NK + k);
-                rtTmpAccess(B_OFFSET + k * NJ + j);
+                C[i * NJ + j] += alpha * A[i * NK + j] * B[j * NJ + k];
+                rtTmpAccess(A_OFFSET + i * NK + j);
+                rtTmpAccess(B_OFFSET + j * NJ + k);
                 rtTmpAccess(C_OFFSET + i * NJ + j);
                 rtTmpAccess(C_OFFSET + i * NJ + j);
             }
