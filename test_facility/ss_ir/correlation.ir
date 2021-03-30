@@ -1,10 +1,10 @@
 ; ModuleID = './ss_bc/correlation.bc'
 source_filename = "./ss_src/correlation.c"
-target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define void @correlation(i32 %m, i32 %n, double* %data, double* %mean, double* %stddev, double* %symmat) #0 {
+define dso_local void @correlation(i32 %m, i32 %n, double* %data, double* %mean, double* %stddev, double* %symmat) #0 {
 entry:
   %m.addr = alloca i32, align 4
   %n.addr = alloca i32, align 4
@@ -66,7 +66,7 @@ for.inc:                                          ; preds = %for.body3
   %11 = load i32, i32* %i, align 4
   %inc = add nsw i32 %11, 1
   store i32 %inc, i32* %i, align 4
-  br label %for.cond1
+  br label %for.cond1, !llvm.loop !2
 
 for.end:                                          ; preds = %for.cond1
   %12 = load double*, double** %mean.addr, align 8
@@ -82,7 +82,7 @@ for.inc11:                                        ; preds = %for.end
   %15 = load i32, i32* %j, align 4
   %inc12 = add nsw i32 %15, 1
   store i32 %inc12, i32* %j, align 4
-  br label %for.cond
+  br label %for.cond, !llvm.loop !4
 
 for.end13:                                        ; preds = %for.cond
   store i32 0, i32* %j, align 4
@@ -150,7 +150,7 @@ for.inc39:                                        ; preds = %for.body21
   %37 = load i32, i32* %i, align 4
   %inc40 = add nsw i32 %37, 1
   store i32 %inc40, i32* %i, align 4
-  br label %for.cond19
+  br label %for.cond19, !llvm.loop !5
 
 for.end41:                                        ; preds = %for.cond19
   %38 = load double*, double** %stddev.addr, align 8
@@ -201,7 +201,7 @@ for.inc55:                                        ; preds = %cond.end
   %53 = load i32, i32* %j, align 4
   %inc56 = add nsw i32 %53, 1
   store i32 %inc56, i32* %j, align 4
-  br label %for.cond14
+  br label %for.cond14, !llvm.loop !6
 
 for.end57:                                        ; preds = %for.cond14
   store i32 0, i32* %i, align 4
@@ -260,7 +260,7 @@ for.inc82:                                        ; preds = %for.body65
   %70 = load i32, i32* %j, align 4
   %inc83 = add nsw i32 %70, 1
   store i32 %inc83, i32* %j, align 4
-  br label %for.cond62
+  br label %for.cond62, !llvm.loop !7
 
 for.end84:                                        ; preds = %for.cond62
   br label %for.inc85
@@ -269,7 +269,7 @@ for.inc85:                                        ; preds = %for.end84
   %71 = load i32, i32* %i, align 4
   %inc86 = add nsw i32 %71, 1
   store i32 %inc86, i32* %i, align 4
-  br label %for.cond58
+  br label %for.cond58, !llvm.loop !8
 
 for.end87:                                        ; preds = %for.cond58
   store i32 0, i32* %j1, align 4
@@ -350,7 +350,7 @@ for.inc123:                                       ; preds = %for.body108
   %94 = load i32, i32* %i, align 4
   %inc124 = add nsw i32 %94, 1
   store i32 %inc124, i32* %i, align 4
-  br label %for.cond105
+  br label %for.cond105, !llvm.loop !9
 
 for.end125:                                       ; preds = %for.cond105
   %95 = load double*, double** %symmat.addr, align 8
@@ -375,7 +375,7 @@ for.inc134:                                       ; preds = %for.end125
   %102 = load i32, i32* %j2, align 4
   %inc135 = add nsw i32 %102, 1
   store i32 %inc135, i32* %j2, align 4
-  br label %for.cond97
+  br label %for.cond97, !llvm.loop !10
 
 for.end136:                                       ; preds = %for.cond97
   br label %for.inc137
@@ -384,7 +384,7 @@ for.inc137:                                       ; preds = %for.end136
   %103 = load i32, i32* %j1, align 4
   %inc138 = add nsw i32 %103, 1
   store i32 %inc138, i32* %j1, align 4
-  br label %for.cond88
+  br label %for.cond88, !llvm.loop !11
 
 for.end139:                                       ; preds = %for.cond88
   %104 = load double*, double** %symmat.addr, align 8
@@ -393,18 +393,28 @@ for.end139:                                       ; preds = %for.cond88
   ret void
 }
 
-declare i32 @sqrt_of_array_cell(...) #1
+declare dso_local i32 @sqrt_of_array_cell(...) #1
 
 ; Function Attrs: nounwind
-declare double @sqrt(double) #2
+declare dso_local double @sqrt(double) #2
 
-attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #2 = { nounwind "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #2 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #3 = { nounwind }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 6.0.0 (tags/RELEASE_600/final)"}
+!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
+!2 = distinct !{!2, !3}
+!3 = !{!"llvm.loop.mustprogress"}
+!4 = distinct !{!4, !3}
+!5 = distinct !{!5, !3}
+!6 = distinct !{!6, !3}
+!7 = distinct !{!7, !3}
+!8 = distinct !{!8, !3}
+!9 = distinct !{!9, !3}
+!10 = distinct !{!10, !3}
+!11 = distinct !{!11, !3}

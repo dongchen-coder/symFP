@@ -1,10 +1,10 @@
 ; ModuleID = './ss_bc/gesummv.bc'
 source_filename = "./ss_src/gesummv.c"
-target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define void @gesummv(i32 %n, double %alpha, double %beta, double* %A, double* %B, double* %tmp, double* %x, double* %y) #0 {
+define dso_local void @gesummv(i32 %n, double %alpha, double %beta, double* %A, double* %B, double* %tmp, double* %x, double* %y) #0 {
 entry:
   %n.addr = alloca i32, align 4
   %alpha.addr = alloca double, align 8
@@ -29,7 +29,7 @@ entry:
 
 for.cond:                                         ; preds = %for.inc37, %entry
   %0 = load i32, i32* %i, align 4
-  %cmp = icmp slt i32 %0, 1024
+  %cmp = icmp slt i32 %0, 12288
   br i1 %cmp, label %for.body, label %for.end39
 
 for.body:                                         ; preds = %for.cond
@@ -48,13 +48,13 @@ for.body:                                         ; preds = %for.cond
 
 for.cond3:                                        ; preds = %for.inc, %for.body
   %5 = load i32, i32* %j, align 4
-  %cmp4 = icmp slt i32 %5, 1024
+  %cmp4 = icmp slt i32 %5, 12288
   br i1 %cmp4, label %for.body5, label %for.end
 
 for.body5:                                        ; preds = %for.cond3
   %6 = load double*, double** %A.addr, align 8
   %7 = load i32, i32* %i, align 4
-  %mul = mul nsw i32 %7, 1024
+  %mul = mul nsw i32 %7, 12288
   %8 = load i32, i32* %j, align 4
   %add = add nsw i32 %mul, %8
   %idxprom6 = sext i32 %add to i64
@@ -79,7 +79,7 @@ for.body5:                                        ; preds = %for.cond3
   store double %add13, double* %arrayidx15, align 8
   %18 = load double*, double** %B.addr, align 8
   %19 = load i32, i32* %i, align 4
-  %mul16 = mul nsw i32 %19, 1024
+  %mul16 = mul nsw i32 %19, 12288
   %20 = load i32, i32* %j, align 4
   %add17 = add nsw i32 %mul16, %20
   %idxprom18 = sext i32 %add17 to i64
@@ -108,7 +108,7 @@ for.inc:                                          ; preds = %for.body5
   %30 = load i32, i32* %j, align 4
   %inc = add nsw i32 %30, 1
   store i32 %inc, i32* %j, align 4
-  br label %for.cond3
+  br label %for.cond3, !llvm.loop !2
 
 for.end:                                          ; preds = %for.cond3
   %31 = load double, double* %alpha.addr, align 8
@@ -137,16 +137,19 @@ for.inc37:                                        ; preds = %for.end
   %41 = load i32, i32* %i, align 4
   %inc38 = add nsw i32 %41, 1
   store i32 %inc38, i32* %i, align 4
-  br label %for.cond
+  br label %for.cond, !llvm.loop !4
 
 for.end39:                                        ; preds = %for.cond
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 6.0.0 (tags/RELEASE_600/final)"}
+!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
+!2 = distinct !{!2, !3}
+!3 = !{!"llvm.loop.mustprogress"}
+!4 = distinct !{!4, !3}

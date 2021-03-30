@@ -49,19 +49,20 @@ void stencil_trace(double *a, double *b, unsigned int dim_size) {
                         + a[(DIM_SIZE)*(i+1)+j]
                         + a[(DIM_SIZE)*i+j+1]
                         + a[(DIM_SIZE)*(i+2)+j+1];
-            // rtTmpAccess(i * (DIM_SIZE) + j + 1, {i, j}, "A[i][j]");
-            // rtTmpAccess(i * (DIM_SIZE) + j + 2, {i, j}, "A[i][j+1]");
-            // rtTmpAccess(i * (DIM_SIZE) + j, {i, j}, "A[i][j-1]");
-            // rtTmpAccess( (i) * (DIM_SIZE) + j + 1, {i, j}, "A[i-1][j]");
-            // rtTmpAccess( (i+2) * (DIM_SIZE) + j + 1, {i, j}, "A[i+1][j]");
-            // rtTmpAccess(i * (DIM_SIZE) + j + 1 + (DIM_SIZE) * (DIM_SIZE), {i, j}, "B[i][j]");
-
+            rtTmpAccess(i * (DIM_SIZE) + j + 1, {i, j}, "A[i][j]");
+            rtTmpAccess(i * (DIM_SIZE) + j + 2, {i, j}, "A[i][j+1]");
+            rtTmpAccess(i * (DIM_SIZE) + j, {i, j}, "A[i][j-1]");
+            rtTmpAccess( (i) * (DIM_SIZE) + j + 1, {i, j}, "A[i-1][j]");
+            rtTmpAccess( (i+2) * (DIM_SIZE) + j + 1, {i, j}, "A[i+1][j]");
+            rtTmpAccess(i * (DIM_SIZE) + j + 1 + (DIM_SIZE) * (DIM_SIZE), {i, j}, "B[i][j]");
+/*
             rtTmpAccess((i+1) * (DIM_SIZE) + (j+1));
             rtTmpAccess((i+1) * (DIM_SIZE) + (j+2));
             rtTmpAccess((i+1) * (DIM_SIZE) + (j));
             rtTmpAccess( i * (DIM_SIZE) + (j+1));
             rtTmpAccess( (i+2) * (DIM_SIZE) + (j+1));
             rtTmpAccess(i * (DIM_SIZE) + (j+1) + (DIM_SIZE)* (DIM_SIZE));
+            */
         }
     }
     return;

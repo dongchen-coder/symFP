@@ -9,8 +9,8 @@
 #include "papi_timer.h"
 using namespace std;
 
-#define CLS 64
-#define DS 8
+#define CLS 1
+#define DS 1
 #ifndef BIN_SIZE
 #    define BIN_SIZE   64
 #endif
@@ -131,7 +131,7 @@ void updateStat(map<string, vector<tuple<vector<uint64_t>, uint64_t>>> & stat, s
     return;
 }
 
-void rtTmpAccess(uint64_t addr, string ref, vector<int> iteration) {
+void rtTmpAccess(uint64_t addr, vector<int> iteration, string ref) {
 
     addr = addr * DS / CLS;
     ref_t reuseSink = { .refid = ref, .iteration=iteration, .addr=addr  };

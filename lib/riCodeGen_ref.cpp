@@ -51,7 +51,7 @@ namespace riCodeGen_ref {
         
         if (LoopRefTree->L != NULL) {
             for (std::vector<Value *>::iterator it = LoopRefTree->LIS->IDV->begin(), eit = LoopRefTree->LIS->IDV->end(); it != eit; ++it) {
-                indvName[*it] = (*it)->getName();
+                indvName[*it] = (*it)->getName().str();
                 if (std::find(indvName[*it].begin(), indvName[*it].end(), '.') != indvName[*it].end()) {
                     indvName[*it].erase(std::find(indvName[*it].begin(), indvName[*it].end(), '.'));
                 }

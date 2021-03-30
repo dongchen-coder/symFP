@@ -1,13 +1,13 @@
 ; ModuleID = './ss_bc/covariance.bc'
 source_filename = "./ss_src/covariance.c"
-target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
-@float_n = global double 0x414885C20147AE14, align 8
-@eps = global double 5.000000e-03, align 8
+@float_n = dso_local global double 0x414885C20147AE14, align 8
+@eps = dso_local global double 5.000000e-03, align 8
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define void @covariance(i32 %m, i32 %n, double* %data, double* %symmat, double* %mean) #0 {
+define dso_local void @covariance(i32 %m, i32 %n, double* %data, double* %symmat, double* %mean) #0 {
 entry:
   %m.addr = alloca i32, align 4
   %n.addr = alloca i32, align 4
@@ -67,7 +67,7 @@ for.inc:                                          ; preds = %for.body3
   %11 = load i32, i32* %i, align 4
   %inc = add nsw i32 %11, 1
   store i32 %inc, i32* %i, align 4
-  br label %for.cond1
+  br label %for.cond1, !llvm.loop !2
 
 for.end:                                          ; preds = %for.cond1
   %12 = load double, double* @float_n, align 8
@@ -84,7 +84,7 @@ for.inc11:                                        ; preds = %for.end
   %16 = load i32, i32* %j, align 4
   %inc12 = add nsw i32 %16, 1
   store i32 %inc12, i32* %j, align 4
-  br label %for.cond
+  br label %for.cond, !llvm.loop !4
 
 for.end13:                                        ; preds = %for.cond
   store i32 0, i32* %i, align 4
@@ -126,7 +126,7 @@ for.inc26:                                        ; preds = %for.body19
   %26 = load i32, i32* %j, align 4
   %inc27 = add nsw i32 %26, 1
   store i32 %inc27, i32* %j, align 4
-  br label %for.cond17
+  br label %for.cond17, !llvm.loop !5
 
 for.end28:                                        ; preds = %for.cond17
   br label %for.inc29
@@ -135,7 +135,7 @@ for.inc29:                                        ; preds = %for.end28
   %27 = load i32, i32* %i, align 4
   %inc30 = add nsw i32 %27, 1
   store i32 %inc30, i32* %i, align 4
-  br label %for.cond14
+  br label %for.cond14, !llvm.loop !6
 
 for.end31:                                        ; preds = %for.cond14
   store i32 0, i32* %j1, align 4
@@ -207,7 +207,7 @@ for.inc59:                                        ; preds = %for.body44
   %47 = load i32, i32* %i, align 4
   %inc60 = add nsw i32 %47, 1
   store i32 %inc60, i32* %i, align 4
-  br label %for.cond42
+  br label %for.cond42, !llvm.loop !7
 
 for.end61:                                        ; preds = %for.cond42
   %48 = load double*, double** %symmat.addr, align 8
@@ -232,7 +232,7 @@ for.inc70:                                        ; preds = %for.end61
   %55 = load i32, i32* %j2, align 4
   %inc71 = add nsw i32 %55, 1
   store i32 %inc71, i32* %j2, align 4
-  br label %for.cond35
+  br label %for.cond35, !llvm.loop !8
 
 for.end72:                                        ; preds = %for.cond35
   br label %for.inc73
@@ -241,16 +241,24 @@ for.inc73:                                        ; preds = %for.end72
   %56 = load i32, i32* %j1, align 4
   %inc74 = add nsw i32 %56, 1
   store i32 %inc74, i32* %j1, align 4
-  br label %for.cond32
+  br label %for.cond32, !llvm.loop !9
 
 for.end75:                                        ; preds = %for.cond32
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 6.0.0 (tags/RELEASE_600/final)"}
+!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
+!2 = distinct !{!2, !3}
+!3 = !{!"llvm.loop.mustprogress"}
+!4 = distinct !{!4, !3}
+!5 = distinct !{!5, !3}
+!6 = distinct !{!6, !3}
+!7 = distinct !{!7, !3}
+!8 = distinct !{!8, !3}
+!9 = distinct !{!9, !3}

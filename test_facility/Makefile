@@ -9,8 +9,8 @@ LEVEL=..
 #TEST_DIR=/Users/dchen/tools/symFP/test_facility
 #LIB_DIR=/Users/dchen/tools/llvm-7.0.1/build/Debug/lib
 
-LLVM_BIN_DIR=/localdisk/fliu14/llvm/build/bin
-CLANG_BIN_DIR=/localdisk/fliu14/llvm/build/bin
+LLVM_BIN_DIR=/localdisk/fliu14/llvm/fzllvm/build/bin
+CLANG_BIN_DIR=/localdisk/fliu14/llvm/fzllvm/build/bin
 PAPI_LIB_DIR=/localdisk/local/include
 PAPI_LIB=/localdisk/local/lib/libpapi.a
 TEST_DIR=.
@@ -55,8 +55,8 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-# test_bench = $(BENCH)
-test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen
+test_bench = $(BENCH)
+# test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen
 # test_bench = atax bicg mvt deriche gesummv gemver gemm
 # check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 
@@ -156,7 +156,7 @@ trace_ref_osl_run:
 	# $(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_osl_trace > $(TRACE_REF_OSL_RESULT_DIR)/$(name)_ref_osl_trace_result.txt ;)
 
 test_trace_run:
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DMINI_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
+	$(foreach name, $(test_bench), g++ -g -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DSMALL_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
 	$(foreach name, $(test_bench), $(BIN_DIR)/$(name)_trace > $(TRACE_RESULT_DIR)/$(name)-trace_result.txt ;)
 
 test_plum_gen:

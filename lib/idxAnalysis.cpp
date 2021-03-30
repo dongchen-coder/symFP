@@ -106,17 +106,17 @@ namespace idxAnalysis {
             opExprs.clear();
             for (unsigned int i = 0; i < instStackEntry->getNumOperands(); i++) {
                 if (isa<Argument>(instStackEntry->getOperand(i))) {
-                    opExprs.push_back(instStackEntry->getOperand(i)->getName());
+                    opExprs.push_back(instStackEntry->getOperand(i)->getName().str());
                 } else if (isa<Constant>(instStackEntry->getOperand(i))) {
                     Constant* cons = dyn_cast<Constant>(instStackEntry->getOperand(i));
                     opExprs.push_back(cons->getUniqueInteger().toString(10, true));
                 } else if (isa<LoadInst>(instStackEntry->getOperand(i))) {
                     LoadInst* ld = dyn_cast<LoadInst>(instStackEntry->getOperand(i));
-                    opExprs.push_back(ld->getOperand(0)->getName());
-                    idvs.push_back(ld->getOperand(0)->getName());
+                    opExprs.push_back(ld->getOperand(0)->getName().str());
+                    idvs.push_back(ld->getOperand(0)->getName().str());
                 } else if (isa<PHINode>(instStackEntry->getOperand(i))) {
                     if (instStackEntry->getOperand(i)->hasName()) {
-                        opExprs.push_back(instStackEntry->getOperand(i)->getName());
+                        opExprs.push_back(instStackEntry->getOperand(i)->getName().str());
                     } else {
 #ifdef IDX_DEBUG
                         errs() << "Error: no name for PHInode\n";
@@ -214,11 +214,11 @@ namespace idxAnalysis {
             // this array is a read, cost = 1
             /* Load instruction */
             LoadInst* ldTmp = dyn_cast<LoadInst>(inst->getPointerOperand());
-            nameTmp = ldTmp->getOperand(0)->getName();
+            nameTmp = ldTmp->getOperand(0)->getName().str();
         } else {
             // this array is a write, cost = 2
             /* Store instruction */
-            nameTmp = inst->getPointerOperand()->getName();
+            nameTmp = inst->getPointerOperand()->getName().str();
         }
         
         return nameTmp;

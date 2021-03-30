@@ -86,7 +86,7 @@ namespace loopTreeTransform {
                     return inst->getOperand(0)->getName().str();
                     break;
                 case Instruction::Alloca:
-                    return inst->getName();
+                    return inst->getName().str();
                     break;
                 default:
                     break;

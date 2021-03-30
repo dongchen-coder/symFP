@@ -1,10 +1,10 @@
 ; ModuleID = './ss_bc/trisolv.bc'
 source_filename = "./ss_src/trisolv.c"
-target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define void @trisolv(double* %x, double* %b, double* %L) #0 {
+define dso_local void @trisolv(double* %x, double* %b, double* %L) #0 {
 entry:
   %x.addr = alloca double*, align 8
   %b.addr = alloca double*, align 8
@@ -70,7 +70,7 @@ for.inc:                                          ; preds = %for.body5
   %18 = load i32, i32* %j, align 4
   %inc = add nsw i32 %18, 1
   store i32 %inc, i32* %j, align 4
-  br label %for.cond3
+  br label %for.cond3, !llvm.loop !2
 
 for.end:                                          ; preds = %for.cond3
   %19 = load double*, double** %x.addr, align 8
@@ -98,16 +98,19 @@ for.inc21:                                        ; preds = %for.end
   %28 = load i32, i32* %i, align 4
   %inc22 = add nsw i32 %28, 1
   store i32 %inc22, i32* %i, align 4
-  br label %for.cond
+  br label %for.cond, !llvm.loop !4
 
 for.end23:                                        ; preds = %for.cond
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 6.0.0 (tags/RELEASE_600/final)"}
+!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
+!2 = distinct !{!2, !3}
+!3 = !{!"llvm.loop.mustprogress"}
+!4 = distinct !{!4, !3}
