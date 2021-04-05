@@ -20,7 +20,7 @@ using namespace llvm;
 
 #define SAMPLING 2
 
-//#define PARALLEL_CXX_THREAD
+#define PARALLEL_CXX_THREAD
 
 // #define REFERENCE_GROUP
 

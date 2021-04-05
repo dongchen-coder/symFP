@@ -919,7 +919,9 @@ namespace riAccCodeGen_ref {
             if (find(visit.begin(), visit.end(), arrayName[it->first]) != visit.end()) { continue; }
             visit.push_back(arrayName[it->first]);
             errs() << "void ref_" + arrayName[it->first] + std::to_string(it->second) + "() {\n";
+            errs() << "#ifdef DEBUG\n";
             errs() << "    cout << \" ref_" << arrayName[it->first] + to_string(it->second) << " \" << endl;\n";
+            errs() << "#endif\n";
             refRTBodyGen(LoopRefTree, arrayName[it->first], it->second);
             errs() << "}\n";
         }

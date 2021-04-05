@@ -786,13 +786,24 @@ namespace riCodeGen_ref {
                             
                             if (findFirstAAFromCurrLoopsI) {
                                 string inc = "1";
+                                errs() << space + "    // currentLoops.size() - 1 = " << currentLoops.size() - 1 << ", i = " << i << "\n";
                                 if (i == currentLoops.size()-1 && i != 0) {
+                                    // here is inner-nest loops
                                     inc = "1";
                                     string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
+                                    string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
+                                    errs() << space + "    // currentLoops.size() - 1 == i && i != 0 " + " i = " << to_string(i) << "\n";
+                                    errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
+                                    errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
+                                } else if (currentLoops.size()-1 == i && i == 0) {
+                                    // here is just a outermost loop
+                                    inc = "1";
+                                    string upper_bound = "BLIST[tid_to_run][1]+1";
                                     string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
                                     errs() << space + "    int nextInc" + to_string(i) + " = (progress[tid_to_run].first[" + to_string(i) +  "] + "+ inc +") == " + upper_bound + " ? 1 : 0;\n";
                                     errs() << space + "    progress[tid_to_run].first[" + to_string(i) + "] = (progress[tid_to_run].first[" + to_string(i) + "] + " + inc + ") == " + upper_bound + " ? " + lower_bound + " : progress[tid_to_run].first[" + to_string(i) + "] + " + inc + " ;\n";
                                 } else {
+                                    // here is the outermost loop and its has nested loops
                                     string upper_bound = getBound_Start((*(*rit)->LIS->LB)[0].second);
                                     string lower_bound = getBound_Start((*(*rit)->LIS->LB)[0].first);
                                     if (i == 0) {
@@ -963,6 +974,7 @@ namespace riCodeGen_ref {
                 
                 errs() << space + "    vector<int> candidate_thread_pool;\n";
                 errs() << space + "    for (int tid = 0; tid < THREAD_NUM; tid++) {\n";
+                errs() << space + "        if (BLIST[tid][0] > BLIST[tid][1]) { continue; }\n";
                 errs() << space + "        candidate_thread_pool.push_back(tid);\n";
                 errs() << space + "        /* init the progress vector for each thread (" << currentLoops.size() << ") */\n";
                 errs() << space + "        progress[tid].first";

@@ -105,7 +105,7 @@ for.inc:                                          ; preds = %for.body12
   %22 = load i32, i32* %s, align 4
   %inc = add nsw i32 %22, 1
   store i32 %inc, i32* %s, align 4
-  br label %for.cond10, !llvm.loop !2
+  br label %for.cond10
 
 for.end:                                          ; preds = %for.cond10
   br label %for.inc33
@@ -114,7 +114,7 @@ for.inc33:                                        ; preds = %for.end
   %23 = load i32, i32* %p, align 4
   %inc34 = add nsw i32 %23, 1
   store i32 %inc34, i32* %p, align 4
-  br label %for.cond4, !llvm.loop !4
+  br label %for.cond4
 
 for.end35:                                        ; preds = %for.cond4
   store i32 0, i32* %p, align 4
@@ -156,7 +156,7 @@ for.inc53:                                        ; preds = %for.body38
   %34 = load i32, i32* %p, align 4
   %inc54 = add nsw i32 %34, 1
   store i32 %inc54, i32* %p, align 4
-  br label %for.cond36, !llvm.loop !5
+  br label %for.cond36
 
 for.end55:                                        ; preds = %for.cond36
   br label %for.inc56
@@ -165,7 +165,7 @@ for.inc56:                                        ; preds = %for.end55
   %35 = load i32, i32* %q, align 4
   %inc57 = add nsw i32 %35, 1
   store i32 %inc57, i32* %q, align 4
-  br label %for.cond1, !llvm.loop !6
+  br label %for.cond1
 
 for.end58:                                        ; preds = %for.cond1
   br label %for.inc59
@@ -174,22 +174,16 @@ for.inc59:                                        ; preds = %for.end58
   %36 = load i32, i32* %r, align 4
   %inc60 = add nsw i32 %36, 1
   store i32 %inc60, i32* %r, align 4
-  br label %for.cond, !llvm.loop !7
+  br label %for.cond
 
 for.end61:                                        ; preds = %for.cond
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "frame-pointer"="all" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
-!2 = distinct !{!2, !3}
-!3 = !{!"llvm.loop.mustprogress"}
-!4 = distinct !{!4, !3}
-!5 = distinct !{!5, !3}
-!6 = distinct !{!6, !3}
-!7 = distinct !{!7, !3}
+!1 = !{!"clang version 11.1.0 (https://github.com/llvm/llvm-project.git 0e442b077b9c6fe75076dc7e1cae5de1a693bc9b)"}

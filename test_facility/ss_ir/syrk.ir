@@ -52,7 +52,7 @@ for.inc:                                          ; preds = %for.body3
   %7 = load i32, i32* %j, align 4
   %inc = add nsw i32 %7, 1
   store i32 %inc, i32* %j, align 4
-  br label %for.cond1, !llvm.loop !2
+  br label %for.cond1
 
 for.end:                                          ; preds = %for.cond1
   br label %for.inc5
@@ -61,7 +61,7 @@ for.inc5:                                         ; preds = %for.end
   %8 = load i32, i32* %i, align 4
   %inc6 = add nsw i32 %8, 1
   store i32 %inc6, i32* %i, align 4
-  br label %for.cond, !llvm.loop !4
+  br label %for.cond
 
 for.end7:                                         ; preds = %for.cond
   store i32 0, i32* %i, align 4
@@ -126,7 +126,7 @@ for.inc32:                                        ; preds = %for.body16
   %25 = load i32, i32* %k, align 4
   %inc33 = add nsw i32 %25, 1
   store i32 %inc33, i32* %k, align 4
-  br label %for.cond14, !llvm.loop !5
+  br label %for.cond14
 
 for.end34:                                        ; preds = %for.cond14
   br label %for.inc35
@@ -135,7 +135,7 @@ for.inc35:                                        ; preds = %for.end34
   %26 = load i32, i32* %j, align 4
   %inc36 = add nsw i32 %26, 1
   store i32 %inc36, i32* %j, align 4
-  br label %for.cond11, !llvm.loop !6
+  br label %for.cond11
 
 for.end37:                                        ; preds = %for.cond11
   br label %for.inc38
@@ -144,22 +144,16 @@ for.inc38:                                        ; preds = %for.end37
   %27 = load i32, i32* %i, align 4
   %inc39 = add nsw i32 %27, 1
   store i32 %inc39, i32* %i, align 4
-  br label %for.cond8, !llvm.loop !7
+  br label %for.cond8
 
 for.end40:                                        ; preds = %for.cond8
   ret void
 }
 
-attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "frame-pointer"="all" "less-precise-fpmad"="false" "min-legal-vector-width"="0" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}
 
 !0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{!"clang version 13.0.0 (https://github.com/llvm/llvm-project.git 482283042f795ecc27838a3b2f76b5494991401c)"}
-!2 = distinct !{!2, !3}
-!3 = !{!"llvm.loop.mustprogress"}
-!4 = distinct !{!4, !3}
-!5 = distinct !{!5, !3}
-!6 = distinct !{!6, !3}
-!7 = distinct !{!7, !3}
+!1 = !{!"clang version 11.1.0 (https://github.com/llvm/llvm-project.git 0e442b077b9c6fe75076dc7e1cae5de1a693bc9b)"}

@@ -22,7 +22,7 @@ using namespace std;
 
 #define SAMPLING 2 
 
-#define PARALLEL_CXX_THREAD
+// #define PARALLEL_CXX_THREAD
 
 //#define PROFILE_SEARCH_REUSE
 
