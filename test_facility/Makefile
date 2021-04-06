@@ -55,8 +55,8 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-# test_bench = $(BENCH)
-test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen stencil-7p
+test_bench = $(BENCH)
+# test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen stencil-7p
 # test_bench = atax bicg mvt deriche gesummv gemver gemm
 # check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 

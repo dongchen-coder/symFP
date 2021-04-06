@@ -699,7 +699,7 @@ namespace riCodeGen_ref {
                             loopAnalysis::LoopIndvBoundAnalysis::LoopRefTNode* addedLoop = *it_next;
                             while(addedLoop->L != NULL) {
                                 currentLoops.push_back(addedLoop);
-                                errs() << space + "    progress[tid_to_run].first.push_back(";
+                                errs() << space + "    progress[tid_to_run].first.emplace_back(";
                                 string lower_bound = getBound_Start((*(addedLoop)->LIS->LB)[0].first);
                                 errs() << lower_bound << ");\n";
                                 addedLoop = addedLoop->next->front();
@@ -975,7 +975,7 @@ namespace riCodeGen_ref {
                 errs() << space + "    vector<int> candidate_thread_pool;\n";
                 errs() << space + "    for (int tid = 0; tid < THREAD_NUM; tid++) {\n";
                 errs() << space + "        if (BLIST[tid][0] > BLIST[tid][1]) { continue; }\n";
-                errs() << space + "        candidate_thread_pool.push_back(tid);\n";
+                errs() << space + "        candidate_thread_pool.emplace_back(tid);\n";
                 errs() << space + "        /* init the progress vector for each thread (" << currentLoops.size() << ") */\n";
                 errs() << space + "        progress[tid].first";
                 string tmp = "";
