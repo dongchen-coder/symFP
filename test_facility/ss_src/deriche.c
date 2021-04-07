@@ -5,8 +5,8 @@
 #  define LARGE_DATASET
 # endif
 #ifdef MINI_DATASET
-    #define W 32
-    #define H 32
+    #define W 16
+    #define H 16
 #endif
 #ifdef SMALL_DATASET
     #define W 1024

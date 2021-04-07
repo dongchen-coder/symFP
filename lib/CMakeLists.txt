@@ -77,7 +77,6 @@ set_target_properties(LLVMSPS PROPERTIES
 #    LINK_FLAGS "-undefined dynamic_lookup"
 # )
 
-
 # Comment this out to disable PLUM and switch it to SPS
 add_definitions(-DPARALLEL)
 
@@ -88,34 +87,35 @@ add_definitions(-DPARALLEL)
 #     Random Interleaving
 # - DUNIFORM_INTERLEAVING:
 #     Uniform Interleaving
-# By default is uniform interleaving
-# add_definitions(-DRANDOM_INTERLEAVING)
-add_definitions(-DUNIFORM_INTERLEAVING)
 
-# - DACC_LEVEL_INTERLEAVING:
-#     Do Interleaving per each access
-# - DITER_LEVEL_INTERLEAVING:
-#     Do Interleaving per each iteration
-# - DALL_LEVEL_INTERLEAVING:
-#     Do interleaving for all references and interations
-# By default is 1:1 interleaving in data granularity
-# add_definitions(-DITER_LEVEL_INTERLEAVING)
-add_definitions(-DACC_LEVEL_INTERLEAVING)
-# add_definitions(-DALL_LEVEL_INTERLEAVING)
+OPTION(ENABLE_UNIFORM_INTERLEAVING
+  "Use the Uniform Interleaving"
+  OFF
+)
 
-# statically find the best thread number with best locality
-# add_definitions(-DTHREAD_TUNING)
+OPTION(ENABLE_RANDOM_INTERLEAVING
+  "Use the Random Interleaving"
+  OFF
+)
 
-# - DUNIFORM_SMOOTHING
-#     Do the RI calibration in uniform distribution
-# - DGAUSSIAN_SMOOTHING 
-#     Do the RI calibration in gaussian distribution
-# - DSMOOTHING 
-#     Do the RI calibration in custom heuristic
-# add_definitions(-DGAUSSIAN_SMOOTHING)
-# add_definitions(-DUNIFORM_SMOOTHING)
-# add_definitions(-DSMOOTHING)
+OPTION(ENABLE_PARALLEL_SAMPLING
+  "Open the Paralle Sampling Optimization"
+  OFF
+)
+
+if(ENABLE_UNIFORM_INTERLEAVING)
+  add_definitions(-DUNIFORM_INTERLEAVING)
+  add_definitions(-DACC_LEVEL_INTERLEAVING)
+endif(ENABLE_UNIFORM_INTERLEAVING)
+
+
+if(ENABLE_RANDOM_INTERLEAVING)
+  add_definitions(-DRANDOM_INTERLEAVING)
+  add_definitions(-DALL_LEVEL_INTERLEAVING)
+endif(ENABLE_RANDOM_INTERLEAVING)
 
 
 # enable parallel sampling optimization
-# add_definitions(-DPARALLEL_CXX_THREAD)
+if(ENABLE_PARALLEL_SAMPLING)
+  add_definitions(-DPARALLEL_CXX_THREAD)
+endif(ENABLE_PARALLEL_SAMPLING)

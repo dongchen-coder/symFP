@@ -135,6 +135,7 @@ namespace riCodeGen_ref {
         errs() << "#include <algorithm>\n";
         errs() << "#include <cstdlib>\n";
         errs() << "#include <iostream>\n";
+        errs() << "#include <iomanip>\n";
         errs() << "#include <cmath>\n";
         errs() << "#include <time.h>\n";
 #ifdef PARALLEL_CXX_THREAD
@@ -297,6 +298,7 @@ namespace riCodeGen_ref {
         
         errs() << "void rtDump() {\n";
         errs() << "    cout << \"Start to dump reuse time histogram\\n\";\n";
+        errs() << "    cout << fixed << setprecision(3);\n";
         errs() << "    for (map<uint64_t, double>::iterator it = RT.begin(), eit = RT.end(); it != eit; ++it) {\n";
         errs() << "        cout << it->first << \", \" << it->second << \"\\n\";\n";
         errs() << "    }\n";
