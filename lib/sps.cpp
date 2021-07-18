@@ -26,21 +26,33 @@
 // #include "rsCodeGen_ref.hpp"
 #if defined(PARALLEL)
 #   include "loopTreeTransform.hpp"
-#   if defined(UNIFORM_INTERLEAVING)
-        /* parallel 1:1 interleaving static sampling gen */
-#       include "uiAccCodeGen_ref.hpp"
-#       include "uiIterCodeGen_ref.hpp"
-#       include "uiAccCodeGenOpt_ref.hpp"
-#   elif defined(RANDOM_INTERLEAVING)
-        /* parallel random interleaving static sampling gen */
-#       include "riAccCodeGen_ref.hpp"
-#       include "riIterCodeGen_ref.hpp"
-#		include "riCodeGen_ref.hpp"
-#   elif defined(THREAD_TUNING)
-#       include "staticTuningCodeGen_ref.hpp"
-#   else 
-#       include "modelCodeGen_ref.hpp"
-#       include "modelCodeGenOpt_ref.hpp"
+#   include "IVDependenceAnalysis.hpp"
+#	include "AccessGraphAnalysis.hpp"
+#   include "plumCodeGen_ref.hpp"
+#   if defined(STATIC_SCHEDULING)
+        /* regular loop - static scheduling */
+/*
+#       if defined(UNIFORM_INTERLEAVING)
+            // parallel 1:1 interleaving static sampling gen
+#           include "uiAccCodeGen_ref.hpp"
+#           include "uiIterCodeGen_ref.hpp"
+#           include "uiAccCodeGenOpt_ref.hpp"
+#       elif defined(RANDOM_INTERLEAVING)
+            // parallel random interleaving static sampling gen
+#           include "riAccCodeGen_ref.hpp"
+#           include "riIterCodeGen_ref.hpp"
+#		 	include "riCodeGen_ref.hpp"
+#       elif defined(THREAD_TUNING)
+#           include "staticTuningCodeGen_ref.hpp"
+#       else 
+#           include "modelCodeGen_ref.hpp"
+#           include "modelCodeGenOpt_ref.hpp"
+#       endif
+*/
+// #           include "statSchCodeGen_ref.hpp"
+#   elif defined(DYNAMIC_SCHEDULING)
+        /* triangular loop - dynamic scheduling */
+// #       include "dynSchCodeGen_ref.hpp"
 #   endif
 #endif
 
@@ -65,24 +77,34 @@ namespace symFP {
 
         void getAnalysisUsage(AnalysisUsage &AU) const override {
             AU.setPreservesAll();
-#if defined(PARALLEL) 
+#if defined(PARALLEL)
+			AU.addRequired<ivdepAnalysis::IVDependenceAnalysis>();
+			AU.addRequired<AccGraphAnalysis::AccessGraphAnalysis>();
             AU.addRequired<loopTreeTransform::ParallelLoopTreeTransform>();
-#   if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
+            AU.addRequired<plumCodeGen_ref::PLUMSamplerCodeGen>();
+#   if defined(STATIC_SCHEDULING)
+            // AU.addRequired<statSchCodeGen_ref::StaticSchedulingSamplerCodeGen>();
+            /*
+#       if defined(UNIFORM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<uiIterCodeGen_ref::IterLevelUISamplingCodeGen_ref>();
-#   elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
+#       elif defined(UNIFORM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
             AU.addRequired<uiAccCodeGenOpt_ref::AccLevelUISamplingCodeGenOpt_ref>();
             // AU.addRequired<uiAccCodeGen_ref::AccLevelUISamplingCodeGen_ref>();
-#   elif defined(RANDOM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
+#       elif defined(RANDOM_INTERLEAVING) && defined(ITER_LEVEL_INTERLEAVING)
             AU.addRequired<riIterCodeGen_ref::IterLevelRICodeGen_ref>();
-#   elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
+#       elif defined(RANDOM_INTERLEAVING) && defined(ACC_LEVEL_INTERLEAVING)
             AU.addRequired<riAccCodeGen_ref::AccLevelRICodeGen_ref>();
-#	elif defined(RANDOM_INTERLEAVING) && defined(ALL_LEVEL_INTERLEAVING)
+#       elif defined(RANDOM_INTERLEAVING) && defined(ALL_LEVEL_INTERLEAVING)
 			AU.addRequired<riCodeGen_ref::AllLevelRICodeGen_ref>();
-#   elif defined(THREAD_TUNING)
+#       elif defined(THREAD_TUNING)
             AU.addRequired<staticTuningCodeGen_ref::TuningCodeGen_ref>();
-#   else 
+#       else 
             // AU.addRequired<modelCodeGen_ref::ModelCodeGen_ref>();
             AU.addRequired<modelCodeGenOpt_ref::ModelCodeGenOpt_ref>();
+#       endif
+*/
+#   elif defined(DYNAMIC_SCHEDULING)
+            // AU.addRequired<dynSchCodeGen_ref::DynamicSchedulingSamplerCodeGen>();
 #   endif
 #elif defined(REF_PAIR)
             AU.addRequired<ssCodeGen::StaticSamplingCodeGen>();

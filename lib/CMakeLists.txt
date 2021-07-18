@@ -1,4 +1,7 @@
-option(PLUM_ENABLE "open to enable PLUM to get sampler for OpenMP benchmarks" OFF)
+option(ENABLE_PLUM
+    "open to enable PLUM to get sampler for OpenMP benchmarks" 
+    OFF
+)
 add_library(LLVMSPS MODULE
   # List your source files here.
   # HBWMemOpAnalysis.hpp 
@@ -61,6 +64,26 @@ add_library(LLVMSPS MODULE
   staticTuningCodeGen_ref.hpp
   staticTuningCodeGen_ref.cpp
 
+  IVDependenceAnalysis.hpp
+  IVDependenceAnalysis.cpp
+
+  dynSchCodeGen_ref.hpp
+  dynSchCodeGen_ref.cpp
+
+  statSchCodeGen_ref.hpp
+  statSchCodeGen_ref.cpp
+
+  plumCodeGen_ref.hpp
+  plumCodeGen_ref.cpp
+
+  plumSamplerCodeGenerator.hpp
+  plumSamplerCodeGenerator.cpp
+  
+  plumCodeGenUtil.hpp
+  plumCodeGenUtil.cpp
+
+  AccessGraphAnalysis.hpp
+  AccessGraphAnalysis.cpp
   # metricCollectGen.hpp
   # metricCollectGen.cpp
 )
@@ -77,8 +100,6 @@ set_target_properties(LLVMSPS PROPERTIES
 #    LINK_FLAGS "-undefined dynamic_lookup"
 # )
 
-# Comment this out to disable PLUM and switch it to SPS
-add_definitions(-DPARALLEL)
 
 # Define the interleaving pattern of PLUM. 
 # All these macro will work if and only if its in PLUM mode (-DPARALLEL is defined)
@@ -87,6 +108,11 @@ add_definitions(-DPARALLEL)
 #     Random Interleaving
 # - DUNIFORM_INTERLEAVING:
 #     Uniform Interleaving
+#
+# - DSTATIC_SCHEDULING:
+#     running in OpenMP static scheduling
+# - DDYNAMIC_SCHEDULING:
+#     running in OpenMP dynamic scheduling
 
 OPTION(ENABLE_UNIFORM_INTERLEAVING
   "Use the Uniform Interleaving"
@@ -98,10 +124,31 @@ OPTION(ENABLE_RANDOM_INTERLEAVING
   OFF
 )
 
+OPTION(STATIC_SCHEDULING
+  "In OpenMP static scheduling"
+  OFF
+)
+
+OPTION(DYNAMIC_SCHEDULING
+  "In OpenMP dynamic scheduling"
+  OFF
+)
+
 OPTION(ENABLE_PARALLEL_SAMPLING
   "Open the Paralle Sampling Optimization"
   OFF
 )
+
+if(ENABLE_PLUM)
+    # Comment this out to disable PLUM and switch it to SPS
+    add_definitions(-DPARALLEL)
+endif(ENABLE_PLUM)
+
+if(STATIC_SCHEDULING)
+  add_definitions(-DSTATIC_SCHEDULING)
+elseif(DYNAMIC_SCHEDULING) 
+  add_definitions(-DDYNAMIC_SCHEDULING)
+endif(STATIC_SCHEDULING)
 
 if(ENABLE_UNIFORM_INTERLEAVING)
   add_definitions(-DUNIFORM_INTERLEAVING)

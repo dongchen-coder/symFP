@@ -6,7 +6,7 @@
 /* Define the possible dataset sizes. */
 #  ifdef MINI_DATASET
 #   define N 32
-#   define M 32
+#   define M 4
 #  endif
 
 #  ifdef SMALL_DATASET
@@ -35,17 +35,14 @@ void syrk(double alpha, double beta, double* A, double* C)
     int i, j, k;
 
     for (i = 0; i < N; i++) {
-    	for (j = 0; j < N; j++) {
-    		C[i * N + j] *= beta;
-    	}
-	}
-
-    for (i = 0; i < N; i++) {
-    	for (j = 0; j < N; j++) {
-    		for (k = 0; k < M; k++) {
-    			C[i * N + j] += alpha * A[i * M + k] * A[j * M + k];
-    		}
-    	}
+        for (j = 0; j <= i; j++) {
+            C[i * N + j] *= beta;
+        }
+        for (k = 0; k < M; k++) {
+            for (j = 0; j <= i; j++) {
+                C[i * N + j] += alpha * A[i * M + k] * A[j * M + k];
+            }
+        }
     }
 
    

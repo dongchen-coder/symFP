@@ -5,8 +5,8 @@
 #  define LARGE_DATASET
 # endif
 #ifdef MINI_DATASET
-    #define M 32
-    #define N 32
+    #define M 16
+    #define N 16
 #endif
 #ifdef SMALL_DATASET
     #define M 1024

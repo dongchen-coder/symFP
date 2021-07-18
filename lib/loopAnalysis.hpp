@@ -10,7 +10,8 @@
 #define loopAnalysis_hpp
 
 #include <stdio.h>
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
 #include <map>
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
@@ -36,10 +37,6 @@ namespace loopAnalysis {
         static char ID;
         LoopIndvBoundAnalysis();
         
-        /* array index info: init from idxAnalysis pass */
-        std::map<Instruction*, std::string> arrayName;
-        std::map<Instruction*, std::string> arrayExpression;
-        
         /* Data structures for loop info */
         typedef pair<Value*, Value*> LoopBound;              /* loop bounds are stored in pairs (lower bound, upper bound) */
         
@@ -59,6 +56,13 @@ namespace loopAnalysis {
             Instruction* AA;
             vector<LoopRefTNode *>* next;
         };
+		
+		/* array index info: init from idxAnalysis pass */
+		std::map<Instruction*, std::string> arrayName;
+		std::map<Instruction*, std::string> arrayExpression;
+		std::unordered_set<std::string> ArrayNameSet;
+		
+		std::unordered_map<std::string, LoopRefTNode *> PerArrayLoopRefTreeMap;
         
         LoopRefTNode* LoopRefTree;                           /* Root node for loop reference tree */
         
@@ -83,18 +87,27 @@ namespace loopAnalysis {
         
         /* Init loopInfoStruct for each loop L */
         LoopInfoStruct* ExtractLoopInfo(Loop *L);
+		
+		bool DoesLoopContainsArray(LoopRefTNode * loop, std::string array);
+		bool DoesLoopContainsArrayAccess(LoopRefTNode * loop);
         
         /* Construct loop tree (references are not included) */
         void LoopTreeConstruction(Loop* LI , LoopRefTNode * root, int level);     /* called by LoopTreeConstructionLoop() */
         LoopRefTNode* LoopTreeConstructionLoop(LoopRefTNode * root);              /* Top */
+		void PerArrayLoopTreeTransform(LoopRefTNode *LoopRefTree);
         
         /* Dump loop/reference tree */
         void DumpLoopTree(LoopRefTNode* LTroot, std::string prefix);
+		void DumpPerArrayLoopTree();
         
         /* Analysis pass main function */
         bool runOnFunction(Function &F) override;
 
         void getAnalysisUsage(AnalysisUsage &AU) const override;
+	private:
+		void initArrayName();
+		void PruneLoopRefTree(LoopRefTNode *LoopRefTree);
+		void FilterOutIrrelateArrayNode(LoopRefTNode *LoopRefTree, LoopRefTNode * NewTree, std::string array);
     };
 }
 

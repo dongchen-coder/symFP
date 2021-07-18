@@ -375,7 +375,24 @@ namespace loopAnalysis {
         
         return;
     }
-    
+
+	bool LoopIndvBoundAnalysis::DoesLoopContainsArray(LoopRefTNode * loop, std::string array) {
+		assert(!arrayName.empty() && "arrayName cannot be empty");
+		if (!loop->L && !loop->AA) {
+			for (auto subloop : *loop->next) {
+				if (DoesLoopContainsArray(subloop, array))
+					return true;
+			}
+		} else if (loop->AA) {
+			return arrayName[loop->AA] == array;
+		} else if (loop->L) {
+			for (auto subloop : *loop->next) {
+				if (DoesLoopContainsArray(subloop, array))
+					return true;
+			}
+		}
+		return false;
+	}
     
     /* Construct loop tree (references are not included) */
     LoopIndvBoundAnalysis::LoopRefTNode* LoopIndvBoundAnalysis::LoopTreeConstructionLoop(LoopRefTNode* root) {
@@ -425,6 +442,65 @@ namespace loopAnalysis {
         
         return root;
     }
+
+
+	void LoopIndvBoundAnalysis::PerArrayLoopTreeTransform(LoopRefTNode *LoopRefTree) {
+		std::unordered_set<std::string>::iterator arrayIter = ArrayNameSet.begin();
+		for (; arrayIter != ArrayNameSet.end(); ++arrayIter) {
+			LoopRefTNode * ArrayTreeRoot = (LoopRefTNode *) malloc(sizeof(LoopRefTNode));
+			FilterOutIrrelateArrayNode(LoopRefTree, ArrayTreeRoot, *arrayIter);
+			PerArrayLoopRefTreeMap[*arrayIter] = ArrayTreeRoot;
+		}
+		
+	}
+
+	void LoopIndvBoundAnalysis::FilterOutIrrelateArrayNode(LoopRefTNode *LoopRefTree, LoopRefTNode * NewTree, std::string array) {
+		if (!LoopRefTree->L && !LoopRefTree->AA) {
+			if (!LoopRefTree->next->empty())
+				NewTree->next = new vector<LoopRefTNode *>();
+			// dummy loop
+			for (auto subloop : *LoopRefTree->next) {
+				FilterOutIrrelateArrayNode(subloop, NewTree, array);
+			}
+		}
+		if (LoopRefTree->L) {
+			// Loop Node
+			LoopRefTNode * LoopNode = (LoopRefTNode *) malloc(sizeof(LoopRefTNode));
+			LoopNode->LoopLevel = LoopRefTree->LoopLevel;
+			LoopNode->L = LoopRefTree->L;
+			LoopNode->LIS = LoopRefTree->LIS;
+			LoopNode->AA = nullptr;
+			if (!LoopRefTree->next->empty())
+				LoopNode->next = new vector<LoopRefTNode *>();
+			else
+				LoopRefTree->next = nullptr;
+			NewTree->next->push_back(LoopNode);
+			for (auto subloop : *LoopRefTree->next) {
+				FilterOutIrrelateArrayNode(subloop, LoopNode, array);
+			}
+		}
+		if (LoopRefTree->AA && arrayName[LoopRefTree->AA] == array) {
+			// Reference Node
+			LoopRefTNode * RefNode = (LoopRefTNode *) malloc(sizeof(LoopRefTNode));
+			RefNode->LoopLevel = LoopRefTree->LoopLevel;
+			RefNode->AA = LoopRefTree->AA;
+			NewTree->next->push_back(RefNode);
+		}
+		return;
+	}
+
+	void LoopIndvBoundAnalysis::PruneLoopRefTree(LoopRefTNode * LoopRefTree) {
+		return;
+	}
+
+	void LoopIndvBoundAnalysis::initArrayName() {
+		
+		for (std::map<Instruction*, std::string>::iterator it = arrayName.begin(), eit = arrayName.end(); it != eit; ++it) {
+			it->second.replace(std::find(it->second.begin(), it->second.end(), '.'), std::find(it->second.begin(), it->second.end(), '.') +1, 1, '_');
+		}
+		
+		return;
+	}
     
     /* Dump loop/reference tree */
     void LoopIndvBoundAnalysis::DumpLoopTree(LoopRefTNode* LTroot, std::string prefix) {
@@ -474,6 +550,14 @@ namespace loopAnalysis {
         
         return;
     }
+
+	void LoopIndvBoundAnalysis::DumpPerArrayLoopTree() {
+		unordered_map<std::string, LoopRefTNode *>::iterator arrayIter = PerArrayLoopRefTreeMap.begin();
+		for (; arrayIter != PerArrayLoopRefTreeMap.end(); ++arrayIter) {
+			errs() << " --------------- LoopRefTree for Array " << arrayIter->first << " --------------- \n";
+			DumpLoopTree(arrayIter->second, "");
+		}
+	}
     
     /* Return all the basic blocks in a function */
     vector<BasicBlock*> getBasicBlocks(Function &F) {
@@ -495,6 +579,19 @@ namespace loopAnalysis {
         
         arrayName = getAnalysis<idxAnalysis::IndexAnalysis>().arrayName;
         arrayExpression = getAnalysis<idxAnalysis::IndexAnalysis>().arrayExpression;
+		
+		initArrayName();
+		
+		map<Instruction *, string>::iterator arrayIter = arrayName.begin();
+		for (; arrayIter != arrayName.end(); ++arrayIter) {
+			if (ArrayNameSet.find(arrayIter->second) == ArrayNameSet.end())
+				ArrayNameSet.insert(arrayIter->second);
+		}
+		
+		unordered_set<string>::iterator arrayNameIter = ArrayNameSet.begin();
+		for (; arrayNameIter != ArrayNameSet.end(); ++arrayNameIter) {
+			errs() << "Array " << *arrayNameIter << " \n";
+		}
         
         LoopRefTNode* LTroot = NULL;
         
@@ -510,6 +607,11 @@ namespace loopAnalysis {
         DumpLoopTree(LTroot, "");
         
         errs() << "\nFinish analysis loops */ \n";
+		
+//		errs() << "\n /* Start build per array loop tree\n";
+//		PerArrayLoopTreeTransform(PTLoopRefTree);
+//		DumpPerArrayLoopTree();
+//		errs() << "\n Finish build per array loop tree */ \n";
         
         return false;
     }

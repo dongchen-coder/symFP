@@ -14,8 +14,8 @@
 
 /* Define the possible dataset sizes. */
 #  ifdef MINI_DATASET
-#   define NI 32
-#   define NJ 32
+#   define NI 4
+#   define NJ 4
 #  endif
 
 #  ifdef SMALL_DATASET
@@ -63,9 +63,9 @@ void syrk_trace(double alpha, double beta, double* A, double* C)
             for (k = 0; k < NJ; k++)
             {
                 C[i * NI + j] = C[i * NI + j] + alpha * A[i * NJ + k] * A[j * NJ + k];
+				rtTmpAccess(C_OFFSET + i * NI + j);
 				rtTmpAccess(A_OFFSET + i * NJ + k);
 				rtTmpAccess(A_OFFSET + j * NJ + k);
-				rtTmpAccess(C_OFFSET + i * NI + j);
 				rtTmpAccess(C_OFFSET + i * NI + j);
             }
         }

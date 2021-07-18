@@ -9,8 +9,8 @@
 #include "papi_timer.h"
 using namespace std;
 
-#define CLS 1
-#define DS 1
+#define CLS 64
+#define DS 8
 #ifndef BIN_SIZE
 #    define BIN_SIZE   64
 #endif
@@ -131,6 +131,7 @@ void updateStat(map<string, vector<tuple<vector<uint64_t>, uint64_t>>> & stat, s
     return;
 }
 
+#if 0
 void rtTmpAccess(uint64_t addr, vector<int> iteration, string ref) {
 
     addr = addr * DS / CLS;
@@ -147,7 +148,7 @@ void rtTmpAccess(uint64_t addr, vector<int> iteration, string ref) {
     return;
 }
 
-/*
+
 void rtTmpAccess(uint64_t addr, string ref_id, uint64_t array_id) {
 	addr = addr * DS / CLS;
 	refT++;
@@ -177,8 +178,13 @@ void rtTmpAccess(uint64_t addr, string ref_id, uint64_t array_id) {
 
 	return;	
 }
+#endif
 
 void rtTmpAccess(int addr) {
+    if (addr >= 16) 
+        printf("id:, index: %d\n", addr-16);
+    else
+        printf("id:, index: %d\n", addr);
 
     addr = addr * DS / CLS;
 
@@ -192,7 +198,7 @@ void rtTmpAccess(int addr) {
     }
     return;
 }
-*/
+
 /*
 void rtTmpAccess(uint64_t addr, vector<uint64_t> iter, string ref_id) {
 	addr = addr * DS / CLS;

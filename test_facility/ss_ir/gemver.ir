@@ -37,7 +37,7 @@ entry:
 
 for.cond:                                         ; preds = %for.inc20, %entry
   %0 = load i32, i32* %i, align 4
-  %cmp = icmp slt i32 %0, 1024
+  %cmp = icmp slt i32 %0, 8192
   br i1 %cmp, label %for.body, label %for.end22
 
 for.body:                                         ; preds = %for.cond
@@ -46,13 +46,13 @@ for.body:                                         ; preds = %for.cond
 
 for.cond1:                                        ; preds = %for.inc, %for.body
   %1 = load i32, i32* %j, align 4
-  %cmp2 = icmp slt i32 %1, 1024
+  %cmp2 = icmp slt i32 %1, 8192
   br i1 %cmp2, label %for.body3, label %for.end
 
 for.body3:                                        ; preds = %for.cond1
   %2 = load double*, double** %A.addr, align 8
   %3 = load i32, i32* %i, align 4
-  %mul = mul nsw i32 %3, 1024
+  %mul = mul nsw i32 %3, 8192
   %4 = load i32, i32* %j, align 4
   %add = add nsw i32 %mul, %4
   %idxprom = sext i32 %add to i64
@@ -84,7 +84,7 @@ for.body3:                                        ; preds = %for.cond1
   %add15 = fadd double %add9, %mul14
   %18 = load double*, double** %A.addr, align 8
   %19 = load i32, i32* %i, align 4
-  %mul16 = mul nsw i32 %19, 1024
+  %mul16 = mul nsw i32 %19, 8192
   %20 = load i32, i32* %j, align 4
   %add17 = add nsw i32 %mul16, %20
   %idxprom18 = sext i32 %add17 to i64
@@ -113,7 +113,7 @@ for.end22:                                        ; preds = %for.cond
 
 for.cond23:                                       ; preds = %for.inc45, %for.end22
   %23 = load i32, i32* %i, align 4
-  %cmp24 = icmp slt i32 %23, 1024
+  %cmp24 = icmp slt i32 %23, 8192
   br i1 %cmp24, label %for.body25, label %for.end47
 
 for.body25:                                       ; preds = %for.cond23
@@ -122,7 +122,7 @@ for.body25:                                       ; preds = %for.cond23
 
 for.cond26:                                       ; preds = %for.inc42, %for.body25
   %24 = load i32, i32* %j, align 4
-  %cmp27 = icmp slt i32 %24, 1024
+  %cmp27 = icmp slt i32 %24, 8192
   br i1 %cmp27, label %for.body28, label %for.end44
 
 for.body28:                                       ; preds = %for.cond26
@@ -134,7 +134,7 @@ for.body28:                                       ; preds = %for.cond26
   %28 = load double, double* %beta.addr, align 8
   %29 = load double*, double** %A.addr, align 8
   %30 = load i32, i32* %j, align 4
-  %mul31 = mul nsw i32 %30, 1024
+  %mul31 = mul nsw i32 %30, 8192
   %31 = load i32, i32* %i, align 4
   %add32 = add nsw i32 %mul31, %31
   %idxprom33 = sext i32 %add32 to i64
@@ -176,7 +176,7 @@ for.end47:                                        ; preds = %for.cond23
 
 for.cond48:                                       ; preds = %for.inc58, %for.end47
   %40 = load i32, i32* %i, align 4
-  %cmp49 = icmp slt i32 %40, 1024
+  %cmp49 = icmp slt i32 %40, 8192
   br i1 %cmp49, label %for.body50, label %for.end60
 
 for.body50:                                       ; preds = %for.cond48
@@ -210,7 +210,7 @@ for.end60:                                        ; preds = %for.cond48
 
 for.cond61:                                       ; preds = %for.inc83, %for.end60
   %50 = load i32, i32* %i, align 4
-  %cmp62 = icmp slt i32 %50, 1024
+  %cmp62 = icmp slt i32 %50, 8192
   br i1 %cmp62, label %for.body63, label %for.end85
 
 for.body63:                                       ; preds = %for.cond61
@@ -219,7 +219,7 @@ for.body63:                                       ; preds = %for.cond61
 
 for.cond64:                                       ; preds = %for.inc80, %for.body63
   %51 = load i32, i32* %j, align 4
-  %cmp65 = icmp slt i32 %51, 1024
+  %cmp65 = icmp slt i32 %51, 8192
   br i1 %cmp65, label %for.body66, label %for.end82
 
 for.body66:                                       ; preds = %for.cond64
@@ -231,7 +231,7 @@ for.body66:                                       ; preds = %for.cond64
   %55 = load double, double* %alpha.addr, align 8
   %56 = load double*, double** %A.addr, align 8
   %57 = load i32, i32* %i, align 4
-  %mul69 = mul nsw i32 %57, 1024
+  %mul69 = mul nsw i32 %57, 8192
   %58 = load i32, i32* %j, align 4
   %add70 = add nsw i32 %mul69, %58
   %idxprom71 = sext i32 %add70 to i64

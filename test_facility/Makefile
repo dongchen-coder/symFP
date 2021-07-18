@@ -45,7 +45,8 @@ DIS= $(LLVM_BIN_DIR)/llvm-dis
 CHK_SIZE=4
 TNUM=4
 BENCH=2mm
-CONSTANT_FLAG = -DTHREAD_LB=2 -DTHREAD_UB=64 -DCHUNK_SIZE=$(CHK_SIZE) -DBIN_SIZE=64 -DTHREAD_NUM=$(TNUM) -DPAPI_TIMER -DDEBUG
+EXP=stat
+CONSTANT_FLAG = -DTHREAD_LB=2 -DTHREAD_UB=64 -DCHUNK_SIZE=$(CHK_SIZE) -DBIN_SIZE=64 -DTHREAD_NUM=$(TNUM) -DPAPI_TIMER -DSIMULATOR_DEBUG
 
 all_bench = stencil 2mm 3mm adi atax bicg cholesky correlation covariance deriche doitgen durbin fdtd-2d floyd-warshall gemm gemver gesummv gramschmidt heat-3d jacobi-1d jacobi-2d lu ludcmp mvt nussinov seidel-2d symm syr2k syrk trisolv trmm
 
@@ -55,13 +56,13 @@ sym_bound_bench = cholesky correlation covariance durbin lu ludcmp nussinov symm
 
 cl_bench = 2mm_kernel 3mm_kernel adi_kernel atax_kernel bicg_kernel convolution_2d_kernel convolution_3d_kernel correlation_kernel covariance_kernel doitgen_kernel fdtd_kernel gemm_kernel gemver_kernel gesummv_kernel gramschmidt_kernel jacobi_1d_kernel jacobi_2d_kernel lu_kernel mvt_kernel syr2k_kernel syrk_kernel
 
-# test_bench = $(BENCH)
-test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen stencil-7p
+test_bench = $(BENCH)
+# test_bench =  jacobi-1d jacobi-2d fdtd-2d 2mm 3mm mvt atax bicg gemm gemver gesummv stencil deriche adi heat-3d doitgen stencil-7p
 # test_bench = atax bicg mvt deriche gesummv gemver gemm
 # check_bench = deriche fdtd_2d heat_3d jacobi_1d jacobi_2d adi 2mm 3mm mvt atax bicg gemm gemver gesummv
 
-check_bench = stencil
-#check_bench = atax
+# check_bench = correlation symm mvt cholesky deriche jacobi-2d
+#check_bench = ata x
 #check_bench = gesummv
 #check_bench = heat_3d
 #check_bench = cholesky
@@ -77,7 +78,7 @@ check_bench = stencil
 #check_bench = trisolv
 #check_bench = trmm
 #check_bench = 3mm
-#check_bench = mm
+check_bench = mvt cholesky symm jacobi-2d deriche correlation
 
 all_gen:
 	$(foreach name, $(all_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -o $(BC_DIR)/$(name).bc ;)
@@ -132,7 +133,7 @@ check_gen:
 	$(foreach name, $(check_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
 	$(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_staticSampling.cpp ;)
-	$(foreach name, $(check_bench), g++ -g -std=c++11 -lpthread $(SS_DIR)/$(name)_staticSampling.cpp -O0 -DBIN_SIZE=64 -DTHREAD_NUM=8 -DCHUNK_SIZE=$(CHK_SIZE) -o $(BIN_DIR)/$(name)_staticSampling ;)
+	$(foreach name, $(check_bench), g++ -g -std=c++11 -lpthread $(SS_DIR)/$(name)_staticSampling.cpp -O0 -DBIN_SIZE=64 -DTHREAD_NUM=8 -DCHUNK_SIZE=$(CHK_SIZE) -DPAPI_TIMER -I$(UTIL_DIR) -I$(PAPI_LIB_DIR) $(PAPI_LIB) -o $(BIN_DIR)/$(name)_staticSampling ;)
 
 phase_gen:
 	$(foreach name, $(phase_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DORG -o $(BC_DIR)/$(name).bc ;)
@@ -144,7 +145,7 @@ check_run:
 	$(foreach name, $(check_bench), $(BIN_DIR)/$(name)_staticSampling > $(RESULT_DIR)/$(name)_staticSampling_result.txt ;)
 
 trace_run:
-	$(foreach name, $(check_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -DSMALL_DATASET -o $(BIN_DIR)/$(name)_trace ;)
+	$(foreach name, $(check_bench), g++ -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -DSMALL_DATASET -Iutility -o $(BIN_DIR)/$(name)_trace ;)
 	$(foreach name, $(check_bench), $(BIN_DIR)/$(name)_trace > $(TRACE_RESULT_DIR)/$(name)_trace_result.txt ;)
 
 trace_ref_run:
@@ -156,7 +157,7 @@ trace_ref_osl_run:
 	# $(foreach name, $(all_bench), $(BIN_DIR)/$(name)_ref_osl_trace > $(TRACE_REF_OSL_RESULT_DIR)/$(name)_ref_osl_trace_result.txt ;)
 
 test_trace_run:
-	$(foreach name, $(test_bench), g++ -g -std=c++11 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DSMALL_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
+	$(foreach name, $(test_bench), clang++ -g -std=c++14 $(TRACE_SRC_DIR)/$(name).cpp -O3 -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) -DMINI_DATASET $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_trace ;)
 	$(foreach name, $(test_bench), $(BIN_DIR)/$(name)_trace > $(TRACE_RESULT_DIR)/$(name)-trace_result.txt ;)
 
 test_plum_gen:
@@ -166,9 +167,9 @@ test_plum_gen:
 	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plum_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plum_t$(TNUM) ;)
 
 test_plumopt_gen:
-	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DLARGE_DATASET -o $(BC_DIR)/$(name).bc ;)
+	# $(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DLARGE_DATASET -o $(BC_DIR)/$(name).bc ;)
 	# $(foreach name, $(test_bench), $(DIS) $(BC_DIR)/$(name).bc -o $(IR_DIR)/$(name).ir ;)
-	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp ;)
+	# $(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp ;)
 	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -lpthread $(SS_DIR)/$(name)_plumopt_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_plumopt_t$(TNUM) ;)
 
 test_model_gen:
@@ -208,6 +209,46 @@ test_tuning_gen:
 	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_tuning.cpp ;)
 	$(foreach name, $(test_bench), g++ -g -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_tuning.cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_tuning ;)
 
+test_dyn_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+# 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -ivdepAnalysis -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	# $(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc.opt -o $(IR_DIR)/$(name).ll ;)
+	#$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_dyn_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -ggdb -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_dyn_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_dyn_t$(TNUM) ;)
+
+test_dynrandom_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+# 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -ivdepAnalysis -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	# $(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc.opt -o $(IR_DIR)/$(name).ll ;)
+	#$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_dynrandom_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -ggdb -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_dynrandom_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_dynrandom_t$(TNUM) ;)
+
+test_stat_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DSMALL_DATASET -o $(BC_DIR)/$(name).bc ;)
+# 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -ivdepAnalysis -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	# $(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc.opt -o $(IR_DIR)/$(name).ll ;)
+	#$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_stat_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -ggdb -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_stat_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_stat_t$(TNUM) ;)
+
+test_statrandom_gen:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+# 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -ivdepAnalysis -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	# $(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc.opt -o $(IR_DIR)/$(name).ll ;)
+	#$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_statrandom_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -ggdb -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_statrandom_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_statrandom_t$(TNUM) ;)
+
+plum_code:
+	$(foreach name, $(test_bench), $(CC) -O0 -c -emit-llvm $(SRC_DIR)/$(name).c -DMINI_DATASET -o $(BC_DIR)/$(name).bc ;)
+# 	$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -ivdepAnalysis -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	# $(foreach name, $(check_bench), $(DIS) $(BC_DIR)/$(name).bc.opt -o $(IR_DIR)/$(name).ll ;)
+	#$(foreach name, $(check_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -debug <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt ;)
+	$(foreach name, $(test_bench), $(OPT) -load $(LIB_DIR)/libLLVMSPS.so -sps -spsrate=$(SPSRATE) <$(BC_DIR)/$(name).bc> $(BC_DIR)/$(name).bc.opt 2> $(SS_DIR)/$(name)_$(EXP)_t$(TNUM).cpp ;)
+	$(foreach name, $(test_bench), g++ -ggdb -O3 -std=c++11 -pthread $(SS_DIR)/$(name)_$(EXP)_t$(TNUM).cpp -I$(PAPI_LIB_DIR) -I$(UTIL_DIR) $(PAPI_LIB) $(CONSTANT_FLAG) -o $(BIN_DIR)/$(name)_$(EXP)_t$(TNUM) ;)
+
 clean:
 	rm $(BIN_DIR)/$(BENCH)_model_t$(TNUM) $(BIN_DIR)/$(BENCH)_plum_t$(TNUM)
 	rm $(BIN_DIR)/$(BENCH)_model_t$(TNUM) $(BIN_DIR)/$(BENCH)_plum_t$(TNUM)
@@ -215,8 +256,7 @@ clean:
 	rm $(SS_DIR)/$(BENCH)_model_t$(TNUM).cpp $(SS_DIR)/$(BENCH)_plum_t$(TNUM).cpp
 
 veryclean:
-	rm $(BC_DIR)/*.bc
-	rm $(IR_DIR)/*.ir
+	rm $(BC_DIR)/*.bc rm $(IR_DIR)/*.ir
 	rm $(SS_DIR)/sequential/*_staticSampling.cpp
 	rm $(SS_DIR)/parallel/*_staticSampling.cpp
 	rm $(BIN_DIR)/sequential/*_staticSampling
